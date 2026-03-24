@@ -11,7 +11,7 @@ You need Python, Rust and mdBook.
 git clone --recurse-submodules git@github.com:gbadev-org/tonc.git
 cd tonc
 
-cargo install mdbook
+cargo install mdbook@0.4.52
 
 # run the development server
 mdbook serve --open
