@@ -1,0 +1,400 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>附录 E - 通过编辑器进行 Make - Tonc - GBA Programming in rot13</title>
+
+
+        <!-- Custom HTML head -->
+        <!-- Matomo tracking code -->
+        <script>
+          var _paq = window._paq = window._paq || [];
+          /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+          _paq.push(['trackPageView']);
+          _paq.push(['enableLinkTracking']);
+          (function() {
+            var u="//stats.gbdev.io/";
+            _paq.push(['setTrackerUrl', u+'matomo.php']);
+            _paq.push(['setSiteId', '3']);
+            var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+            g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+          })();
+        </script>
+        <!-- End Matomo Code -->
+
+        <meta name="description" content="GBA Programming tutorial">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="theme/css/tonc.css">
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="foreword.html">前言</a></li><li class="chapter-item expanded affix "><a href="intro.html">引言</a></li><li class="chapter-item expanded affix "><li class="part-title">GBA 基础</li><li class="chapter-item expanded "><a href="hardware.html"><strong aria-hidden="true">1.</strong> GBA 硬件</a></li><li class="chapter-item expanded "><a href="setup.html"><strong aria-hidden="true">2.</strong> 搭建开发环境</a></li><li class="chapter-item expanded "><a href="first.html"><strong aria-hidden="true">3.</strong> 我的第一个 GBA 演示程序</a></li><li class="chapter-item expanded "><a href="video.html"><strong aria-hidden="true">4.</strong> 视频显示入门</a></li><li class="chapter-item expanded "><a href="bitmaps.html"><strong aria-hidden="true">5.</strong> 位图模式</a></li><li class="chapter-item expanded "><a href="keys.html"><strong aria-hidden="true">6.</strong> GBA 按键</a></li><li class="chapter-item expanded "><a href="objbg.html"><strong aria-hidden="true">7.</strong> 精灵与图块背景概述</a></li><li class="chapter-item expanded "><a href="regobj.html"><strong aria-hidden="true">8.</strong> 常规精灵</a></li><li class="chapter-item expanded "><a href="regbg.html"><strong aria-hidden="true">9.</strong> 常规图块背景</a></li><li class="chapter-item expanded affix "><li class="part-title">GBA 进阶</li><li class="chapter-item expanded "><a href="affine.html"><strong aria-hidden="true">10.</strong> 仿射变换矩阵</a></li><li class="chapter-item expanded "><a href="affobj.html"><strong aria-hidden="true">11.</strong> 仿射精灵</a></li><li class="chapter-item expanded "><a href="affbg.html"><strong aria-hidden="true">12.</strong> 仿射图块背景</a></li><li class="chapter-item expanded "><a href="gfx.html"><strong aria-hidden="true">13.</strong> 图形特效</a></li><li class="chapter-item expanded "><a href="dma.html"><strong aria-hidden="true">14.</strong> 直接内存访问（DMA）</a></li><li class="chapter-item expanded "><a href="timers.html"><strong aria-hidden="true">15.</strong> 定时器</a></li><li class="chapter-item expanded "><a href="interrupts.html"><strong aria-hidden="true">16.</strong> 硬件中断</a></li><li class="chapter-item expanded "><a href="swi.html"><strong aria-hidden="true">17.</strong> BIOS 调用（SWI）</a></li><li class="chapter-item expanded "><a href="sndsqr.html"><strong aria-hidden="true">18.</strong> 哔！GBA 声音入门</a></li><li class="chapter-item expanded affix "><li class="part-title">进阶 / 应用</li><li class="chapter-item expanded "><a href="text.html"><strong aria-hidden="true">19.</strong> 文本系统</a></li><li class="chapter-item expanded "><a href="mode7.html"><strong aria-hidden="true">20.</strong> Mode 7</a></li><li class="chapter-item expanded "><a href="mode7ex.html"><strong aria-hidden="true">21.</strong> 更多 Mode 7 技巧</a></li><li class="chapter-item expanded "><a href="tte.html"><strong aria-hidden="true">22.</strong> Tonc 文本引擎</a></li><li class="chapter-item expanded "><a href="asm.html"><strong aria-hidden="true">23.</strong> ARM 汇编速成</a></li><li class="chapter-item expanded "><a href="lab.html"><strong aria-hidden="true">24.</strong> 实验室</a></li><li class="chapter-item expanded affix "><li class="spacer"></li><li class="chapter-item expanded affix "><a href="numbers.html">附录 A - 数字、比特与位运算</a></li><li class="chapter-item expanded affix "><a href="fixed.html">附录 B - 定点数与查找表（LUT）</a></li><li class="chapter-item expanded affix "><a href="matrix.html">附录 C - 向量与矩阵数学</a></li><li class="chapter-item expanded affix "><a href="makefile.html">附录 D - 更多关于 makefile 与编译器选项</a></li><li class="chapter-item expanded affix "><a href="edmake.html">附录 E - 通过编辑器进行 Make</a></li><li class="chapter-item expanded affix "><a href="refs.html">附录 F - 参考文献</a></li><li class="chapter-item expanded affix "><a href="log.html">附录 G - 更新日志</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <!--<div class="sidebar-resize-indicator"></div>-->
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <!--<li role="none"><button role="menuitem" class="theme" id="tonc_dark">Tonc Dark</button></li>-->
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="tonc">Tonc Classic</button></li>
+                            <!--<li role="none"><button role="menuitem" class="theme" id="tonc-dark">Tonc Dark</button></li>-->
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Tonc - GBA Programming in rot13</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/gbadev-org/tonc" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                        <a href="https://github.com/gbadev-org/tonc/edit/master/content/edmake.md" title="Suggest an edit" aria-label="Suggest an edit">
+                            <i id="git-edit-button" class="fa fa-edit"></i>
+                        </a>
+                        <a id="en-version-link" href="#" title="English version" aria-label="English version" target="_blank" rel="noopener">
+                            <i id="en-version-button" class="fa fa-language"></i>
+                        </a>
+                        <script>
+                            (function () {
+                                var EN_BASE = "https://gbadev.net/tonc/";
+                                var seg = (window.location.pathname || "").split("/").pop();
+                                var enHref = EN_BASE + (seg && seg !== "index.html" ? seg : "");
+                                var el = document.getElementById("en-version-link");
+                                if (el) { el.href = enHref; }
+                            })();
+                        </script>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="e-通过编辑器构建"><a class="header" href="#e-通过编辑器构建">E. 通过编辑器构建</a></h1>
+<ul>
+<li><a href="#sec-intro">简介</a></li>
+<li><a href="#sec-context">通过 ConTEXT 构建</a></li>
+<li><a href="#sec-pn2">通过 Programmer’s Notepad 2 构建</a></li>
+<li><a href="#sec-msvc6">通过 MS Visual C++ 6 构建</a></li>
+</ul>
+<div class="box warning"><p class="box-title">本章可能已过时</p>
+<p>这部分可能需要大修，且其中一些建议的工具或做法可能已被弃用。</p>
+</div>
+<h2 id="sec-intro"><a class="header" href="#sec-intro">简介</a></h2>
+<p>尽管 makefile 很好，它们仍然是命令行驱动的过程，带着附属于它的一切问题。如果你在 Unix/Linux 环境下，那些问题通常相当小，但在纯 Windows 系统上我们得在类似 DOS 的 Windows 命令提示符里工作，它有一些非常糟糕的缺陷，能把你的生活变得悲惨：不仅翻找目录结构没意思，非直观的复制/粘贴文本方式，以及无法用方向键在命令中移动去修正打字错误，也都有点烦人。另一件会很快磨掉你耐心的事，是无法滚动浏览那串飞过你小小 Windows 命令提示符、像一群狂暴大象冲进瓷器店般的编译错误列表。而你<em>知道</em>，只要能找到列表开头的那个并修好它，一切就都好了。现在，你可以用 MSYS 窗口来绕过 Windows 命令提示符的严重不足。不过你仍然需要学会如何使用 Bash shell 才能物尽其用。而且你仍然会为命令行窗口多开一个窗口。</p>
+<p>幸运的是，有办法彻底避开任何命令行窗口。除非你在使用像标准 Windows 记事本那样糟糕的东西，否则你很有机会能直接从你的代码编辑器运行 make 或任何其他工具。在这种情况下，我想看看其中三个：</p>
+<ul>
+<li><a href="https://archive.org/details/tucows_349269_ConTEXT" title="" target="_blank">ConTEXT</a></li>
+<li><a href="http://www.pnotepad.org/" title="" target="_blank">Programmer’s Notepad</a>。是的，就是随 devkitARM 一起来的那个。</li>
+<li>Microsoft Visual C++</li>
+</ul>
+<p>ConTEXT 和 PN 基本上是高级形式的文本编辑器，这类编辑器有不少。它们大多允许标签页文件、搜索替换、可定制的语法高亮、宏和 shell 命令。如果你还在用 Windows 记事本做，嗯，<em>任何事</em>，你欠自己一个下载更先进文本编辑器并用它替代的礼。那个被美化的编辑框，也就是记事本，除非别无选择，否则不该被允许靠近任何普通文本文件。你能搜到的每一个程序员编辑器都可能在方方面面优于记事本，有些甚至允许你替换掉真正的 notepad.exe。虽然自 Windows XP Service Pack 2 以来这变得更难了，因为系统文件保护会不断让它复活，但在我看来，把它永远击落是值得努力的。</p>
+<p>咳，抱歉。有时我想起标准 Windows 工具有多烂时会稍微收不住。总之，进入正题。在本章剩余部分，我会展示如何让 ConTEXT 和 PN 为当前打开的 makefile 运行 make。本章最后一节会涵盖为这项工作设置 MSVC。如果你对这些都不感兴趣，随时可以跳到<a href="first.html">下一章</a>。</p>
+<h2 id="sec-context"><a class="header" href="#sec-context">通过 ConTEXT 构建</a></h2>
+<p><a href="https://archive.org/details/tucows_349269_ConTEXT" title="" target="_blank">ConTEXT</a> 是一个轻量的免费文本编辑器，我把大部分纯文本编辑都用它。它能做程序员编辑器该做的一切，它有记事本替换工具，还有一个能让我把代码导出为 html 格式的工具，这对写 tonc 确实非常有用。它确实有一两个小缺陷，但没有哪个特别让我介意。</p>
+<p>shell 命令管理器可以在 选项-&gt;环境选项…-&gt;执行键（fig E.1）下找到，它基于扩展名工作。在我的情况中，那是 .mak。ConTEXT 允许每个扩展名有 4 个命令，我用 F9 来 make ‘build’ 目标，F10 来 clean 操作。</p>
+<p>F9 : make build</p>
+<ul>
+<li><strong>Execute:</strong> <code>make.exe</code>（必要时加上完整路径）</li>
+<li><strong>Parameters:</strong> <code>-f %f build</code></li>
+<li><strong>Capture output:</strong> yes</li>
+</ul>
+<p>F10 : make clean</p>
+<ul>
+<li><strong>Execute:</strong> <code>make.exe</code></li>
+<li><strong>Parameters:</strong> <code>-f %f clean</code></li>
+<li><strong>Capture output:</strong> yes</li>
+</ul>
+<p>请确保 devkitARM 和 msys 的 bin 目录在系统路径中，否则 ConTEXT 会找不到 make.exe 或编译器工具。</p>
+<div class="cpt" style="width:464px">
+<p><img src="img/setup/ctxt_make.png" 
+  alt="context 命令" id="fig:ctxt-make"><br>
+<b>Fig E.1</b>: ConTEXT 的 shell 命令。</p>
+</div>
+<h2 id="sec-pn2"><a class="header" href="#sec-pn2">通过 Programmer’s Notepad 2 构建</a></h2>
+<p>在它开始随 devkitARM 一起出现之前，我从来不知道 PN，但它看起来真的很好。我自己没怎么用过，只是因为我仍满足于 ConTEXT。话虽如此，PN 可能是更好的编辑器，而且既然它可能随工具链一起，你很可能已经有了它。</p>
+<p>尽管有这些好处，我得说：默认情况下，它似乎忽略桌面配色方案。这可能听起来不是什么大事，但因为背景色默认是刺眼的白，我 literally 连看它超过一分钟都不行。当我第一次试图在选项里修这个时，似乎你只能按类型逐个改，而非全局改。我花了一阵子才弄明白我一直找错了地方 <kbd>:P</kbd>。看 工具-&gt;选项-&gt;样式，不是 工具-&gt;选项-&gt;方案。</p>
+<p>要为 makefile 添加命令，去 工具-&gt;选项-&gt;工具（fig E.2），选择’Make’。然后为’make build’和’make clean’添加 2 个命令：</p>
+<p>F9 : make build</p>
+<ul>
+<li><strong>Name:</strong> <code>mk build</code></li>
+<li><strong>Command:</strong> <code>E:\dev\devkitPro\msys\bin\make.exe</code></li>
+<li><strong>Folder:</strong> <code>%d</code>（makefile 的目录）</li>
+<li><strong>Parameters:</strong> <code>-f %f build</code></li>
+<li><strong>Shortcut:</strong> F9</li>
+</ul>
+<p>F10 : make clean</p>
+<ul>
+<li><strong>Name:</strong> <code>mk clean</code></li>
+<li><strong>Command:</strong> <code>E:\dev\devkitPro\msys\bin\make.exe</code></li>
+<li><strong>Folder:</strong> <code>%d</code>（makefile 的目录）</li>
+<li><strong>Parameters:</strong> <code>-f %f clean</code></li>
+<li><strong>Shortcut:</strong> F10</li>
+</ul>
+<p>名字和快捷键当然可以不同；其余应如上。有可能你得确保 .mak 扩展名绑定到’Make’方案。</p>
+<div class="cpt" style="width:392px">
+<p><img src="img/setup/pn_make.png" 
+  alt="PN 命令" id="fig:pn-make"><br>
+<b>Fig E.2</b>: Programmer’s Notepad 的 shell
+命令。</p>
+</div>
+<p>通过给编辑器添加 make 命令，你应该能运行每个 tonc 演示的 makefile。如果你遇到问题，你大概是忘了在某处设置路径。</p>
+<h2 id="sec-msvc6"><a class="header" href="#sec-msvc6">通过 MS Visual C++ 6 构建</a></h2>
+<p>我相信你们很多人都以这样那样的方式搞到了某个版本的 Visual Studio，官方的、通过学校或……其他方式。MSVC 实际上用自己一种叫 NMAKE 的 makefile 和构建工具，但我们要忽略那个，改用 GNU 的 make。本节的说明对版本 5 和 6 有效，但我不确定更新的版本。据我所知，它们在那些版本里改了很多，所以如果你有那些版本，你可能得自己挖掘一下。我知道也有能经由向导创建 GBA 项目的插件，但同样你得自己找。</p>
+<h3 id="ssec-msvc-make"><a class="header" href="#ssec-msvc-make">VC 与 makefile 项目</a></h3>
+<h4 id="phase-1设置路径"><a class="header" href="#phase-1设置路径">Phase 1：设置路径</a></h4>
+<p>你需要做的第一件事，如果你还没做的话，是设置路径，让 Visual C 能找到这些工具。打开 [工具/选项] 对话框，进入 [目录] 选项卡，然后从 [显示目录为] 框中选择 [可执行文件] 列表（见下面的 fig E.3）。现在你需要添加 MSYS 和 dkARM 的 bin 目录。你也可以把这些目录设置到 autoexec.bat。devkitARM 目录也可以在 makefile 本身里设置，但既然我用 4 台不同的电脑写 Tonc，我偏好不这么做。</p>
+<div class="cpt" style="width:424px">
+<p><img src="img/setup/msvc_dirs.png" id="fig:msvc-dirs"
+  alt="把 DKA 路径加入可执行文件列表"><br>
+<b>Fig E.3</b>: 把 dkARM 路径
+加入可执行文件列表。</p>
+</div>
+<h4 id="phase-2创建一个-makefile-项目"><a class="header" href="#phase-2创建一个-makefile-项目">Phase 2：创建一个 makefile 项目</a></h4>
+<p>第二步是创建一个使用自定义 makefile 的项目/工作区。这叫，还能叫啥，一个 <dfn>makefile 项目</dfn>。去 [文件/新建] 对话框的 [项目] 选项卡（见下面的 fig E.4），选择 Makefile，给它一个名字并按 OK。请注意，这<em>不</em>创建 makefile，只创建项目！还有，我这里用的项目名是’tonc’，把它改成你自己项目的名字。</p>
+<div class="cpt" style="width:568px">
+<p><img src="img/setup/msvc_new_proj.png" id="fig:msvc-new"
+  alt="创建一个 makefile 项目"><br>
+<b>Fig E.4</b>: 创建一个 makefile 项目。</p>
+</div>
+<h4 id="phase-3-profithhhhject-settings"><a class="header" href="#phase-3-profithhhhject-settings">Phase 3: Profit!^H^H^H^Hject settings!</a></h4>
+<p>点击 OK 后，你会被要求去项目设置。去那里，你会看到图 6 的对话框。你会发现的第一件事是 [生成命令行] 编辑框。现在，它读起来像这样：</p>
+<pre><code class="language-sh">NMAKE /f tonc.mak
+</code></pre>
+<p>把它改成：</p>
+<pre><code class="language-sh">make -f tonc.mak build
+</code></pre>
+<p>为什么？因为我们不会用标准的 VC make（NMAKE），而是用 GNU make（make）。为什么？因为它是免费的、平台无关的，且通常随 devkit 一起，让你的项目更可移植，也更强大、文档更全。为什么？因为……就因为，好吗？这是你按 重新生成（F7）时执行的命令。-f 标志说明用哪个 makefile。在 makefile 里你可以有多个子项目；这种情况下叫 build 的是激活的那个。</p>
+<p>其他设置对我们的目的不重要，所以保持原样。是的，输出文件名也是；makefile 会料理它。顺便说一句，注意 fig E.5 中的工作区显示了三个项目：tonc 和 libtonc 用于实际的 tonc 内容，以及一个 vault 项目。我的一个标准做法是有一个 vault 项目，我可以在里面存放我不想被编译、但希望可用于参考的源文件（比如模板和示例）。我所有工作区都有一个，我强烈推荐它们。</p>
+<div class="cpt" style="width:584px">
+<p><img src="img/setup/msvc_make_cfg.png" id="fig:msvc-make-cfg"
+  alt="项目设置。"><br>
+<b>Fig E.5</b>: 项目设置。</p>
+</div>
+<div class="box tip"><p class="box-title">把 GCC 报告转换为 MSVC 报告</p>
+<p>当你构建一个普通的 MSVC 项目时，它会报告错误和警告，双击这些会跳到你产生它的那一行。这对 devkitARM 不工作，因为 GCC 有略微不同的报告格式。</p>
+<pre><code># GCC error: {filename}:{line}: error: ...
+foo.c:42: error: 'bar' undeclared (first use in this function)
+# MSVC error: {dir}\{filename}(line): error ...
+dir\foo.c(42) : error C2065: 'bar' : undeclared identifier
+</code></pre>
+<p>因为行号格式的差异，MSVC 会困惑，找不到那一行，甚至找不到那个文件。幸运的是，我们可以通过把 make 的输出通过 sed 管道化来改掉这一点，sed 是随 msys 一起来的 bash shell 字符串编辑器。为此，把生成调用改成：</p>
+<pre><code class="language-sh">make -f tonc.mak build 2&gt;&amp;1 | sed -e 's|\(\w\+\):\([0-9]\+\):|\1(\2):|'
+</code></pre>
+<p><code>2&gt;&amp;1 | </code> 把 make 的标准输出喂给 sed 的标准输入。其余是一个 sed 命令，它找到前两个冒号之前的部分，并把它们转换成 MSVC 期望的括号格式。注意 tonc 的生成行因为目录结构略微复杂，但上面那行才是真正重要的。</p>
+</div>
+<h4 id="phase-3b生成配置"><a class="header" href="#phase-3b生成配置">Phase 3b：生成配置</a></h4>
+<p>这个不是严格必要的，但可能有用。在 Visual C++ 里你可以有多个 <dfn>生成配置</dfn>，每个有自己的项目设置。你大概熟悉 Debug 和 Release 生成，但你也可以用 [生成/配置] 对话框（见 fig E.6）添加你自己的。tonc 项目有五个配置，它们都驱动 tonc.mak 中不同的目标。<code>Build</code> 构建当前演示；<code>Clean</code> 移除所有中间和输出文件（.O、.ELF 和 .GBA）。要构建/清理某个特定演示，你得改变项目设置，或者更可取地，把 tonc.mak 里的 <code>DEMO</code> 变量设成那个演示的名字。<code>Build All</code> 和 <code>Clean All</code> 分别为所有演示运行 <code>Build</code> 和 <code>Clean</code>。‘Utils’ 配置创建一些后续示例所需的 tonc 库。</p>
+<div class="cpt" style="width:344px">
+<p><img src="img/setup/msvc_bld_cfg.png" id="fig:msvc-bld-cfg"
+  alt="生成配置。">
+<b>Fig E.6</b>: 生成配置。</p>
+</div>
+<p>就 Visual C++ 而言大致如此。你仍然得实际创建所引用的 makefile（本例中是 tonc.mak）。你知道怎么创建文本文件，不是吗？关于 makefile 项目要记住的另一件事是，所有生成命令都在 makefile 里面；文件查看器中提到的文件只是为了展示，它们不会像“普通“VC 项目那样被自己编译。</p>
+<div class="box note"><p class="box-title">在 tonc.mak 中轻松切换 devkit</p>
+<p>Tonc 的 makefile 有这种性质：每个都能独立存在，但也能从一个中央 makefile tonc.mak 通过 <code>DEMO</code> 变量调用。我还在里面放了一个 <code>CROSS</code>（存放前缀）变量，它覆盖各个 makefile 的 <code>CROSS</code>。在 tonc.mak 里改变它就有效地在处处改变它。</p>
+</div>
+<div class="box tip"><p class="box-title">摆脱 MSVC 6.0 无用的目录</p>
+<p>似乎 Visual Studio 6（以及更高的版本？）有一个非常恼人的习惯，为每个加入工作区的项目和每个项目配置创建各种额外的目录。这些目录你大概从不想用，而且<em>肯定</em>从没要求过，它们却把你的项目弄得一团糟。从磁盘上删除它们不解决问题，因为仅仅通过选择项目/配置它们又会重新出现。</p>
+<p>*grumble*</p>
+<p>嗯，好消息是对于普通项目你可以直接把它们从项目设置里移除，然后从磁盘删除，一切就会重新干净。坏消息是我们用的不是普通项目，而是 makefile 项目，它没有相关的设置选项卡。所以你得做的是用文本编辑器打开 .DSP，并删除一切类似下面的行：</p>
+<pre><code># PROP BASE Output_Dir [DIR]
+# PROP BASE Intermediate_Dir [DIR]
+# PROP Output_Dir [DIR]
+# PROP Intermediate_Dir [DIR]
+</code></pre>
+<p>不，我并不确切知道我在做什么，但是的，当你现在移除这些目录时它们<em>保持</em>消失。事实上，我相当确定很多行可以从 DSP 里移除，但由于项目文件里的命令没有手册，我那里不敢冒险。</p>
+<p>现在，如果有人确实有 DSP 文件的参考指南，或者能告诉我这种讨厌的行为在后续 MSVC 版本里是否还存在，我洗耳恭听。</p>
+</div>
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="makefile.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="refs.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="makefile.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="refs.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

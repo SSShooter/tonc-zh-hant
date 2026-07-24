@@ -1,0 +1,419 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>引言 - Tonc - GBA Programming in rot13</title>
+
+
+        <!-- Custom HTML head -->
+        <!-- Matomo tracking code -->
+        <script>
+          var _paq = window._paq = window._paq || [];
+          /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+          _paq.push(['trackPageView']);
+          _paq.push(['enableLinkTracking']);
+          (function() {
+            var u="//stats.gbdev.io/";
+            _paq.push(['setTrackerUrl', u+'matomo.php']);
+            _paq.push(['setSiteId', '3']);
+            var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+            g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+          })();
+        </script>
+        <!-- End Matomo Code -->
+
+        <meta name="description" content="GBA Programming tutorial">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="theme/css/tonc.css">
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="foreword.html">前言</a></li><li class="chapter-item expanded affix "><a href="intro.html">引言</a></li><li class="chapter-item expanded affix "><li class="part-title">GBA 基础</li><li class="chapter-item expanded "><a href="hardware.html"><strong aria-hidden="true">1.</strong> GBA 硬件</a></li><li class="chapter-item expanded "><a href="setup.html"><strong aria-hidden="true">2.</strong> 搭建开发环境</a></li><li class="chapter-item expanded "><a href="first.html"><strong aria-hidden="true">3.</strong> 我的第一个 GBA 演示程序</a></li><li class="chapter-item expanded "><a href="video.html"><strong aria-hidden="true">4.</strong> 视频显示入门</a></li><li class="chapter-item expanded "><a href="bitmaps.html"><strong aria-hidden="true">5.</strong> 位图模式</a></li><li class="chapter-item expanded "><a href="keys.html"><strong aria-hidden="true">6.</strong> GBA 按键</a></li><li class="chapter-item expanded "><a href="objbg.html"><strong aria-hidden="true">7.</strong> 精灵与图块背景概述</a></li><li class="chapter-item expanded "><a href="regobj.html"><strong aria-hidden="true">8.</strong> 常规精灵</a></li><li class="chapter-item expanded "><a href="regbg.html"><strong aria-hidden="true">9.</strong> 常规图块背景</a></li><li class="chapter-item expanded affix "><li class="part-title">GBA 进阶</li><li class="chapter-item expanded "><a href="affine.html"><strong aria-hidden="true">10.</strong> 仿射变换矩阵</a></li><li class="chapter-item expanded "><a href="affobj.html"><strong aria-hidden="true">11.</strong> 仿射精灵</a></li><li class="chapter-item expanded "><a href="affbg.html"><strong aria-hidden="true">12.</strong> 仿射图块背景</a></li><li class="chapter-item expanded "><a href="gfx.html"><strong aria-hidden="true">13.</strong> 图形特效</a></li><li class="chapter-item expanded "><a href="dma.html"><strong aria-hidden="true">14.</strong> 直接内存访问（DMA）</a></li><li class="chapter-item expanded "><a href="timers.html"><strong aria-hidden="true">15.</strong> 定时器</a></li><li class="chapter-item expanded "><a href="interrupts.html"><strong aria-hidden="true">16.</strong> 硬件中断</a></li><li class="chapter-item expanded "><a href="swi.html"><strong aria-hidden="true">17.</strong> BIOS 调用（SWI）</a></li><li class="chapter-item expanded "><a href="sndsqr.html"><strong aria-hidden="true">18.</strong> 哔！GBA 声音入门</a></li><li class="chapter-item expanded affix "><li class="part-title">进阶 / 应用</li><li class="chapter-item expanded "><a href="text.html"><strong aria-hidden="true">19.</strong> 文本系统</a></li><li class="chapter-item expanded "><a href="mode7.html"><strong aria-hidden="true">20.</strong> Mode 7</a></li><li class="chapter-item expanded "><a href="mode7ex.html"><strong aria-hidden="true">21.</strong> 更多 Mode 7 技巧</a></li><li class="chapter-item expanded "><a href="tte.html"><strong aria-hidden="true">22.</strong> Tonc 文本引擎</a></li><li class="chapter-item expanded "><a href="asm.html"><strong aria-hidden="true">23.</strong> ARM 汇编速成</a></li><li class="chapter-item expanded "><a href="lab.html"><strong aria-hidden="true">24.</strong> 实验室</a></li><li class="chapter-item expanded affix "><li class="spacer"></li><li class="chapter-item expanded affix "><a href="numbers.html">附录 A - 数字、比特与位运算</a></li><li class="chapter-item expanded affix "><a href="fixed.html">附录 B - 定点数与查找表（LUT）</a></li><li class="chapter-item expanded affix "><a href="matrix.html">附录 C - 向量与矩阵数学</a></li><li class="chapter-item expanded affix "><a href="makefile.html">附录 D - 更多关于 makefile 与编译器选项</a></li><li class="chapter-item expanded affix "><a href="edmake.html">附录 E - 通过编辑器进行 Make</a></li><li class="chapter-item expanded affix "><a href="refs.html">附录 F - 参考文献</a></li><li class="chapter-item expanded affix "><a href="log.html">附录 G - 更新日志</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <!--<div class="sidebar-resize-indicator"></div>-->
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <!--<li role="none"><button role="menuitem" class="theme" id="tonc_dark">Tonc Dark</button></li>-->
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="tonc">Tonc Classic</button></li>
+                            <!--<li role="none"><button role="menuitem" class="theme" id="tonc-dark">Tonc Dark</button></li>-->
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Tonc - GBA Programming in rot13</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/gbadev-org/tonc" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                        <a href="https://github.com/gbadev-org/tonc/edit/master/content/intro.md" title="Suggest an edit" aria-label="Suggest an edit">
+                            <i id="git-edit-button" class="fa fa-edit"></i>
+                        </a>
+                        <a id="en-version-link" href="#" title="English version" aria-label="English version" target="_blank" rel="noopener">
+                            <i id="en-version-button" class="fa fa-language"></i>
+                        </a>
+                        <script>
+                            (function () {
+                                var EN_BASE = "https://gbadev.net/tonc/";
+                                var seg = (window.location.pathname || "").split("/").pop();
+                                var enHref = EN_BASE + (seg && seg !== "index.html" ? seg : "");
+                                var el = document.getElementById("en-version-link");
+                                if (el) { el.href = enHref; }
+                            })();
+                        </script>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="简介"><a class="header" href="#简介">简介</a></h1>
+<ul>
+<li><a href="#sec-org">组织结构</a></li>
+<li><a href="#sec-nota">术语与记号</a></li>
+<li><a href="#sec-feedback">关于错误与建议</a></li>
+</ul>
+<h2 id="sec-org"><a class="header" href="#sec-org">组织结构</a></h2>
+<!-- <div class="cpt_fr" style="width:120px;">
+  <img alt="Tonc directory structure" src="./img/toncdirs.png" id="fig:toncdirs">
+
+  **Fig 1**: directories.
+</div> -->
+<p>TONC 由三个部分组成：一个<dfn>文本</dfn>部分（即实际的教程）、一个<dfn>示例</dfn>仓库（包含所有各种演示程序的源代码和 makefile），以及一个名为 <dfn>libtonc</dfn> 的库（其中包含本教程全程引入的所有有用/可复用的代码）。</p>
+<p>此前这些都以 zip 文件形式分发，但时代变了，现在它们存在于各自独立的 git 仓库中。下面将更详细地说明：</p>
+<h3 id="ssec-org-text"><a class="header" href="#ssec-org-text">Tonc 文本</a></h3>
+<p>你正在阅读的文本部分，详细讲述了 GBA 编程的原理。这里的重点与其说在于如何把某件事做成，不如说在于事情究竟<em>如何运作</em>，以及为何要这样做。在那之后，“怎么做“往往就水到渠成了。每一章都带有一个或多个对所述理论的演示，以及对演示本身的简要讨论。</p>
+<p>请不要犯只看演示讨论的错误：要真正理解运作原理，你需要通读全文。虽然有些部分是可选的，也有整页看似与实际 GBA 编码无关的无聊文字，但它们存在是有原因的，通常包含额外的概念性信息或陷阱。</p>
+<p>起初，文本部分里代码很少，因为我觉得演示代码就在手边，在它们之间翻看并不烦人。嗯，我已经意识到我错了，并正在把更多代码纳入这些页面；也许还不足以让你复制粘贴就能干净地编译，但足够配合演示的讲解。</p>
+<p>主要语言是 C，外加一点点汇编。这是 GBA 编程中使用的两种主要语言，尽管还有其他语言存在。由于编程基础与语言无关，你应该能轻松地把它们适配到你选择的语言。</p>
+<p>GBA 编程是贴近硬件的，所以我希望你了解你的指针、<a href="numbers.html#sec-num">十六进制数</a>和<a href="numbers.html#sec-bitops">布尔代数/位运算</a>。这里也有相当多的数学，主要是<a href="matrix.html">向量和矩阵</a>相关的，所以我希望你的线性代数跟得上。最后，我假定你的智力水平高于一只随机的实验室猴子，所以我不会对我认为是琐碎的事情过多赘述。</p>
+<p>除了简介和附录，文本分为 3 个部分。首先是“基础“，讲解完成任何事都绝对必要的要点。包括搭建开发环境、图形与按键的基本使用。它还包含关于底层编程和高效编程意味着什么的文字；这些在我看来你最好越早学越好。第二部分涵盖了 GBA 的大部分其他内容，比如特殊图形效果、定时器和中断。最后一部分涵盖更高级的主题，会用到所有章节中的元素。包括写文字（没错，在 GBA 上这是个高级主题）、mode 7 图形，以及一章关于 ARM 汇编的内容。</p>
+<p>文本的 Markdown 源码全部<a href="https://github.com/gbadev-org/tonc" title="" target="_blank">发布在 GitHub 上</a>，所以如果你发现错别字或可以改进的地方，请随时参与贡献。</p>
+<!--
+TODO: maybe provide links to PDF and 'offline' html downloads?
+
+Individual html: [tonc-text.zip](http://www.coranac.com/files/tonc-text.zip) (663 kb)  
+Compiled html (CHM, v1.4 version): [tonc.chm](http://www.coranac.com/files/tonc.chm) (1.2 MB).  
+PDF: [tonc.pdf](http://www.coranac.com/files/tonc.pdf) (3.1 MB)
+-->
+<h3 id="ssec-org-code"><a class="header" href="#ssec-org-code">Tonc 代码（libtonc 与示例）</a></h3>
+<p>文本中提到的所有演示程序的源代码可以在 <a href="https://github.com/gbadev-org/libtonc-examples" title="" target="_blank">libtonc-examples</a> 仓库中找到。和文本一样，示例本身也分为 3 个部分：<em>basic</em>、<em>extended</em> 和 <em>advanced</em>。还有一个 <code>lab</code> 目录，里面放着几个有趣的项目，但可能还不够完善。不过看看还是很有意思的。</p>
+<p>我们将使用的语言是 <strong>C</strong>，外加一点汇编（但<em>不是</em> C++）。我假定你熟悉这门语言。如果不熟，先去学，因为我不会教你；这不是 C 语言课程。我在<a href="refs.html#ssec-tut">参考</a>里放了一些 C 教程的链接。</p>
+<p>与一些较老的 GBA 教程不同，tonc 使用 <strong>makefile</strong> 而非批处理脚本来构建示例项目，因为它们就是 Plain Better™（显然更好）。如何使用它们将在下一章讲解，但如果你只是想看看预编译好的示例 ROM，它们仍然可以在这里获取：<a href="http://www.coranac.com/files/tonc-bin.zip" title="" target="_blank">tonc-bin.zip</a>。</p>
+<p>示例依赖于 <a href="https://github.com/gbadev-org/libtonc" title="" target="_blank">libtonc</a>，这是一个库，包含本教程全程引入的所有重要 #define 和函数。这还包括针对所有视频模式的文本写入器、BIOS 例程、一个相当先进的中断分发器、安全而快速的内存复制与填充例程，以及更多内容。历史上 <code>libtonc</code> 是和示例放在一起的，但如今它随 devkitARM 一起提供，所以你不必自己下载。</p>
+<h3 id="ssec-org-sop"><a class="header" href="#ssec-org-sop">写作宗旨</a></h3>
+<p>我写 Tonc 有两个原因。首先，作为理清自己思路的一种方式。当你把东西写下来并从中学习时，你常会以不同的视角看待事物。其次，其他教程中有大量<em>非常糟糕</em>的信息（据我所知，唯一的例外是<a href="http://www.drunkencoders.com/web.archive.org/web/20030413142151fw_/http_/www.thepernproject.com/English/tutorial.html" title="" target="_blank">新版 PERN</a> 和 <a href="https://stuij.github.io/deku-sound-tutorial/" title="" target="_blank">Deku 的声音教程</a>）。是的，我知道这话听起来怎么样，但不幸的是它恰好是事实。几个例子：</p>
+<ul>
+<li>只给出非常基础的信息，有时甚至是<a href="affine.html">不正确的信息</a>。</li>
+<li>强烈聚焦于位图模式，而位图模式在严肃的 GBA 编程中几乎从不使用。</li>
+<li><a href="first.html#ssec-notes-bad">糟糕的编程习惯</a>。通过<a href="bitmaps.html#ssec-data-hdr">#include 文件</a>向项目添加代码/数据，使用古老的<a href="setup.html#sec-alt">工具链</a>、非最优的编译器设置与数据类型，以及低效（有时<em>非常</em>低效）的代码。</li>
+</ul>
+<p>如果你是新手并且跟着其他教程走，一切看起来都正常，那问题在哪？嗯，这其实正是问题的一部分。一切都会<em>看起来</em>正常，直到你开始更大的项目，那时你会发现隐藏的错误，而缓慢的代码真的会拖垮一切，你还得忘掉所有养成的坏习惯，从头重做。GBA 是为数不多的几个高效编码仍有意义的平台之一，有时只需要改个数据类型或编译器开关就够了。这些事最好从一开始就做对。</p>
+<p>我力求先求完整，再求简单。正如某位乱发科学家曾说过的：“把事情做得尽可能简单，但别更简单。“这意味着内容有时看起来会有点技术化，但那只是因为事情<em>本来</em>有时就很技术化，假装它们不是毫无意义。</p>
+<p>简而言之，Tonc <em>不是</em>“GBA 编程傻瓜书”，过去不是，将来也不会是。给傻瓜们的东西已经够多了。如果你认为自己是傻瓜（我说的确实是傻瓜，不是新手），也许 Tonc 不是合适的地方。但如果你是认真想学 GBA 编程，那就别将就。</p>
+<h2 id="sec-nota"><a class="header" href="#sec-nota">术语与记号</a></h2>
+<p>我受训成为一名物理学家，这意味着我懂数学及其记号约定。我在 Tonc 中相当频繁地使用这两者，以及若干 html 标签约定。为确保所有人在同一频道上，这里有一份清单：</p>
+<div class="lblock">
+  <table class="table-data">
+    <tr><th>类型	<th>记号	<th>示例
+    <tr><td><code>foo</code> 中的第 n 位		<td><code>foo</code>{n}	
+    <td><code>REG_DISPCNT{4}</code>（活动页位）
+    <tr><td>代码	<td>&lt;code&gt; 标签	<td> <code>sx</code>
+    <tr><td>命令/文件 <td>&lt;tt&gt; 标签 <td> <tt>vid.h</tt>
+    <tr><td>矩阵	<td>粗体、大写		<td> <b>P</b>
+    <tr><td>内存  <td>十六进制 + 代码			<td> <code>0400:002eh</code>
+    <tr><td>新术语 <td>粗体、斜体		<td> <dfn>charblock</dfn>
+    <tr><td>变量 <td>斜体			<td> <i>x</i>
+    <tr><td>向量	<td>粗体、小写		<td> <b>v</b>
+  </table>
+</div>
+<p>我也会使用一些非 ASCII 符号，根据浏览器新旧程度，它们可能无法正常显示。这些符号是：</p>
+<div class="lblock">
+<table class="table-data">
+<tr><th>符号<th>描述
+<tr><td>&alpha;, &beta;, &gamma;	<td>希腊字母
+<tr><td>&asymp;		<td>约等于
+<tr><td>&frac12;	<td>二分之一
+<tr><td>&frac14;	<td>四分之一
+<tr><td>&frac34;	<td>四分之三
+<tr><td>&ge;		<td>大于等于
+<tr><td>&harr;		<td>双向箭头
+<tr><td>&isin;		<td>属于（某个区间）
+<tr><td>&lang; &rang;		<td>左/右"括号"（bra & ket）
+<tr><td>&rarr;		<td>右箭头
+<tr><td>&sup2;		<td>上标 2
+<tr><td>&times;		<td>乘号
+</table>
+</div>
+<p>我还大量使用 C 基础类型的简写，比如 <code>char</code> 和 <code>int</code> 之类。这些 typedef 能更好地表明所用变量的大小。由于这在主机编程中非常重要，它们相当常见。无论如何，这里有一份清单。</p>
+<div class="lblock">
+<table class="table-data">
+<tr><th>基础类型	<th>别名 <th>无符号	<th>有符号	<th>volatile
+<tr><th>char		<td>byte	 <td>u8			<td>s8		<td>vu8 / vs8
+<tr><th>short		<td>halfword <td>u16		<td>s16		<td>vu16 / vs16
+<tr><th>int			<td>word	 <td>u32		<td>s32		<td>vu32 / vs32
+</table>
+</div>
+<p>最后，对于十六进制有若干不同的记法，我会根据情况切换。C 记法（‘0x’ 前缀，0x0400）对普通数字很常见，但有时我也会用汇编后缀（‘h’，0400:0000h）。这里的冒号仅为了便于阅读。没有它很难数清零的个数。</p>
+<h3 id="ssec-note-reg"><a class="header" href="#ssec-note-reg">寄存器名称与描述</a></h3>
+<p>让 GBA 做事常常涉及使用所谓的 <dfn>IO 寄存器</dfn>。内存中特定地址上的特定位可以用作 GBA 各种能力的开关。每个寄存器都被别名成一个普通变量，你需要用位运算来设置/清除位。我们稍后会讲到这些寄存器在哪里、各个位做什么；现在我想向你展示我将如何<em>呈现</em>它们，以及在文本中如何引用它们。</p>
+<p>每个寄存器（或类寄存器地址）都被映射到一个解引用的指针，通常长 16 位。例如，显示状态寄存器是</p>
+<pre><code class="language-c">#define  REG_DISPSTAT *(u16*)0x04000004     
+</code></pre>
+<p>每当我引入一个寄存器，我都会像这样给出位的概览：</p>
+<div class="reg">
+<table class="table-reg"
+  border=1 frame=void cellPadding=4 cellSpacing=0>
+<caption class="reg">
+  REG_DISPSTAT @ 0400:0004h
+</caption>
+<tr class="bits">
+  <td>F E D C B A 9 8
+  <td>7 6<td>5<td>4<td>3<td class="rof">2<td class="rof">1<td class="rof">0
+<tr class="bf">
+  <td class="rclr3">VcT
+  <td>-
+  <td class="rclr2">VcI
+  <td class="rclr1">HbI
+  <td class="rclr0">VbI
+  <td class="rclr2">VcS
+  <td class="rclr1">HbS
+  <td class="rclr0">VbS
+</table>
+</div>
+<p>该表列出了寄存器的名称（<code>REG_DISPSTAT</code>）、它的地址（0400:0004h）以及各个位或位域。有时，某些位或整个寄存器是只读或只写的。<strong>只读</strong>用红色上划线表示（如这里所用）。<strong>只写</strong>用蓝色下划线表示。随后会有一个列表描述各个位，并给出我为该位使用的 #define 或 #defines：</p>
+<div class="reg">
+<table class="table-reg-vert">
+  <col class="bits" width=40>
+  <col class="bf" width="8%">
+  <col class="def" width="15%">
+<tr align="left"><th>bits<th>name<th>define<th>description
+<tbody valign="top">
+<tr class="bg0">
+  <td>0 <td class="rclr0">VbS
+  <td>DSTAT_IN_VBL
+  <td>VBlank 状态，只读。会在 VBlank 内置位，在 VDraw 内清除。
+<tr class="bg1">
+  <td colspan=4 align="center"><i>other fields</i>
+<tr class="bg0">
+  <td>8-F <td class="rclr3">VcT
+  <td><i>DSTAT_VCT#</i>
+  <td>VCount 触发值。如果当前扫描线处于此值，则第 2 位置位，并在被请求时触发中断。
+</tbody>
+</table>
+</div>
+<p><code>REG_DISPSTAT</code> 的完整列表可以在<a href="video.html#tbl-reg-dispstat">这里</a>找到。顺便说一句，#define 通常是 tonc 特有的。每个站点和 API 在这里都有自己的术语。这是可能的，因为重要的不是名字，而是它们所代表的数字。当然，寄存器本身的名字也是如此。关于 #define 最后一点：列出的其中一些带有井号（‘#’）后缀。这是一种简写记号，表示该字段有 <em>foo</em><code>_SHIFT</code> 和 <em>foo</em><code>_MASK</code> 两个 #define，以及 <em>foo</em><code>()</code> 宏。例如，显示寄存器有一个 8 位的触发 VCount 字段，它在 define 列中列为‘<em>DSTAT_VCT#</em>’。这意味着以下三样东西存在于 tonc 头文件中：</p>
+<pre><code class="language-c">#define DSTAT_VCT_MASK      0xFF00
+#define DSTAT_VCT_SHIFT          8
+#define DSTAT_VCT(_n)       ((_n)&lt;&lt;DSTAT_VCT_SHIFT)
+</code></pre>
+<p>最后，作为寄存器特定位的简写，我会用花括号。其中的数字会是十六进制数。例如，REG_DISPCNT{0} 是 VBlank 状态位（上面的 VbS），而 REG_DISPCNT{8-F} 则是整个 VCount 触发字节。</p>
+<h2 id="sec-feedback"><a class="header" href="#sec-feedback">关于错误与建议</a></h2>
+<p>尽管我们（cearn 和 gbadev.net 社区）已尽力剔除拼写/语法错误和失效链接，但肯定仍有可能有漏网之鱼。如果你发现了，请在 <a href="https://github.com/gbadev-org/tonc" title="" target="_blank">GitHub 仓库</a> 上提出 issue（或者更好的做法是，发一个 pull request）。当然，如果内容不清晰、或 <em>*倒吸一口凉气*</em> 有误，或者你有建议，我们也想知道！你也可以通过 <a href="https://gbadev.net/resources.html#community" title="" target="_blank">Discord / IRC</a> 或<a href="https://forum.gbadev.net/" title="" target="_blank">论坛</a>联系我们。</p>
+<p>当然，还有：</p>
+<blockquote>
+<p>本发行版按原样提供，不附带任何担保。对于因使用或无法使用本发行版而引起的任何损害，我不承担责任。代码已在模拟器和真实硬件上尽我所能进行了测试，但我无法保证 100% 正确。
+文本和代码随时可能修改。请不时回来看看是否有变化。<!--时间截在每页底部，以及所有源文件顶部。--> 附录中也有一份<a href="log.html">更新日志</a>。</p>
+</blockquote>
+<p>好了，就这些。玩得开心。</p>
+<div style="margin-left:1.2cm;">
+<p>– <em>Jasper Vijn</em>（jakvijn at gmail dot com）与 <em>gbadev.net</em> 社区<br></p>
+<!--(Mar 24, 2013)-->
+<!-- TODO: figure out how to put the build date here? -->
+</div>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="foreword.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="hardware.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="foreword.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="hardware.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

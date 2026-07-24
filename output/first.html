@@ -1,0 +1,775 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>我的第一个 GBA 演示程序 - Tonc - GBA Programming in rot13</title>
+
+
+        <!-- Custom HTML head -->
+        <!-- Matomo tracking code -->
+        <script>
+          var _paq = window._paq = window._paq || [];
+          /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+          _paq.push(['trackPageView']);
+          _paq.push(['enableLinkTracking']);
+          (function() {
+            var u="//stats.gbdev.io/";
+            _paq.push(['setTrackerUrl', u+'matomo.php']);
+            _paq.push(['setSiteId', '3']);
+            var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+            g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+          })();
+        </script>
+        <!-- End Matomo Code -->
+
+        <meta name="description" content="GBA Programming tutorial">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="theme/css/tonc.css">
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="foreword.html">前言</a></li><li class="chapter-item expanded affix "><a href="intro.html">引言</a></li><li class="chapter-item expanded affix "><li class="part-title">GBA 基础</li><li class="chapter-item expanded "><a href="hardware.html"><strong aria-hidden="true">1.</strong> GBA 硬件</a></li><li class="chapter-item expanded "><a href="setup.html"><strong aria-hidden="true">2.</strong> 搭建开发环境</a></li><li class="chapter-item expanded "><a href="first.html"><strong aria-hidden="true">3.</strong> 我的第一个 GBA 演示程序</a></li><li class="chapter-item expanded "><a href="video.html"><strong aria-hidden="true">4.</strong> 视频显示入门</a></li><li class="chapter-item expanded "><a href="bitmaps.html"><strong aria-hidden="true">5.</strong> 位图模式</a></li><li class="chapter-item expanded "><a href="keys.html"><strong aria-hidden="true">6.</strong> GBA 按键</a></li><li class="chapter-item expanded "><a href="objbg.html"><strong aria-hidden="true">7.</strong> 精灵与图块背景概述</a></li><li class="chapter-item expanded "><a href="regobj.html"><strong aria-hidden="true">8.</strong> 常规精灵</a></li><li class="chapter-item expanded "><a href="regbg.html"><strong aria-hidden="true">9.</strong> 常规图块背景</a></li><li class="chapter-item expanded affix "><li class="part-title">GBA 进阶</li><li class="chapter-item expanded "><a href="affine.html"><strong aria-hidden="true">10.</strong> 仿射变换矩阵</a></li><li class="chapter-item expanded "><a href="affobj.html"><strong aria-hidden="true">11.</strong> 仿射精灵</a></li><li class="chapter-item expanded "><a href="affbg.html"><strong aria-hidden="true">12.</strong> 仿射图块背景</a></li><li class="chapter-item expanded "><a href="gfx.html"><strong aria-hidden="true">13.</strong> 图形特效</a></li><li class="chapter-item expanded "><a href="dma.html"><strong aria-hidden="true">14.</strong> 直接内存访问（DMA）</a></li><li class="chapter-item expanded "><a href="timers.html"><strong aria-hidden="true">15.</strong> 定时器</a></li><li class="chapter-item expanded "><a href="interrupts.html"><strong aria-hidden="true">16.</strong> 硬件中断</a></li><li class="chapter-item expanded "><a href="swi.html"><strong aria-hidden="true">17.</strong> BIOS 调用（SWI）</a></li><li class="chapter-item expanded "><a href="sndsqr.html"><strong aria-hidden="true">18.</strong> 哔！GBA 声音入门</a></li><li class="chapter-item expanded affix "><li class="part-title">进阶 / 应用</li><li class="chapter-item expanded "><a href="text.html"><strong aria-hidden="true">19.</strong> 文本系统</a></li><li class="chapter-item expanded "><a href="mode7.html"><strong aria-hidden="true">20.</strong> Mode 7</a></li><li class="chapter-item expanded "><a href="mode7ex.html"><strong aria-hidden="true">21.</strong> 更多 Mode 7 技巧</a></li><li class="chapter-item expanded "><a href="tte.html"><strong aria-hidden="true">22.</strong> Tonc 文本引擎</a></li><li class="chapter-item expanded "><a href="asm.html"><strong aria-hidden="true">23.</strong> ARM 汇编速成</a></li><li class="chapter-item expanded "><a href="lab.html"><strong aria-hidden="true">24.</strong> 实验室</a></li><li class="chapter-item expanded affix "><li class="spacer"></li><li class="chapter-item expanded affix "><a href="numbers.html">附录 A - 数字、比特与位运算</a></li><li class="chapter-item expanded affix "><a href="fixed.html">附录 B - 定点数与查找表（LUT）</a></li><li class="chapter-item expanded affix "><a href="matrix.html">附录 C - 向量与矩阵数学</a></li><li class="chapter-item expanded affix "><a href="makefile.html">附录 D - 更多关于 makefile 与编译器选项</a></li><li class="chapter-item expanded affix "><a href="edmake.html">附录 E - 通过编辑器进行 Make</a></li><li class="chapter-item expanded affix "><a href="refs.html">附录 F - 参考文献</a></li><li class="chapter-item expanded affix "><a href="log.html">附录 G - 更新日志</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <!--<div class="sidebar-resize-indicator"></div>-->
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <!--<li role="none"><button role="menuitem" class="theme" id="tonc_dark">Tonc Dark</button></li>-->
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="tonc">Tonc Classic</button></li>
+                            <!--<li role="none"><button role="menuitem" class="theme" id="tonc-dark">Tonc Dark</button></li>-->
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Tonc - GBA Programming in rot13</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/gbadev-org/tonc" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                        <a href="https://github.com/gbadev-org/tonc/edit/master/content/first.md" title="Suggest an edit" aria-label="Suggest an edit">
+                            <i id="git-edit-button" class="fa fa-edit"></i>
+                        </a>
+                        <a id="en-version-link" href="#" title="English version" aria-label="English version" target="_blank" rel="noopener">
+                            <i id="en-version-button" class="fa fa-language"></i>
+                        </a>
+                        <script>
+                            (function () {
+                                var EN_BASE = "https://gbadev.net/tonc/";
+                                var seg = (window.location.pathname || "").split("/").pop();
+                                var enHref = EN_BASE + (seg && seg !== "index.html" ? seg : "");
+                                var el = document.getElementById("en-version-link");
+                                if (el) { el.href = enHref; }
+                            })();
+                        </script>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="3-我的第一个-gba-程序"><a class="header" href="#3-我的第一个-gba-程序">3. 我的第一个 GBA 程序</a></h1>
+<ul>
+<li><a href="#sec-first">终于，你的第一个 GBA 程序</a></li>
+<li><a href="#sec-second">你的第二个“第一个” GBA 程序</a></li>
+<li><a href="#sec-notes">GBA 编程的一般性注意事项</a></li>
+<li><a href="#sec-testing">在真实 GBA 上测试你的代码</a></li>
+</ul>
+<h2 id="sec-first"><a class="header" href="#sec-first">终于，你的第一个 GBA 程序</a></h2>
+<p>既然你的开发环境已经就绪，是时候来看看一个简单的 GBA 程序了。为此我们会用到 C 文件 <em>first.c</em> 中的代码。此刻的打算并不是让你完全理解它；打算是让它编译通过并跑起来。代码会在本章讲解，但这一切意味着什么，要留到后面的章节再讲。</p>
+<div id="cd-first">
+<pre><code class="language-c">// First demo. You are not expected to understand it 
+// (don't spend too much time trying and read on).
+// But if you do understand (as a newbie): wow!
+
+int main()
+{
+    *(unsigned int*)0x04000000 = 0x0403;
+
+    ((unsigned short*)0x06000000)[120+80*240] = 0x001F;
+    ((unsigned short*)0x06000000)[136+80*240] = 0x03E0;
+    ((unsigned short*)0x06000000)[120+96*240] = 0x7C00;
+
+    while(1);
+
+    return 0;
+}
+</code></pre>
+</div>
+<p>先别急着琢磨这段代码，那是以后的事。也先别离开，稍后我会给一个更漂亮的版本。眼下唯一重要的是：你能把它编译并运行起来。</p>
+<div class="cpt_fr" style="width:240px;">
+<img alt="picture of the first demo" src="./img/demo/first.png" id="fig:first">  
+<p><strong>Fig 3.1</strong>：第一个演示程序的画面</p>
+</div>
+<p>正如<a href="setup.html#sec-compile">上一章</a>所讲，你可以在终端里运行 <code>make</code> 来构建这个项目。在这背后，它做了如下这些事：</p>
+<ul>
+<li><strong>编译</strong> <em>first.c</em> 为 <em>first.o</em>，</li>
+<li><strong>链接</strong> 目标文件列表（目前只有 <em>first.o</em>）为 <em>first.elf</em>，</li>
+<li><strong>转换</strong> <em>first.elf</em> 为 <em>first.gba</em>，即剥除所有多余的 ELF 信息，</li>
+<li><strong>修复文件头</strong>，以便 GBA 能够接受它。</li>
+</ul>
+<p>在 makefile 跑完之后，你应当得到一个名为 <em>first.gba</em> 的文件。如果没有，那就是你的环境设置有问题，因为代码肯定没错！回去确认你没有漏掉任何步骤——但如果你仍然遇到麻烦，欢迎随时到 <a href="https://gbadev.net/resources.html#community" title="" target="_blank">Discord / IRC</a> 或 <a href="https://forum.gbadev.net/" title="" target="_blank">论坛</a> 来串门，很有可能有人能帮上忙！</p>
+<p>如果你确实得到了 GBA 可执行文件，就在真机或你喜欢的模拟器上运行它，你应当会看到红、绿、蓝三个像素，分别位于 (120, 80)、(136, 80) 和 (120, 96)。</p>
+<p>现在，来说说代码本身……</p>
+<h3 id="ssec-first-huh"><a class="header" href="#ssec-first-huh">哈？</a></h3>
+<p>如果你对此有点困惑，你并不孤单。我料想，除非你已经对 GBA 编程略知一二、或者有过其它平台底层编程的经验，否则这段代码对你来说会是个彻底的谜。如果你 C 语言足够熟练，或许能隐约猜到那三个像素是怎么出现的，但我承认，这<strong>非常</strong>难看出来。</p>
+<p>而这其实正是我的用意之一。如果有人把这段代码交到编程课的考试上，你会挂得很惨。而如果没挂，那教授们就该被炒了。尽管上面这段代码确实能跑，但它的几乎不可读性，使它成为糟糕的代码。写好代码不只是为了出结果，也是为了确保<em>别人</em>能够不太费力地看懂发生了什么。</p>
+<p><em>first.c</em> 的代码还有另一个用途，即作为一个提醒：GBA 编程是<strong>非常</strong>底层的。你直接同内存打交道，而不是经由 API 带来的层层抽象。要能做到这一点，意味着你必须真正理解计算机是如何运作的，而这是所有程序员都至少该在某个程度上知道的。确实有一些 API（姑且这么叫吧，比如 HAM）会打理最底层的那些事，这自有其价值，因为它让你能去处理更重要的事，比如真正的<em>游戏</em>编程；但另一方面，它把许多细节藏了起来——而有些细节，有时还是摊在明处更好。</p>
+<br>  
+那些想要一份更好、更易读的上述代码版本的人，可以跳过下一节，直接去看[第二个](#sec-second)“第一个”演示程序。而那些脑子有恙、无法就此罢休、想立刻得到解释的人（作为记录，我也属于他们之列），下面就是正在发生的事。
+<h3 id="ssec-first-expl"><a class="header" href="#ssec-first-expl">代码讲解</a></h3>
+<p>这是对早先那段代码一个又快又糙的讲解。上面提到的那些脑子有恙、本节正是为他们而写的人，大概会更喜欢这种风格。更详细的讨论留到以后。</p>
+<p>正如我所说，GBA 编程是底层编程，有时甚至会一直抠到比特位。<code>0x04000000</code> 和 <code>0x06000000</code> 是那块可访问的<a href="hardware.html#sec-memory">内存区段</a>的一部分。顺便说一句，这两个数字本身没什么意义；它们只是指向不同的区段。这两个区段之间其实并不存在一个真正的 <code>0x02000000</code>。正如你在内存映射中看到的，这两个区段分别用于 IO 寄存器和 VRAM。</p>
+<p>为了在 C 中使用这些区段，我们得把它们做成指针，这正是 ‘<code>unsigned int*</code>’ 和 ‘<code>unsigned short*</code>’ 所做的。这里所用到的类型几乎是任意的；说“几乎”，是因为其中一些比另一些更方便。举例来说，GBA 有若干种不同的视频模式，而在模式 3 和 5 中 VRAM 被用来存放 16 位颜色，所以在那种情况下把它转换（cast）成半字（halfword）指针是个好主意。再次强调，这并不<em>强制</em>你这么做，而且在某些情况下不同的人会使用不同类型的指针。如果你在用别人的代码，务必留意所用指针的数据类型，而不只是名字。</p>
+<p>位于 0400:0000 的那个字（word），装着显示控制（display control）的主位。通过向它写入 <code>0x0403</code>，我们告诉 GBA 使用视频模式 3 并激活背景 2。这到底意味着什么，会在<a href="video.html">视频</a>和<a href="bitmaps.html">位图模式</a>两章中解释。</p>
+<p>在模式 3 中，VRAM 是一张 16 位的位图；当我们为它做一个半字指针时，每个条目就是一个像素。这张位图本身与屏幕一样大（240×160），并且由于<a href="bitmaps.html">位图</a>和 C 语言矩阵的工作方式，使用形如 ‘数组[<em>y</em>*<em>width</em> + <em>x</em>]’ 的表达式，得到的就是屏幕上坐标 (<em>x</em>, <em>y</em>) 处的内容。这就给了我们的 3 个像素位置。我们用三个 16 位数把它们填满，这几个数恰好是 5.5.5 BGR 格式下纯红、纯绿和纯蓝。还是 RGB 来着，我总是记混。总之，那正是让像素出现的原因。在那之后还有一行重要的代码，即那个无限循环。通常，无限循环是应当避免的东西，但在这个情况下，<code>main()</code> 返回之后会发生什么相当未定义，因为几乎没什么可返回的<em>对象</em>，所以最好避免那种可能性。</p>
+<p>大致上也就这些了。虽然这段代码斯巴达式的纯粹对我的一部分颇有吸引力，但我还是要再次强调：这<em>不是</em>用 C 语言编程的正确方式。把那些原始数字留给汇编吧。</p>
+<h2 id="sec-second"><a class="header" href="#sec-second">你的第二个“第一个” GBA 程序</a></h2>
+<p>那么，让我们重头再来，这次做<em>对</em>。或者至少比之前更对一点。有若干简单的方法可以改善代码的可读性。下面是我们会去做的事项清单。</p>
+<ul>
+<li>首要的是使用<strong>具名字面量</strong>，也就是为这些常量定义 #define 名字。将写入显示控制的那些数字，以及我们绘出的那些颜色，都会得到恰当的名字。</li>
+<li>我们还会使用 #define 来做<strong>内存映射</strong>：这样显示控制和 VRAM 就会更像普通变量一样工作。</li>
+<li>我们还会创建一些<strong>typedef</strong>，既为了方便，也为了标示出概念性的类型。例如，一个 16 位颜色本质上与其他任何半字一样，但如果你把它 typedef 成，比如说 <code>COLOR</code>，每个人都会知道那不是普通的半字，而是与颜色有关的东西。</li>
+<li>最后，我们不再用数组访问来绘像素（那仍可能意味着任何东西），而是用一个<strong>子程序</strong>来做。</li>
+</ul>
+<p>自然，这会略微（其实是相当程度地）增加代码总行数。但非常值得。这段代码其实分成两部分。真正的代码——也就是拥有第一个演示程序全部功能的那部分——可以在 <em>second.c</em> 中找到。上面讨论的所有项目，即 typedef、#define 和 inline 函数，都被放进 <em>toolbox.h</em>。</p>
+<pre><code class="language-c">// toolbox.h: 
+//
+// === NOTES ===
+// * 这是 libtonc 中能找到的一_小_套 typedef、#define 和 inline，
+//   未必代表最终的形态。
+
+#ifndef TOOLBOX_H
+#define TOOLBOX_H
+
+// === (from tonc_types.h) ============================================
+
+typedef unsigned char   u8;
+typedef unsigned short  u16;
+typedef unsigned int    u32;
+
+typedef u16 COLOR;
+
+#define INLINE static inline
+
+// === (from tonc_memmap.h) ===========================================
+
+#define MEM_IO      0x04000000
+#define MEM_VRAM    0x06000000
+
+#define REG_DISPCNT     *((volatile u32*)(MEM_IO+0x0000))
+
+// === (from tonc_memdef.h) ===========================================
+
+// --- REG_DISPCNT defines ---
+#define DCNT_MODE0     0x0000
+#define DCNT_MODE1      0x0001
+#define DCNT_MODE2      0x0002
+#define DCNT_MODE3      0x0003
+#define DCNT_MODE4      0x0004
+#define DCNT_MODE5      0x0005
+// layers
+#define DCNT_BG0        0x0100
+#define DCNT_BG1        0x0200
+#define DCNT_BG2        0x0400
+#define DCNT_BG3        0x0800
+#define DCNT_OBJ        0x1000
+
+
+// === (from tonc_video.h) ============================================
+
+#define SCREEN_WIDTH   240
+#define SCREEN_HEIGHT  160
+
+#define vid_mem     ((u16*)MEM_VRAM)
+
+INLINE void m3_plot(int x, int y, COLOR clr)
+{   vid_mem[y*SCREEN_WIDTH+x]= clr;    }
+
+#define CLR_BLACK   0x0000
+#define CLR_RED     0x001F
+#define CLR_LIME    0x03E0
+#define CLR_YELLOW  0x03FF
+#define CLR_BLUE    0x7C00
+#define CLR_MAG     0x7C1F
+#define CLR_CYAN    0x7FE0
+#define CLR_WHITE   0x7FFF
+
+
+INLINE COLOR RGB15(u32 red, u32 green, u32 blue)
+{   return red | (green&lt;&lt;5) | (blue&lt;&lt;10);   }
+
+#endif // TOOLBOX_H
+</code></pre>
+<pre><code class="language-c">#include "toolbox.h"
+
+int main()
+{
+    REG_DISPCNT= DCNT_MODE3 | DCNT_BG2;
+
+    m3_plot( 120, 80, RGB15(31, 0, 0) );    // or CLR_RED
+    m3_plot( 136, 80, RGB15( 0,31, 0) );    // or CLR_LIME
+    m3_plot( 120, 96, RGB15( 0, 0,31) );    // or CLR_BLUE
+
+    while(1);
+
+    return 0;
+}
+</code></pre>
+<p>如你所见，<em>toolbox.h</em> 的行数其实比真正的代码多得多。眼下这看起来有点浪费，但只因为这是一个如此之小的演示程序。<em>toolbox.h</em> 中的内容实际上没有任何一部分被编译，所以在内存占用上毫无代价。事实上，如果它真的被编译了，那它就不该待在头文件里，但那是我要留到<a href="bitmaps.html#ssec-data-hdr">另一次</a>再讨论的话题。现在，我们先来看看 <em>toolbox.h</em> 里到底有什么。</p>
+<h3 id="ssec-2nd-toolbox"><a class="header" href="#ssec-2nd-toolbox">工具箱</a></h3>
+<h4 id="类型与-typedef"><a class="header" href="#类型与-typedef">类型与 typedef</a></h4>
+<p>首先，我们为常用的类型创建一些简写记号。不管别人怎么说，<strong>简洁是一种美德</strong>。举例来说，无符号类型非常常见，把全名写出来（比如 ‘<code>unsigned short</code>’）没什么意义。简写 ‘<code>u16</code>’ 就要方便得多。除了方便，它还能更好地传达变量的大小信息，而这一点在这里也至关重要。</p>
+<p>我还加入了一个<dfn>概念性 typedef</dfn>。诚然，原则上一个 int 不管用来做什么都是一个 int，但如果你能从类型看出它本该的用途，会很有帮助。在这个例子里，当我想标示某个半字含有颜色信息时，就给 <code>u16</code> 取了个别名 <code>COLOR</code>。</p>
+<h4 id="内存映射宏定义"><a class="header" href="#内存映射宏定义">内存映射宏定义</a></h4>
+<p>为了能直接操作内存中的特定地址，你得把它们转换成指针或数组，然后透过它们来工作。在这个演示程序里，我们感兴趣的地址是 <code>0600:0000</code>（VRAM）和 <code>0400:0000</code>（显示控制寄存器）。在第一个演示程序里，我是手动做的转换，但用名字来代表它们更好，这样你就不必记住所有数字，而且别人也完全无从猜出发生了什么。</p>
+<p>对于 IO 寄存器，我使用的是官方名字，那是各方都认可的。显示控制被称为 REG_DISPCNT，被定义为 <code>0400:0000</code> 处的那个字。请注意，名字和类型都不是一成不变的：你大可同样轻易地叫它 “BOO”，甚至用一个半字指针。寄存器 #define 的完整列表可以在 libtonc 的 <em>tonc_memmap.h</em> 中找到。</p>
+<p>对于那些对指针不如你应有的那般熟悉的人（伙计，你以后可有得受 <kbd>:P</kbd>），下面给出 REG_DISPCNT 这个 #define 的结构。这里我使用 <code>vu32</code> 作为 ‘volatile u32’ 的 typedef。</p>
+<pre><code class="language-c">#define REG_DISPCNT *((volatile u32*)(MEM_IO+0x0000)) 
+</code></pre>
+<div class="cblock">
+<table class="table-data" width="90%">
+<col align="right">
+<tr>
+  <th width=130>code	<th>type	<th>description
+<tr>
+  <td><code>MEM_IO+0x0000</code>
+  <td>Address
+  <td>MEM_IO=<code>0x04000000</code>，所以这是地址 0400:0000
+<tr>
+  <td><code>(vu32*)0x04000000</code>
+  <td>pointer
+  <td>一个 volatile 性质的、指向无符号 int 的指针
+    （最后这部分现在先忽略）
+<tr>
+  <td><code>*(vu32*)0x04000000</code>
+  <td>&lsquo;variable&rsquo;
+  <td>通过<dfn>解引用</dfn>指针（那个 ‘*’ 
+    一元运算符），我们访问指针所指的内容。也就是，
+	整个东西变成了一个可用的变量。
+</table>
+</div>
+<p>所以，就所有意图和目的而言，REG_DISPCNT 就是一个和普通变量别无二致的变量。你可以给它赋值、读取它的内容、对它做位运算，等等。而这很好，因为那正合我们想使用那个寄存器的方式。</p>
+<p>对 VRAM 也进行了类似的处理，只是最后它仍保持指针的形式。正因为如此，<code>vid_mem</code> 是作为一个<em>数组</em>而非变量来工作的。这再次恰好是我们想要的样子。不过请小心那个定义：里面的所有括号都是<strong>必需</strong>的！由于转换（cast）和数组之间的运算符优先级关系，漏掉外面那对括号会导致编译错误。</p>
+<h4 id="io-寄存器及其位"><a class="header" href="#io-寄存器及其位">IO 寄存器及其位</a></h4>
+<p>IO 寄存器（不要和 CPU 寄存器混淆）是一些以位域（bitfield）形式存在的开关，控制着 GBA 的各种操作。IO 寄存器可以在 <code>0400:0000</code> 那段内存中找到，通常会按个人喜好被归拢成字或半字。要完成任何事，你都得去设置 IO 寄存器的特定位。虽然你可以试着记住所有这些位的数值，但用 #define 来代替要方便得多。</p>
+<p>工具箱头文件列出了我用于 REG_DISPCNT 的一些 #define。完整的列表可以在 libtonc 的 <em>tonc_memdef.h</em> 中找到，而该寄存器本身在<a href="video.html">视频</a>章中有描述。眼下，我们只需要 DCNT_MODE3 和 DCNT_BG2。前者把视频模式设为模式 3，那是 3 种可用<a href="bitmaps.html">位图模式</a>中最简单的一种；后者则激活背景 2。在总共四个背景中，bg 2 是位图模式下唯一可用的那个，你想让任何东西显示出来都得把它打开。你得承认，这些名字比 <code>0x0003</code> 和 <code>0x0400</code> 要更具描述性，对吧？ <!-- 如果不这么觉得，你已被_禁止_编程 :P --></p>
+<p>我还加了一份有用的颜色 #define 列表，尽管我在 <em>second.c</em> 中并没有用到它们。不过它们将来可能有用也可能没用，所以留着它们挺好。
+<br></p>
+<p>创建寄存器的 #define 大概是头文件中最大的一块。粗略估计，大约有 100 个寄存器，每个 16 位，那就会是 1600 个 #define。这是个不小的数目。确切的数字可能小一些，但仍然是很大的。因为 #define 的名字本身并不重要，你可以预期不同的人会有不同的命名方案。我偏爱我自己那套名字，更老的 GBA 程序员可能用 PERN 的名字，而更新的则可能用随 devkitARM 一同发布的 libgba 的名字。随你挑。</p>
+<h4 id="宏与内联函数"><a class="header" href="#宏与内联函数">宏与内联函数</a></h4>
+<p>你还可以创建一些工作方式有点像函数的 #define。这些被称为<dfn>宏</dfn>。我在这里没有使用它们，但 libtonc 的头文件里随处都是。和所有 #define 一样，宏属于预处理器而非编译器，这意味着调试器永远看不到它们，而且它们可能藏着许多隐性的错误。正因如此，它们已经让位给了<a href="http://gcc.gnu.org/onlinedocs/gcc-4.0.2/gcc/Inline.html" title="" target="_blank"><dfn>内联函数</dfn></a>。它们具备宏的所有好处（即，被集成进调用它们的函数里，所以速度快），但在语法上仍然像函数，并且在编译期就被解析。理论上至少如此；在实践中它们并不<em>完全</em>像宏那般快，但往往仍更可取。</p>
+<p>我用到的一个内联函数是 <code>m3_plot()</code>，如你可能猜到的，它用于在模式 3 中绘像素。在模式 3 里，VRAM 只是一张 16 位颜色的矩阵，所以我们要绘一个像素，只需在正确的数组元素里写入一个半字。<code>m3_plot()</code> 看起来完全像一个普通函数，但因为它前面的 ‘<code>static inline</code>’ 使它成为内联函数。请注意，内联只是对编译器的一种建议，而非命令，而且只有在优化开关打开时它才起作用。</p>
+<pre><code class="language-c">// Mode 3 plotter as macro ...
+#define M3_PLOT(x, y, clr)   vid_mem[(y)*SCREEN_WIDTH+(x)]=(clr)
+
+// and as an inline function
+static inline void m3_plot(int x, int y, COLOR clr)
+{   vid_mem[y*SCREEN_WIDTH+x]= clr;  }
+</code></pre>
+<p>第二个内联函数是 <code>RGB15()</code>，它从任意给定的红、绿、蓝值创建一个 16 位颜色。GBA 的图形使用 16 位颜色——或者更准确地说是 5.5.5 BGR 格式的 15 位颜色。也就是：最低的 5 位放 32 阶红，位 5 到 9 放 32 阶绿，位 10 到 14 放 32 阶蓝。<code>RGB15()</code> 这个内联函数包揽了完成此事所需的所有移位与掩码操作。</p>
+<h3 id="ssec-2nd-src"><a class="header" href="#ssec-2nd-src">工作代码</a></h3>
+<p>利用 <em>toolbox.h</em> 的内容，让演示程序的代码变得容易理解得多。</p>
+<p><code>main()</code> 的第一行设置了显示控制（也就是俗称的 REG_DISPCNT）中的若干位。我用 <code>DCNT_MODE3</code> 把视频模式设为模式 3，并用 <code>DCNT_BG2</code> 激活背景 2。这翻译过来和之前一样是 <code>0x0403</code>，但这个方法比填入原始数字更能表明正在发生什么。使用一个类变量的 #define，而非那个原始的解引用指针，也更可取；尤其因为后者一定会让 C 语言新手抓狂。</p>
+<p>那么，我当初究竟是怎么知道哪些位做什么、从而创建出这些 #define 的呢？简单，我去 <a href="https://problemkaputt.de/gbatek.htm" title="" target="_blank">GBATEK</a> 查的，它是 GBA 编程必不可少的参考资料。对于我在这些页面中使用的每个 IO 寄存器，我都会给出各位的描述，以及它们在 libtonc 中被定义成的 #define 列表。这些描述的格式在<a href="intro.html#ssec-note-reg">前言</a>中给出，而 REG_DISPCNT 的表格可以在<a href="video.html#sec-vid-regs">视频章</a>找到。</p>
+<p>实际绘出像素，现在由内联函数 <code>m3_plot()</code> 完成，它的格式与世上的每种像素绘制器都差不多：2 个坐标加颜色。这比直接访问内存好得多，尽管它的工作方式完全一样。颜色本身现在也由一个内联函数创建：<code>RGB15</code> 接收 3 个分别代表红、绿、蓝分量的数，并把它们组合成一个合法的 16 位颜色。</p>
+<p>最后，有一个无尽循环来防止程序结束。但无尽循环不是不好吗？嗯，通常确实不好，但这里不是。请记住 PC 程序结束时会发生什么：控制权被踢回操作系统。而我们<em>没有</em>操作系统。所以 <code>main()</code> 返回之后会发生什么，是未定义的。你可以透过查看一个名为 <em>ctr0.S</em> 的文件（随你的 dev-kit 一同提供）来看会发生什么，但那不是新手该碰的东西，所以眼下我的建议是：干脆别让它发生。于是，无尽循环。作为记录，有更好的方法来让 GBA 程序停下来，但这个是最简单的。而我们此刻已经走到了演示程序的结尾。</p>
+<h4 id="更好了不是吗"><a class="header" href="#更好了不是吗">更好了，不是吗？</a></h4>
+<p>而这，就是像样的代码该有的样子。作为一条基本准则，尽量避免原始数字：除了你没人会知道它们意味着什么，而且过一阵子你自己可能也会忘掉。Typedef（以及 enum 和 struct）在构建代码结构上能创造奇迹，子程序（函数、内联函数和宏）也是。基本上，每当你注意到自己在重复自己（复制粘贴式编程）时，可能就是该想想创建一些子程序来替换那段代码的时候了。</p>
+<p>这些只是几条基本指引。如果你需要更多，可以在<a href="https://web.archive.org/web/20110624025547/http://www.jetcafe.org/~jim/c-style.html" title="" target="_blank">这里</a>找到一些，比如。Google 是你的朋友。现在，如果你上过任何 C 语言的课，这些你本该已经知道了。如果没有，那你被坑了。书籍和教程有时会跳过这些话题，所以可能有必要四处逛逛，去寻找更多关于编程风格的指引。顺便说一句，它们说到底只是<em>指引</em>。虽然这些规则通常都很明智，但没必要对它们搞法西斯主义。有时规则对你的处境并不完全适用；那种情况下，尽管打破它们。但请切记，这些指引之所以被写出来是有原因的：十之八九，遵循它们会对你有益。</p>
+<h3 id="ssec-2nd-v3"><a class="header" href="#ssec-2nd-v3">第一个演示程序 v3？</a></h3>
+<p>条条大路通罗马。你已经见过两种本质上做着同一件事的编码方式，尽管其中一个明显更优。但有时事情并非那么泾渭分明。在许多情况下，有若干种同样有效的编程方式。明显的例子，是你给标识符取的名字。没人在强迫你用某套特定的名字，因为重要的不是名字，而是它们所代表的东西。另一个争论点是：你究竟用宏、函数、数组还是别的什么来处理内存映射。在大多数情况下，编译出的代码并无差别。</p>
+<p>下面的代码展示了另一种绘出那 3 个像素的方式。在这个例子中，我使用的是颜色 #define，而非那个 RGB 内联函数；但更重要的是，我使用了一个数组 typedef <code>M3LINE</code>，借此我可以把 VRAM 映射成矩阵，从而每个像素都由一个矩阵元素表示。是的，你可以这么做，而且在某种程度上它甚至比用内联或宏更好，因为你不仅限于设置像素；获取、掩码等等用矩阵都完全可行，但如果你走子程序那条路，就得为每种操作各创建一个。</p>
+<p>如你所见，把事情做完有一万种方式，其中一些比另一些更实用。哪一种适合你的处境，基本由你决定；那只是软件设计的一部分。</p>
+<pre><code class="language-c">#include "toolbox.h"
+
+// extra stuff, also in tonc_video.h
+#define M3_WIDTH    SCREEN_WIDTH
+// typedef for a whole mode3 line
+typedef COLOR       M3LINE[M3_WIDTH];
+// m3_mem is a matrix; m3_mem[y][x] is pixel (x,y)
+#define m3_mem    ((M3LINE*)MEM_VRAM)
+
+int main()
+{
+    REG_DISPCNT= DCNT_MODE3 | DCNT_BG2;
+
+    m3_mem[80][120]= CLR_RED;
+    m3_mem[80][136]= CLR_LIME;
+    m3_mem[96][120]= CLR_BLUE;
+
+    while(1);
+    return 0;
+}
+</code></pre>
+<h2 id="sec-notes"><a class="header" href="#sec-notes">GBA 编程的一般性注意事项</a></h2>
+<p>主机编程与 PC 编程有着本质的不同，对于像 GBA 这样的机器尤其如此。这里没有操作系统，没有复杂的 API 要学，只有你与内存对峙。你需要对 GBA 的内存区段有深入的了解，才能把事情做对，而良好的指针与位运算技巧是必备的。还要记住，你并没有 2GHz 的 CPU、半吉内存，以及一个每秒能画无数多边形的 GPU。它只是一颗 16 MHz 的 CPU 配上 96kB 显存。而且<strong>没有</strong>浮点支持，甚至没有硬件除法。这些都是你在设计 GBA 软件时需要意识到的东西。</p>
+<br>  
+另一件你需要记住的事是：GBA 做事的方式，往往与你预期的只差那么一丁点。最典型的例子，就是用于[仿射变换](affine.html)（如旋转和缩放）的那个矩阵。所有流行的教程都给出了旋转-缩放变换的错误矩阵，尽管参考文档对每个元素都给出了正确的描述。其它的好例子还有：试图[向 VRAM 写入单个字节](bitmaps.html#ssec-intro-details)的最终结果；按键状态[对应的位](keys.html#ssec-reg-keys)在按钮<em>未被</em>按下时其实是被<em>置位</em>的、而非相反；或者定时器寄存器 [REG_TMxD](timers.html#ssec-reg-tmxd) 真正做了什么。
+<p>我已经尽力把所有这些东西讲得完整，但我敢肯定还是漏了一星半点。如果你遇到问题，你大概不是第一个。有大量的 FAQ 和论坛，你可以在那里找到解决办法。如果那样还不行，开口问也绝无坏处。如果我的任何信息有误或不完整，请务必告诉我。</p>
+<h3 id="ssec-notes-bad"><a class="header" href="#ssec-notes-bad">GBA 的好/坏实践</a></h3>
+<p>出于某种原因，GBA 开发圈子里存在着大量糟糕的编程实践。其主要原因大概是：人们只是从教程代码里复制粘贴，而其中大多数用的就是这些实践。下面是一份简短的清单，列出了该避免的事，以及该采纳的事。</p>
+<ul>
+<li>
+<p><strong>不要尽信你读到的东西</strong>。底线是：人会犯错。有时，给出的信息是错误的或不完整的。有时代码跑不起来；有时它能跑，但效率低下、前后不一，或者只是包含了些日后会反过来咬你的实践。对于大多数（如果不是全部）较老的教程，这都是真的。不要 automatically 假设你做错了：也有可能是源头材料的问题。</p>
+<p>不幸的是，如果你刚接触编程，你可能辨认不出那些坏东西，从而采纳了某些源头所展示的标准。<em>不要从 GBA 教程里学 C 语言编程！</em>我几乎想把这个建议延伸到广义的在线教程，尤其是短小的那些。书籍通常更准确，并能对材料提供更好的洞见。（但再次强调，<a href="http://www.coranac.com/documents/taptngba/" title="" target="_blank">也不总是如此。</a>）</p>
+</li>
+<li>
+<p><strong>RTFAQ / RTFR</strong>。去读 <a href="https://gbadev.net/forum-archive/thread/14/418.html" title="" target="_blank">gbadev 论坛 FAQ</a>。这还用说吗。它涵盖了许多常见问题。此外，去读那个 fuckin 参考，我指的是 <a href="https://problemkaputt.de/gbatek.htm" title="" target="_blank">GBATEK</a>，它几乎无所不包。</p>
+</li>
+<li>
+<p><strong>Makefile 是好的</strong>。许多教程用批处理文件（batchfile）来构建项目。我承认，这是个很简单的方法，但长远来看，它效率很低、仅限 Windows，并且容易带来可维护性问题。Makefile 才更适合真实世界的项目，尽管初期可能要跨一道设置门槛。幸运的是，你不必太操心这件事，因为 DevkitPro 随附了一个<strong>模板 makefile/项目</strong>（见 <code>${DEVKITPRO}/examples/gba/template</code>），你只需指明源文件/头文件/数据文件放在哪些目录即可。我用于进阶项目和实验项目的 makefile，就是对它们的改编。</p>
+</li>
+<li>
+<p><strong>Thumb 代码是好的</strong>。代码（ROM 和 EWRAM）所在的常规区段拥有 16 位总线。ARM 指令会堵住总线，并严重拖慢性能。Thumb 指令在这里更合适。Thumb 代码往往也更小。请注意，由于 IWRAM 是 32 位总线，在那里用 ARM 代码没有惩罚。</p>
+</li>
+<li>
+<p><strong>开启交互（interworking）、优化和警告是好的。</strong> 交互（<code>-mthumb-interwork</code>）允许你在 ARM 和 Thumb 代码之间切换；如果你有一些放在 ARM/IWRAM 中的高性能例程、想从 ROM 代码里调用它们，你也许会想要这个。优化（<code>-O</code><em><code>#</code></em>）让 GCC 在把 C 编译成机器码时别犯傻（我是认真的：没有它们，输出在各方面都糟糕透顶）。它产生更快的代码，通常也更小。警告 <code>-Wall</code> 应当开启，因为你<em>一定会</em>做出些蠢事，产出可以编译、却不会如你所愿的输出来。警告就是提醒你：可能有什么古怪的事正在发生。</p>
+</li>
+<li>
+<p><strong>32 位变量是好的</strong>。每个 CPU 都有一个“原生”数据类型，也称为<strong>字</strong>（word），或用 C 的话说，就是 <code>int</code>。一般来说，CPU 处理该数据类型要比处理任何其它类型都更在行。GBA 被称为 32 位机器，正是因为 CPU 的原生数据类型是 32 位的。指令集是针对字长块优化过的。它<em>喜欢</em>字，所以除非别无选择，否则你最好喂它字。</p>
+<p>在非常实在的意义上，32 位整数才是 GBA <em>唯一</em>拥有的数据类型。其余本质上都是被模拟出来的，这会带来微小的性能惩罚（对字节和半字要多两条移位指令）。<strong>不要</strong>用 <code>u8</code> 或 <code>u16</code> 作为循环索引，举例来说，这样做会让循环速度<em>减半</em>！（认为“用更小的类型就意味着更低内存占用”的信念，只对有聚合体、也许还有全局变量成立；对局部变量来说它其实<em>耗费</em>内存）。同理，如果你有内存要复制或填充，用字大约能比半字快一倍。只是在做转换时要小心，因为 ARM CPU 对<a href="bitmaps.html#ssec-data-align">对齐</a>非常挑剔。</p>
+</li>
+<li>
+<p><strong>头文件里的数据是<em>坏的</em>，非常坏</strong>。在讲到<a href="bitmaps.html#ssec-data-hdr">数据</a>时我会稍微细说。另见<a href="https://gbadev.net/forum-archive/thread/4/2605.html" title="" target="_blank">这里</a>和<a href="https://gbadev.net/forum-archive/thread/14/3687.html" title="" target="_blank">这里</a>。</p>
+</li>
+</ul>
+<p>那些是其它 GBA 教程经常栽跟头的地方。它不是一份排他性的清单，但要点都在里面了，我想。关于（C）编程总体而言，还有几点我也想在这里提一下。</p>
+<ul>
+<li>
+<p><strong>了解语言；了解系统</strong>。不言自明的是：如果你用某种语言、或在某个系统上编程，你应当对两者都有一点（最好很多）了解。然而，我见过相当多的代码之所以成问题，单纯是因为作者显然对两者都知之甚少。正如我在本节开头所说，GBA 有几个有趣的怪癖，是你在为它编程时需要知道的。那，当然，正是 Tonc 的全部主旨。有些问题源于缺乏 C 语言技巧——“int”那件事就是一例。另一个<em>非常</em>常见的问题，是正确的内存和指针使用，这一点我稍后会讲一点，也会在<a href="bitmaps.html#sec-data">数据</a>一节中再讲。用 C，你手头有不同的数据类型、指针、预处理器和位运算符可用。去学习它们做什么、以及如何有效地使用它们。</p>
+</li>
+<li>
+<p><strong>先想，后写</strong>。<em>不要</em>打开编辑器、敲下一些代码、然后指望它能正确运行。它不会的。如果连你自己都还没定义过“正确地”是什么意思，它又怎么可能正确？先想清楚你想做什么，再想清楚你需要什么才能做成它，<em>然后</em>才试着去实现。</p>
+<p>大量的编程（至少对我而言）根本不是在文本编辑器里完成的。举例来说，对任何涉及数学的事（图形也可以包括在内），最好先画个情境图。为了看清发生了什么，我为<a href="affine.html">仿射变换</a>和 <a href="mode7.html">mode 7</a>画了好几页的图和等式。纸和笔在这里是你的朋友。</p>
+</li>
+<li>
+<p><strong>学会一般化与简化</strong>。这其实与编程无关，而是与广义上的解题有关。具体的问题往往是更一般问题的特例。举例来说，2D 数学是多维数学的一个子集；向量分析和变换（如旋转和缩放）则是线性代数的一部分。如果你知道一般性的解，你总能（嗯，至少<em>通常</em>是）推到具体的情形。然而，常被讲授的（在学校里，在大学里也是）是具体的解，而非一般的解。虽然用特解往往用起来更快，但只要情形与书上的例子<em>稍微</em>不同一点，它们就完全派不上用场。如果你学的是通解——更好的是，学会如何得到通解——你解决手头任务的机会就会大得多。</p>
+<p>一个相关的问题是简化。举例来说，如果你在一组等式（或算法）中有很长的表达式，你可以把它们归并到一个新名字之下。这意味着更少的书写、更少的书写，以及更低的出错风险。</p>
+</li>
+<li>
+<p><strong>学习基础的优化策略</strong>。我这么说，并不是指你该熟知书中所有的花招，而是有一些你可以在写代码时用上的技巧，能在不牺牲可读性和可维护性的前提下提速（有时甚至是显著的提速）。事实上，有时代码反而因为这样而变得更容易读了。几个例子：</p>
+<ul>
+<li><strong>用更好的算法</strong>。好吧，这一条也许不总是简单，但它仍然非常正确。</li>
+<li><strong>用 int</strong>。 <code>int</code> 被宽松地定义为原生数据类型。处理器在处理自己的原生数据类型时往往表现更好。</li>
+<li><strong>把公共表达式提取到临时变量</strong>。如果你不止几次地使用一个长表达式，考虑把它丢进一个临时变量。这对你来说意味着更少的书写，对所有人来说意味着更少的阅读。它还能让你的代码更快，因为你不必一直去重新求值整个表达式。对于全局变量这一点尤其正确，因为它们在每次函数调用后都得重新加载，值可能已经变了。</li>
+<li><strong>用指针</strong>。指针有着危险的名声，但如果用得正确，它们是<em>非常</em>强大的工具。指针算术通常比下标索引更快，因为它更贴近硬件；而把深层嵌套的结构表达式赋给临时指针（见上），你能极大地缩短表达式的长度，这对编译器和读者都更友好。</li>
+<li><strong>预先计算。</strong> 这与前面两点相关。如果你有一个循环，其中有些东西并不依赖于循环变量，就把那部分在循环之前预先算好。另外，为了避免（复杂的）计算，你可以把数据丢进一个<a href="fixed.html#sec-lut">查找表</a>，然后直接从那里取值。</li>
+<li><strong>避免分支</strong>。那些改变程序流向的东西（if、循环、switch）通常比其它操作（比如算术）更费。有时可以巧妙地用算术来 effectively 完成分支（比如，<code>(int)x&gt;&gt;1</code> 会根据 <em>x</em> 的符号给出 −1 或 0）
+当然，还有更多的优化技巧。Wikipedia 上有一个不错的<a href="https://en.wikipedia.org/wiki/Optimization_(computer_science)" title="" target="_blank">概览</a>，你也能在<a href="https://web.archive.org/web/20090719211007/http://www.abarnett.demon.co.uk:80/tutorial.html" title="" target="_blank">这里</a><span class="emphasis">[b0rked]</span>和<a href="http://linuxgazette.net/issue71/joshi.html" title="" target="_blank">那里</a>找到讨论特定技巧的页面。其中某些技巧编译器反正也会做，但不总是。</li>
+</ul>
+</li>
+<li>
+<p><strong>学会<em>稍后</em>再优化</strong>。也就是俗称的“过早优化是万恶之源”。优化应当在最后阶段做，那时大部分代码已经就位，而且你能真正判断出哪里需要优化（如果确实需要的话）。然而，这并<em>不</em>意味着你在早期阶段就该刻意追求最慢的解。往往存在一种更干净和/或更快（有时甚至是<em>快得多</em>）的算法，只需一点点思考就会浮现在你眼前。这不是优化，而仅仅是别犯傻的问题。上面提到的几点中有一些就属于这一类。</p>
+</li>
+<li>
+<p><strong>总有例外</strong>。没有任何一条编程指引是没有例外的。也许除了这一条。</p>
+</li>
+</ul>
+<p>我就先说到这里。关于如何高效编码，整本书都被写出来了。网上也有资源：搜索诸如“optimization”、“coding standards”或“coding guidelines”之类的关键词，应该能给你足够多的内容。另外也查查<a href="https://en.wikipedia.org/wiki/Software_design_pattern" title="" target="_blank">设计模式</a>和<a href="https://en.wikipedia.org/wiki/Anti-pattern" title="" target="_blank">反模式</a>。展示如何<em>不</em>编码的书和站点也很有趣。有时它们甚至更有用。<a href="http://worsethanfailure.com/Default.aspx" title="" target="_blank">Worse than Failure</a> 就是其中之一（尤其是 codeSOD 那个分类）；<a href="http://www.rinkworks.com/stupid/cs_programming.shtml" title="" target="_blank">Computer Stupidities</a> 的编程板块也不错。如果你想看看为什么全局变量的使用通常会被劝阻，去后一个页面搜一下 ‘alpha’。</p>
+<h3 id="ssec-bad-example"><a class="header" href="#ssec-bad-example">几个好/坏实践的例子</a></h3>
+<p>这里是几个代码示例，它们虽然能工作，却能在速度、代码量以及/或者可维护性方面做得更好。</p>
+<h4 id="整型-vs-非整型"><a class="header" href="#整型-vs-非整型">整型 vs 非整型</a></h4>
+<p>上面我提到，使用非整型可能会有问题。由于这个坏习惯在 GBA 和 NDS 的代码（无论自制<em>还是</em>商业）中都特别常见，我想给你看一个这方面的例子。</p>
+<pre><code class="language-c hljs">// Force a number into range [min, max&gt;
+#define CLAMP(x, min, max)   \
+    ( (x)&gt;=(max) ? ((max)-1) : ( ((x)&lt;(min)) ? (min) : (x) ) )
+
+// Change brightness of a palette (kinda) (70)
+void pal_brightness(u16 *pal, <span class="rem wavy">u16</span> size, <span class="rem wavy">s8</span> bright)
+{
+    <span class="rem wavy">u16</span> ii;
+    <span class="rem wavy">s8</span> r, g, b;
+
+    for(ii=0; ii&lt;size; ii++)
+    {
+        r= (pal[ii]    )&amp;31;
+        g= (pal[ii] &gt;&gt;5)&amp;31;
+        b= (pal[ii]&gt;&gt;10)&amp;31;
+
+        r += bright;    r= CLAMP(r, 0, 32);
+        g += bright;    g= CLAMP(g, 0, 32);
+        b += bright;    b= CLAMP(b, 0, 32);
+
+        pal[ii]= r |(g&lt;&lt;5) | (b&lt;&lt;10);
+    }
+}
+</code></pre>
+<p>这个例程通过往颜色分量上加一个亮度因子，来让调色板变亮或变暗，每个分量随后都被钳制到 [0,31⟩ 的范围，以避免古怪的错误。基本的算法是站得住脚的，连实现我都说得上是相当好。然而不好的，是所用的数据类型。在这里使用 <code>s8</code> 和 <code>u16</code>，几乎在每次使用任何变量时，都凭空多添了一对移位指令！循环本身会被编译成大约 90 条 Thumb 指令。相比之下，当除了 <code>pal</code> 之外一切都用 <code>int</code> 时，循环只有 45 条指令长。当然，体积的增大也意味着时间的增加：纯用 int 的版本比上面给出的那个快了 78%。重申一遍：<strong>仅仅因为用了错误的数据类型，代码就膨胀了一倍，并且慢了 78%！</strong>
+<br></p>
+<p>我得承认，这个例子特别糟糕，因为里面有大量的算术。大多数函数会承受更小的惩罚。然而，根本就没有理由一开始就白白损失那份性能。使用 <code>s8</code> 和 <code>u16</code> 没有任何好处；它不会提升可读性——它所做的只是导致膨胀和变慢。<strong>能用时就用 32 位变量，其它的只在不得不用时才用</strong>。
+<br></p>
+<p>现在，在这让事情变成又一个 <a href="https://www.xkcd.com/292/" title="" target="_blank">goto</a> 议题之前，非整型确实也有它们的用武之地。变量可以分为两类：工作变量（在寄存器里的）和内存变量。局部变量和函数参数是工作变量。这些应当是 32 位的。处于内存中的项目（数组、全局变量、结构体等等）则可能受益于尽量小。当然，内存变量在你对它们做任何事之前，仍然得被加载进寄存器。一个显式的局部变量在这里也许有用，但要看具体情形。</p>
+<h4 id="指针问题"><a class="header" href="#指针问题">指针问题</a></h4>
+<p>GBA 新手最常犯的错误之一，就是在复制数据时混淆了数组/指针的大小。<a href="bitmaps.html#sec-data">数据就是数据</a>，但你可以用不同的方式访问它。举例来说，下面这段代码把一张位图数据从数组复制到 VRAM。</p>
+<pre><code class="language-c">// An array representing a 240x160@16 bitmap, converted 
+// to an array by some graphics conversion tool.
+const u8 fooBitmap[240*160*2]= 
+{
+    // Maaaaany, many lines of data.
+}
+
+int main()
+{
+    REG_DISPCNT= DCNT_MODE3 | DCNT_BG2;
+
+    // Copy 240x160 pixels to VRAM (ORLY?)
+    int ii;
+    for(ii=0; ii&lt;240*160; ii++)
+        vid_mem[ii]= fooBitmap[ii];
+
+    return 0;
+}
+</code></pre>
+<p><code>fooBitmap</code> 数组代表某张位图。为了把这张位图显示到屏幕上，你需要把它的数据复制到 VRAM。这够简单：我们有之前的 <code>vid_mem</code>，而我们可以透过一个简单的 for 循环，把元素从 <code>fooBitmap</code> 复制到 VRAM。</p>
+<p>然而，事情并不像看起来那么简单。<code>vid_mem</code> 是一个 <code>u16</code> 数组；这样定义是因为在模式 3 中每个像素是一个 16 位颜色。但 <code>fooBitmap</code> 是一个字节数组：这个数组的<em>两个</em>元素才代表<em>一个</em>颜色，而把字节复制到半字，会让每个像素的最高字节空着，给出一个非常走样的結果。这种源-目标的类型错配极其常见，部分是因为人们不知道指针和数组是如何表示内存的，也因为他们没留意数据类型。</p>
+<p>下面是一个能工作的版本：</p>
+<pre><code class="language-c">// An array representing a 240x160@16 bitmap, converted 
+// to an array by some graphics conversion tool.
+const u8 fooBitmap[240*160*2]= 
+{
+    // Maaaaany, many lines of data.
+}
+
+int main()
+{
+    REG_DISPCNT= DCNT_MODE3 | DCNT_BG2;
+
+    u16 *src= (u16*)fooBitmap;  // Cast source to u16-array
+
+    // Copy 240x160 pixels to VRAM (YARLY!)
+    int ii;
+    for(ii=0; ii&lt;240*160; ii++)
+        vid_mem[ii]= src[ii];
+
+    return 0;
+}
+</code></pre>
+<p>通过确保源和目标的类型相同，复制就不会留下空隙。请注意，底层的数据并没有改变——改变的只是使用它的方式。关于如何使用数据和内存，你其实还需要知道更多，那会在后面的章节中讲到。</p>
+<h4 id="简化"><a class="header" href="#简化">简化</a></h4>
+<p>考虑下面这个函数（基本上取自前面提到的 Rinkworks 站点）：</p>
+<pre><code class="language-c">int foo(int x)
+{
+    switch(x)
+    {
+    case 1: return 1;
+    case 2: return 2;
+    case 3: return 3;
+    case 4: return 4;
+    case 5: return 5;
+    case 6: return 6;
+    case 7: return 7;
+    }
+    return 0;
+}
+</code></pre>
+<p>这个函数做的事是：如果 <em>x</em> 在 1 到 7 之间，就返回那个数，否则返回 0。需要注意的点是：case 值和返回值相同，所以你大可以不用那个 switch 块，直接返回 <em>x</em>。</p>
+<pre><code class="language-c">int foo(int x)
+{
+    if(x &gt;= 1 &amp;&amp; x &lt;= 7)
+        return x;
+    else
+       return 0;
+}
+</code></pre>
+<p>像这样的简化，往往会在你稍微想一想自己在做什么、而不是只顾着敲代码时自己浮现出来。现在，这个应该相当明显，但更难的 switch 块也常常能被类似地替换掉。举例来说，如果输入和返回值之间存在简单的数学关系（比如某个加法或乘法），你就可以直接用那个关系。即便没有这种简单关系，也仍有可能性。如果你返回的是常量，你可以把这些常量放进一个表，然后用 <em>x</em> 作为索引。</p>
+<br>  
+上面是算法层面的简化。另一种简化关乎可读性。当然，每个人对什么算可读都有自己的看法。就我个人而言，我喜欢把语句写得短，尤其是在发生动作的那一处。下一个函数是一个包围圆碰撞检测的例子。基本上，你有两个圆，分别位于点 **p**<sub>1</sub> = (*x*<sub>1</sub>, *y*<sub>1</sub>) 和 **p**<sub>2</sub> = (*x*<sub>2</sub>, *y*<sub>2</sub>)，半径分别为 *r*<sub>1</sub> 和 *r*<sub>2</sub>。这两个点之间的距离可以用[勾股定理](https://en.wikipedia.org/wiki/Pythagorean_theorem)算出。如果这个距离小于两个半径之和，两圆就重叠了。一个检测玩家精灵是否撞上任何敌方精灵的函数，可能长这样：
+<pre><code class="language-c">// Some basic structs and a sprite array.
+// #defines for sprite-indices and amounts omitted.
+typedef struct { int x, y; } POINT;
+
+typedef struct
+{
+    POINT position;
+    int radius;
+} TSprite;
+
+TSprite gSprites[SPRITE_MAX];
+
+// Collision function.
+
+int player_collision()
+{
+    int ii;
+
+    for(ii=0; ii&lt;ENEMY_MAX; ii++)
+    {
+        // Test for hit between player and enemy ii
+        if( (gSprites[ENEMY_ID+ii].position.x - gSprites[PLAYER_ID].position.x) *
+            (gSprites[ENEMY_ID+ii].position.x - gSprites[PLAYER_ID].position.x) +
+            (gSprites[ENEMY_ID+ii].position.y - gSprites[PLAYER_ID].position.y) *
+            (gSprites[ENEMY_ID+ii].position.y - gSprites[PLAYER_ID].position.y) &lt; 
+            (gSprites[ENEMY_ID+ii].radius + gSprites[PLAYER_ID].radius) *
+            (gSprites[ENEMY_ID+ii].radius + gSprites[PLAYER_ID].radius) )
+        {
+            return 1;
+        }
+    }
+
+    // Not hit
+    return 0;
+}
+</code></pre>
+<p>就个人而言，我很难读懂那个 if 语句里究竟在发生什么。因为表达式有 6 行长，我实际上得坐下来解析它到底做什么，并且指望那些括号都正确无误，等等。现在请注意，这里有若干东西被重复使用了多次：那些 <code>gSprites</code> 访问（玩家 6 次，敌人 6 次），以及那些位置。它们全都可以用指针和其它局部变量以更少的代码来访问。另外，玩家的属性是<a href="https://en.wikipedia.org/wiki/Loop-invariant_code_motion" title="" target="_blank">循环不变</a>的（它们在循环期间不改变），所以可以在循环之外加载。</p>
+<pre><code class="language-c">int player_collision()
+{
+    int ii; 
+    int r1= gSprites[PLAYER_ID].radius, r2, dx, dy;
+    POINT *pt1= &amp;gSprites[PLAYER_ID].position, *pt2;
+    TSprite *enemy= &amp;gSprites[ENEMY_ID];
+
+    for(ii=0; ii&lt;ENEMY_MAX; ii++)
+    {
+        r2= enemy[ii].radius;
+        pt2= &amp;enemy[ii].position;
+        dx= pt2-&gt;x - pt1-&gt;x;
+        dy= pt2-&gt;y - pt1-&gt;y;
+        
+        // Test for hit between player and enemy ii
+        if( dx*dx + dy*dy &lt; (r1+r2)*(r1+r2) )
+            return 1;
+    }
+
+    // Not hit
+    return 0;
+}
+</code></pre>
+<p>行数也许并没有真正减少，但各行本身更短、也更容易读了。而且，原先那个 6 行的 <code>if</code> 表达式，现在能塞进一行，你也能真正看清它在做什么。就我个人而言，我会说这是个胜利。</p>
+<h2 id="sec-testing"><a class="header" href="#sec-testing">在真实 GBA 上测试你的代码</a></h2>
+<p>如果你刚开始 GBA 编程，很可能你正在用市面上的那些模拟器，并会对它们感到满意。然而，如果你翻翻论坛，会看到许多人在敦促你定期在硬件上测试。他们绝对是对的。</p>
+<p>现在，这并不是说模拟器很糟。事实恰恰相反；最流行的那些模拟器带有像图块、地图和内存查看器这样的东西，对调试至关重要。像 VBA 这样的模拟器非常、非常好，但并非完美无缺。拿 Tonc 的演示程序来说吧：在所有情形下，它们在 VBA 上和真实 GBA 上跑得一样……大体上。首先，对它们中的大多数而言，时序是个真问题（这里的例外是 no$gba，我从未见过它偏差超过 2%，通常还要小得多）。另外，在极少数情况下（比如 <a href="regbg.html#sec-demo"><em>cbb_demo</em></a> 和 <a href="gfx.html#sec-win"><em>win_demo</em></a>），GBA 和模拟器的输出之间存在微小但重要的差异，而如果你从没在真机上测试过，你永远都不会知道。</p>
+<p>另一件非常不同的事是颜色。由于并非背光，GBA 屏幕比 PC 显示器要暗得多。或者那只是我的房间 <code>;)</code>。另外，在模拟器上你可以奢侈地缩放视图；真实的 GBA 永远是 3 英寸的屏幕。这其中有天壤之别，相信我。拿我上面展示的那个 <em>first.gba</em> 例子来说：那些像素小到在真实 GBA 上几乎看不见！哪怕是一个 8×8 的图块也相当小。而且，在模拟器里用键盘，和把一台真实 GBA 握在手里，<em>完全</em>不是一回事。</p>
+<p>当然，还有那种创造能在主机上运行的东西的酷劲儿，简直难以言表。嗯，差不多吧。这个词是 <a href="http://www.catb.org/~esr/jargon/html/P/progasm.html" title="" target="_blank">progasm</a>。它说明了一切，不是吗？</p>
+<h3 id="ssec-testing-hw"><a class="header" href="#ssec-testing-hw">多重启动与连接线</a></h3>
+<p>好，所以现在你知道了应当在硬件上测试，可你该怎么做到呢？毕竟，你不能就像插 U 盘或打印机那样，把 GBA 插进你的 PC，对吧？嗯，其实你可以……只要有合适的设备。两种最常见的方式是<dfn>多重启动线</dfn>（multiboot cable）或<dfn>烧录器</dfn>（flash linker）。</p>
+<h4 id="烧录卡与烧录器"><a class="header" href="#烧录卡与烧录器">烧录卡与烧录器</a></h4>
+<p>烧录卡是一种与众不同的 GBA 卡带：它是完全可重写的。有若干不同的套装可选：不同大小的卡带（64Mbit 到 1024Mbit）、USB 或并口版本；有使用独立烧录器（你得把卡从 GBA 里取出来、写入、再插回去）的，也有直接写入卡带或通过多重启动端口传输的。理想情况下你会用上其中之一。然而，它们可能相当贵（$60 – $200（乃至更高？）），并且通常只能通过在线商店购买，这也意味着运费和税费之类的。</p>
+<h4 id="多媒体卡"><a class="header" href="#多媒体卡">多媒体卡</a></h4>
+<p>一个正变得越来越流行的方案，是使用标准的多媒体卡（如 SD、CompactFlash）和一个像 <a href="https://web.archive.org/web/20050629010032/http://www.movieadvance.com/" title="" target="_blank">GBAMP</a> 和 <a href="https://web.archive.org/web/20060424132515/http://eng.supercard.cn:80/" title="" target="_blank">SuperCard</a> 那样的转接器。内存卡可以非常便宜（比如 $10），并且在大多数电子商店都能买到；转接器一般 $25 起。</p>
+<div class="box warning"><p class="box-title">SuperCard vs 等待状态</p>
+<p>SuperCard 有一个小的技术问题：它们使用不支持 3/1 ROM 等待状态的慢速内存。这比默认的 4/2 更快，而任何使用前者（3/1）的东西都根本跑不起来。对大多数自制程序来说这不该是问题，但少数二进制会失败，而且你也无法自己享受那个提速。</p>
+</div>
+<h4 id="多重启动线"><a class="header" href="#多重启动线">多重启动线</a></h4>
+<p>另一种方式是多重启动线。这是一条插进 GBA 多重启动端口（就像 multiplayer 游戏那样）、并插进 PC 某个端口（通常是并口）的线。它们比烧录套装便宜得多。你甚至可以自己做一个 <kbd>:)</kbd>！你可以在 <a href="https://devkitpro.org/" title="" target="_blank">www.devkitpro.org</a> 上找到制作一条 Xboo 通信线的说明和必要软件，它用起来棒极了。基本上你只需把连接线的一端接到一根公头并口线上。如果你货比三家，应该能以低至 $5 的价格搞到你需要的一切。</p>
+<p>但是，一如既往，天下没有免费的午餐。多重启动游戏里发生的是：代码被写入 EWRAM。那正是你能在多人游戏中只用一个卡带的原因。多重启动线也是同样的东西，只是以 PC 作为主机。麻烦在于 EWRAM 只有 256kb 大小；你没法把一整个游戏塞进去。而且，当然，它永远得透过你的电脑运行，所以除非你有笔记本，否则就别想带出去向朋友们显摆了。</p>
+<div class="cblock">
+<table>
+<tbody valign="top">
+<tr>
+<td>
+<div class="cpt" style="width:192px;">
+  <img src="./img/hardware/efa.jpg" id="fig:efa" alt="" width=192><br>
+  <b>Fig 3.2</b>: efa 烧录卡。
+</div>
+<td>
+<div class="cpt" style="width:192px;">
+  <img src="./img/hardware/sc.jpg" id="fig:sc" alt="" width=192><br>
+  <b>Fig 3.3</b>: SuperCard，CompactFlash 版本。
+</div>
+<td>
+<div class="cpt" style="width:224px;">
+  <img src="./img/hardware/xboo.jpg" id="fig:xboo" alt="" width=224><br>
+  <b>Fig 3.4</b>: xboo 多重启动线。
+</div>
+</tbody>
+</table>
+</div>
+<h3 id="ssec-testing-hwbuild"><a class="header" href="#ssec-testing-hwbuild">为真实硬件编译</a></h3>
+<p>这和模拟器几乎一样。你唯一真正要操心的两件事是：a) 你只能使用经过 <code>objcopy</code> 处理的那个二进制文件，以及 b) 你需要有一个合法的 GBA 文件头，而它通常并没有。如果开场画面像平常一样显示 “Game Boy”，但底部的 “Nintendo” 是乱码，那你就有一个坏的文件头。要得到一个合法的头，可以使用一个名为 <code>gbafix.exe</code> 的程序。它最初由 <a href="https://www.darkfader.net/main/" title="" target="_blank">darkfader</a> 编写，但你也能在 <a href="https://devkitpro.org/" title="" target="_blank">www.devkitpro.org</a> 找到它。早先我已经提到过为多重启动游戏所做的额外步骤。</p>
+<p>烧录套装通常会随附能替你打理所有这些事的软件（或者我是这么听说的，我自己没有）。Xboo 的 zip 文件里也有一个小程序，能把你的二进制文件发送到 GBA。</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="setup.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="video.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="setup.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="video.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

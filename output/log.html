@@ -1,0 +1,569 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>附录 G - 更新日志 - Tonc - GBA Programming in rot13</title>
+
+
+        <!-- Custom HTML head -->
+        <!-- Matomo tracking code -->
+        <script>
+          var _paq = window._paq = window._paq || [];
+          /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+          _paq.push(['trackPageView']);
+          _paq.push(['enableLinkTracking']);
+          (function() {
+            var u="//stats.gbdev.io/";
+            _paq.push(['setTrackerUrl', u+'matomo.php']);
+            _paq.push(['setSiteId', '3']);
+            var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+            g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+          })();
+        </script>
+        <!-- End Matomo Code -->
+
+        <meta name="description" content="GBA Programming tutorial">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="theme/css/tonc.css">
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="foreword.html">前言</a></li><li class="chapter-item expanded affix "><a href="intro.html">引言</a></li><li class="chapter-item expanded affix "><li class="part-title">GBA 基础</li><li class="chapter-item expanded "><a href="hardware.html"><strong aria-hidden="true">1.</strong> GBA 硬件</a></li><li class="chapter-item expanded "><a href="setup.html"><strong aria-hidden="true">2.</strong> 搭建开发环境</a></li><li class="chapter-item expanded "><a href="first.html"><strong aria-hidden="true">3.</strong> 我的第一个 GBA 演示程序</a></li><li class="chapter-item expanded "><a href="video.html"><strong aria-hidden="true">4.</strong> 视频显示入门</a></li><li class="chapter-item expanded "><a href="bitmaps.html"><strong aria-hidden="true">5.</strong> 位图模式</a></li><li class="chapter-item expanded "><a href="keys.html"><strong aria-hidden="true">6.</strong> GBA 按键</a></li><li class="chapter-item expanded "><a href="objbg.html"><strong aria-hidden="true">7.</strong> 精灵与图块背景概述</a></li><li class="chapter-item expanded "><a href="regobj.html"><strong aria-hidden="true">8.</strong> 常规精灵</a></li><li class="chapter-item expanded "><a href="regbg.html"><strong aria-hidden="true">9.</strong> 常规图块背景</a></li><li class="chapter-item expanded affix "><li class="part-title">GBA 进阶</li><li class="chapter-item expanded "><a href="affine.html"><strong aria-hidden="true">10.</strong> 仿射变换矩阵</a></li><li class="chapter-item expanded "><a href="affobj.html"><strong aria-hidden="true">11.</strong> 仿射精灵</a></li><li class="chapter-item expanded "><a href="affbg.html"><strong aria-hidden="true">12.</strong> 仿射图块背景</a></li><li class="chapter-item expanded "><a href="gfx.html"><strong aria-hidden="true">13.</strong> 图形特效</a></li><li class="chapter-item expanded "><a href="dma.html"><strong aria-hidden="true">14.</strong> 直接内存访问（DMA）</a></li><li class="chapter-item expanded "><a href="timers.html"><strong aria-hidden="true">15.</strong> 定时器</a></li><li class="chapter-item expanded "><a href="interrupts.html"><strong aria-hidden="true">16.</strong> 硬件中断</a></li><li class="chapter-item expanded "><a href="swi.html"><strong aria-hidden="true">17.</strong> BIOS 调用（SWI）</a></li><li class="chapter-item expanded "><a href="sndsqr.html"><strong aria-hidden="true">18.</strong> 哔！GBA 声音入门</a></li><li class="chapter-item expanded affix "><li class="part-title">进阶 / 应用</li><li class="chapter-item expanded "><a href="text.html"><strong aria-hidden="true">19.</strong> 文本系统</a></li><li class="chapter-item expanded "><a href="mode7.html"><strong aria-hidden="true">20.</strong> Mode 7</a></li><li class="chapter-item expanded "><a href="mode7ex.html"><strong aria-hidden="true">21.</strong> 更多 Mode 7 技巧</a></li><li class="chapter-item expanded "><a href="tte.html"><strong aria-hidden="true">22.</strong> Tonc 文本引擎</a></li><li class="chapter-item expanded "><a href="asm.html"><strong aria-hidden="true">23.</strong> ARM 汇编速成</a></li><li class="chapter-item expanded "><a href="lab.html"><strong aria-hidden="true">24.</strong> 实验室</a></li><li class="chapter-item expanded affix "><li class="spacer"></li><li class="chapter-item expanded affix "><a href="numbers.html">附录 A - 数字、比特与位运算</a></li><li class="chapter-item expanded affix "><a href="fixed.html">附录 B - 定点数与查找表（LUT）</a></li><li class="chapter-item expanded affix "><a href="matrix.html">附录 C - 向量与矩阵数学</a></li><li class="chapter-item expanded affix "><a href="makefile.html">附录 D - 更多关于 makefile 与编译器选项</a></li><li class="chapter-item expanded affix "><a href="edmake.html">附录 E - 通过编辑器进行 Make</a></li><li class="chapter-item expanded affix "><a href="refs.html">附录 F - 参考文献</a></li><li class="chapter-item expanded affix "><a href="log.html">附录 G - 更新日志</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <!--<div class="sidebar-resize-indicator"></div>-->
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <!--<li role="none"><button role="menuitem" class="theme" id="tonc_dark">Tonc Dark</button></li>-->
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="tonc">Tonc Classic</button></li>
+                            <!--<li role="none"><button role="menuitem" class="theme" id="tonc-dark">Tonc Dark</button></li>-->
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Tonc - GBA Programming in rot13</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/gbadev-org/tonc" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                        <a href="https://github.com/gbadev-org/tonc/edit/master/content/log.md" title="Suggest an edit" aria-label="Suggest an edit">
+                            <i id="git-edit-button" class="fa fa-edit"></i>
+                        </a>
+                        <a id="en-version-link" href="#" title="English version" aria-label="English version" target="_blank" rel="noopener">
+                            <i id="en-version-button" class="fa fa-language"></i>
+                        </a>
+                        <script>
+                            (function () {
+                                var EN_BASE = "https://gbadev.net/tonc/";
+                                var seg = (window.location.pathname || "").split("/").pop();
+                                var enHref = EN_BASE + (seg && seg !== "index.html" ? seg : "");
+                                var el = document.getElementById("en-version-link");
+                                if (el) { el.href = enHref; }
+                            })();
+                        </script>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="g-更新日志"><a class="header" href="#g-更新日志">G. 更新日志</a></h1>
+<h3 id="dec-27-2023---初始内容移植与-mdbook-设置"><a class="header" href="#dec-27-2023---初始内容移植与-mdbook-设置">Dec 27, 2023 - 初始内容移植与 mdbook 设置</a></h3>
+<p>本预发布版本包含了从 TONC 教程忠实移植过来的全部内容，采用 markdown 格式，由 mdbook 渲染。部分功能通过额外的 mdbook 预处理器实现。</p>
+<p>“安装”章节也经过了彻底重写，新版本已包含在本发布中。这部分最初的移植版本仍可在提交 <a href="https://github.com/gbadev-org/tonc/commit/7a3ac731efe03af6f7debbcc7dce3b222cd23b65" title="" target="_blank">7a3ac73</a> 中找到。</p>
+<p>本次移植由 @exelotl @avivace @LunarLambda @pinobatch @mtthgn @copyrat90 @gwilymk 共同整理完成。</p>
+<h3 id="mar-2013-141"><a class="header" href="#mar-2013-141">Mar 2013 (1.4.1)</a></h3>
+<p>维护更新。同时包含了来自<a href="http://www.coranac.com/documents/tonc-errata/" title="" target="_blank">勘误页</a>的内容。</p>
+<ul>
+<li><img src="./img/log/bul_excl.png" alt="fix" /> 将 <code>arm-eabi</code> 改为 <code>arm-none-eabi</code>。</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> 各处的小幅 html 修正。感谢 Glod 的目录查找替换工具。</li>
+<li><img src="./img/log/bul_excl.png" alt="fix" /> <code>all code</code>：由于 GCC 4.7 破坏了我的一些汇编函数，我使用最新的 devkitArm（当前为 40）重新编译了所有代码，以保证汇编兼容性。示例和 libtonc 应该都能正常工作了。不过文字部分还需要相应调整。</li>
+<li><code>asm.htm</code>：修正了<a href="asm.html#ssec-gas-dsec">数据段</a>代码片段里不匹配的变量名。感谢 Gdogg</li>
+<li><code>gfx.htm</code>：移除了<a href="gfx.html#ssec-bld-demo">混合演示</a>里多余的分号。</li>
+<li><code>hardware.htm</code>：IO-ram 上限原本写作 <code>0401:03FF</code>，应为 <code>0400:03FF</code>。感谢 G M。</li>
+<li>code：修正了 <code>m7_demo</code>、<code>m7_ex</code>、<code>tte_demo</code> 指向 grit 的链接。</li>
+<li><a href="objaff.html#sec-combo">objaff.htm 11.5</a>：修正了 <code>obj_rotscale_ex()</code> 和 <code>oac_rotscale()</code> 中多余的 <code>sina</code> 和 <code>cosa</code> 计算。感谢 dasi。</li>
+<li>GNU 汇编器手册已移至 <a href="http://sourceware.org/binutils/docs/as/index.html" target="_blank">http://sourceware.org/binutils/docs/as/index.html</a>（感谢 Joseph）。</li>
+<li>第 §23.2.1 节“基本操作”的代码片段里，“x68 asm” 当然应该是 “x86 asm”（感谢 Wladimir）。</li>
+<li>§1.3 节中部分内存映射条目……不够精确（感谢 Pius）。</li>
+</ul>
+<h3 id="oct-2008-14"><a class="header" href="#oct-2008-14">Oct 2008 (1.4)</a></h3>
+<p>…… 也许并不是。一些愚蠢的小错误。</p>
+<ul>
+<li><img src="./img/log/bul_excl.png" alt="fix" /> text：<a href="regbg.html#ssec-map-layout">regbg:map-layout</a> 中的 <code>se_index_fast()</code> 函数是错误的；第二个条件本应使用 `<code>(bgcnt&amp;BG_REG_64x64) == BG_REG_64x64</code>’，已修正。</li>
+<li><img src="./img/log/bul_excl.png" alt="fix" /> text：<a href="asm.html#ssec-arm-mem">asm:memory</a> 中 <code>ldm</code> 的示例没有给出 <code>ldmda</code> 和 <code>ldmdb</code> 的正确取值。已修正。</li>
+<li><img src="./img/log/bul_excl.png" alt="fix" /> code：移除了 <code>tonc_surface.h</code> 中的 <code>void*</code> 运算（希望如此），并修正了定时器演示中的 <code>berk.c</code>，现在可以正常编译了。感谢 elwing 和 Ealdor 的提醒。</li>
+<li>修正了各处的一些随机拼写错误</li>
+</ul>
+<h3 id="may-2008-14"><a class="header" href="#may-2008-14">May 2008 (1.4)</a></h3>
+<ul>
+<li><img src="./img/log/bul_excl.png" alt="fix" /> text：最后一批拼写/语法修正。多谢各位，尤其是 Jake。</li>
+<li>text：修改了关于 #include 的内容，减少了夸张，增加了说明。</li>
+</ul>
+<p>我想就这些了。</p>
+<h3 id="may-2008-13"><a class="header" href="#may-2008-13">May 2008 (1.3)</a></h3>
+<ul>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> code：所有使用文字的演示现在都改用 TTE 来实现。变宽字体比定宽字体好看多了。</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> code：部分高级演示使用 grit 来转换图形。</li>
+<li><img src="./img/log/bul_new.png" alt="new" /> text：新增 TTE 章节，介绍如何为各种场合创建（快速的）文字渲染器。</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> text：我重写了<a href="setup.html">安装章节</a>。现在涵盖了模板 makefile 以及安装时可能出现的一些问题。</li>
+<li><img src="./img/log/bul_swap.png" alt="swap" /> text/code：<a href="interrupts.html">中断章节</a>及其演示使用了新的主 ISR。</li>
+<li><img src="./img/log/bul_excl.png" alt="fix" /> text：修正了 PDF 中棕色的文字。如果有人用 CutePDF 也遇到同样问题，请进入 <code>CutePDF printer-&gt;Properties-&gt;Paper/Quality-&gt;Advanced-&gt;Graphic-&gt;Image Color Management</code>，确保 <code>ICM Method</code> 没有被设为 <code>Host system</code>。我真蠢，居然没先去看那里。</li>
+<li>text：终于移除了使用旧版 devkit 处理 IRQ 的过时章节。</li>
+<li><img src="./img/log/bul_new.png" alt="new" /> libtonc：新增了一套名为 TTE 的文字系统，非常酷。详情请见 <a href="tte.html">tte.htm</a>。</li>
+<li><img src="./img/log/bul_new.png" alt="new" /> libtonc：新的渲染函数。现在有了 ‘TSurface’ 结构体来定义渲染表面，以及针对不同表面类型的基本图元渲染器。功能包括：像素、直线、矩形渲染器，一个 blitter 和 floodfill。主要的表面类型有：16bpp 位图、8bpp 位图和 4bpp 图块。</li>
+<li><img src="./img/log/bul_new.png" alt="new" /> libtonc：颜色调整函数。淡入淡出、混合、亮度调节等等。</li>
+<li><img src="./img/log/bul_new.png" alt="new" /> libtonc：新增 <a href="http://www.coranac.com/2008/01/25/tonccpy/" title="" target="_blank">tonccpy 和 toncset</a>，它们是 memcpy 和 memset 的替代品，并且真正适用于 VRAM。</li>
+<li><img src="./img/log/bul_new.png" alt="new" /> libtonc：已将 libtonc 文档放到网上：<a href="http://www.coranac.com/man/tonclib/index.htm" title="" target="_blank">http://www.coranac.com/man/tonclib/index.htm</a>。</li>
+<li><img src="./img/log/bul_new.png" alt="new" /> libtonc：新增 <code>tonc_libgba.h</code>，一个包含大部分 libgba 常量与函数名到 tonc 对应项的头文件。</li>
+<li><img src="./img/log/bul_swap.png" alt="swap" /> libtonc：将主 ISR 改为不再自动启用中断嵌套的版本。这算是有点倒退，但可能更合适。这不应该影响任何没有使用嵌套中断的人。旧版本仍然可用，只是不再是默认的了。</li>
+</ul>
+<h3 id="dec-2007-13b"><a class="header" href="#dec-2007-13b">Dec 2007 (1.3b)</a></h3>
+<ul>
+<li><img src="./img/log/bul_new.png" alt="new" /> 扩充了<a href="first.html#sec-notes">推荐阅读</a>章节，加入了更长的列表和示例。如果你读过其他教程，那么<strong>请务必读一下这个</strong>！</li>
+<li><img src="./img/log/bul_excl.png" alt="fix" /> 更多拼写和语法修正（感谢 <a href="http://patatersoft.info/" title="" target="_blank">Patater</a>）</li>
+<li><img src="./img/log/bul_excl.png" alt="fix" /> 修正了 c++ 模板 makefile 中的错误。应该是 <code>-fno-exceptions</code>，而不是 <code>-fno-expections</code>，你这傻孩子。（感谢 muff）</li>
+<li><img src="./img/log/bul_swap.png" alt="swap" /> 所有项目现在默认使用 cart-boot（卡带启动），而不是 multiboot（多重启动）。这部分是因为 multiboot 在 devkitPro r21 中无法工作（至少不能直接工作），也因为本来通常就是这么做的。</li>
+<li>在适当的地方将 <code>git</code> 改为 <code>grit</code>。同时也修正了所有下载链接，指向新站点。</li>
+</ul>
+<h3 id="feb-2007-v13b"><a class="header" href="#feb-2007-v13b">Feb 2007 (v1.3b)</a></h3>
+<p>正如每个程序员都知道的，你应该边改边记录所做的改动。但也正如每个程序员都知道的，这些记录往往会被忘掉 <kbd>^_^;;</kbd>。我大概漏掉了这里的一些内容。</p>
+<p>Text（文字）：</p>
+<ul>
+<li><img src="./img/log/bul_new.png" alt="new" /> 现在也有 PDF 版本了，用 CutePDF 制作。这是个不错的工具，但似乎偶尔会把图片搞乱一点。分页也出现在了不幸的位置，不过这是浏览器的问题。它_本应_被 CSS 的 <code>page-break-inside</code> 抵消掉，但我想这个属性还没有被广泛支持。如果有人知道潜在的解决办法，请告诉我。另外，如果有人知道某个能在目录里保留页眉的 html→PDF 转换器，我会非常感兴趣。注意，它需要能打印一个 1.4 MB 的文件，而且要打印得<strong>正确</strong>！有些 PHP 的 html2pdf 工具渲染不正确。Word/OpenOffice 大概也不行，因为它们对浮动 div 和 <code>pre</code> 标签有问题。而且 Word 在读这个文件时几乎要崩溃了。嘿嘿嘿嘿。</li>
+<li><img src="./img/log/bul_new.png" alt="new" /> hardware：GBA 图片与功能描述。谁有 GBA Micro 的图片可以借我用用？</li>
+<li><img src="./img/log/bul_new.png" alt="new" /> first：硬件图片。</li>
+<li><img src="./img/log/bul_new.png" alt="new" /> bitmaps：针对在模式 3/5 中绘制图元的新演示讨论。页翻转演示在章节中提前了，而模式 3/4/5 的演示移到了数据讨论之后。</li>
+<li><img src="./img/log/bul_new.png" alt="new" /> objbg：关于把图块当作位图读取的笔记和图片，因为这偶尔还是会发生在某些人身上。</li>
+<li><img src="./img/log/bul_new.png" alt="new" /> regbg：展示偏移寄存器到底做了什么的图片。</li>
+<li><img src="./img/log/bul_new.png" alt="new" /> affine：加入了 2x2 逆矩阵方程。</li>
+<li><img src="./img/log/bul_new.png" alt="new" /> affbg：仿射背景的新结构体，外加新的 typedef，以及一种初始化仿射参数非常巧妙的方法。</li>
+<li><img src="./img/log/bul_new.png" alt="new" /> mode7ex：全面升级并加入新内容。现在使用了像样的图形，让一切看起来漂亮得多。新的背景、新的淡入淡出、精灵旋转动画与排序，以及不同的运动方式。</li>
+<li><img src="./img/log/bul_new.png" alt="new" /> asm：本章的正确形态正在成形。新的章节结构，以一个关于通用汇编的小节开始。更多示例，以及为对比目的而提供的多种做同一件事的方式。现在也有一个关于常见结构的章节了。</li>
+<li><img src="./img/log/bul_new.png" alt="new" /> 关于 luts 线性插值的新小节。</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> 章节索引。所有引用现在都采用 ‘ch.foo’ 的形式。</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> 一些章节被重命名。<em>tonctonc</em> 现在是 <em>intro</em>，<em>toncmake</em> 现在是 <em>makefile</em>。另外，<em>luts</em> 已合并进 <em>fixed</em>，而 <em>setup</em> 中关于 makefile 和编辑器的部分被移到了一个单独的文件 <em>edmake</em>。也许以后也会把它并入 <em>makefile</em>。</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> 所有寄存器和类寄存器表格现在使用交替的背景色，便于阅读。</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> regobj：<code>obj_demo</code> 讨论采用了不同的结构。</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> regbg：删除了 <code>BGINFO</code> 相关的东西，因为它几乎没被用过，而且用起来也不方便。</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> regbg：新的图形基于超级银河战士的 Brinstar，而不是原来的 Norfair。现在更好看了。同时也重新安排了内容。</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> affine：为新的例程更新了“收尾”部分。</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> dma：讨论了升级后的 DMA 演示。</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> interrupts：讨论了新的（大幅度）改进的中断处理程序及其演示。</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> 为定点数功能加入了内联函数。</li>
+<li><img src="./img/log/bul_excl.png" alt="fix" /> 每个章节都再次检查了拼写和语法。又一次。唉。</li>
+</ul>
+<p>Code（代码）：</p>
+<ul>
+<li>
+<p><img src="./img/log/bul_new.png" alt="new" /> libtonc：全新的 libtonc，采用新的文件结构。所有文件都以 <code>tonc</code> 为前缀，这样就不会与外部文件冲突。类型、内存映射和寄存器 #define 集中在 <em>types</em>、<em>memmap</em> 和 <em>memdef</em> 中。现在要包含的主文件是 <code>tonc.h</code>。</p>
+</li>
+<li>
+<p><img src="./img/log/bul_new.png" alt="new" /> libtonc：到处都有 Doxygen 注释。生成的文档可以在 <code>tonclib.chm</code> 中找到。</p>
+</li>
+<li>
+<p><img src="./img/log/bul_new.png" alt="new" /> libtonc：几个新条目。一个用于嵌套、带优先级中断的全新中断处理程序。模式 3/5 的画线器。一个新的 .12f 正弦 LUT，带有支持函数以及 lerp 函数。所有定点数宏现在都是内联的。</p>
+</li>
+<li>
+<p><img src="./img/log/bul_new.png" alt="new" /> libtonc：<code>BGINFO</code> 结构体和函数被移除了。反正也没多大价值。同时也移除了内部的 OAM 影子；最好能在需要时自行定义它们，并且可以通过把它们存在 EWRAM 中来节省 IWRAM。所有 OAM 函数现在都使用通用的对象指针，而不是缓冲区。</p>
+</li>
+<li>
+<p><img src="./img/log/bul_new.png" alt="new" /> libtonc：又一次大重命名。其中包括：零值 #define 前面的下划线被去掉了。我原本以为这是个防范潜在不安全操作的好办法，但它们用起来实在太怪了。于是大家都欢欣鼓舞。一些宏在作用显而易见时失去了它们的 <code>_ON</code> 前缀。OAM 结构体现在是 <code>OBJ_ATTR</code> 和 <code>OBJ_AFFINE</code>，相关函数现在以 <code>obj_</code> 和 <code>obj_aff_</code> 为前缀。<code>BGAFF_EX</code> 现在是 <code>BG_AFFINE</code>，用于大多数仿射 BG 函数。完整的列表可以在 <code>tonc_legacy.h</code> 中找到，你可以 #include 它来保持与旧代码的兼容。</p>
+</li>
+<li>
+<p><img src="./img/log/bul_new.png" alt="new" /> projects：项目的目录层级结构被改变了。演示被分类为基础、扩展或高级，分别对应 tonc 文字部分的难度。基础演示更简单，使用简单的 makefile。它们完全自给自足，应该有助于入门学习。扩展演示有更完整的 makefile，并使用 libtonc。高级演示有类似 devkitPro 的 makefile。尽管我很想用，但实际的 DKP 模板不太适合我的目的（抱歉，Dave <kbd>:P</kbd>），所以我自己做了一套。高级演示也会使用汇编文件来处理数据。</p>
+<p>项目文件夹里还包含了 <code>.pnproj</code> 文件，可以用 Programmer’s Notepad 打开并运行。</p>
+</li>
+<li>
+<p><img src="./img/log/bul_new.png" alt="new" /> projects：新项目。<code>m3_demo</code>，用于在模式 3 中绘图。在 <code>lab</code> 文件夹里也有几个新的。它们还没有对应的讲解，但值得一看。<code>bigmap</code> 应该会特别有意思。</p>
+</li>
+<li>
+<p><img src="./img/log/bul_upgr.png" alt="upgrade" /> projects：更新项目。所有项目都已更新到新的 libtonc。DMA、irq 和 mode 7 演示的内容有大幅改动。<code>dma_demo</code> 现在是关于使用 HDMA 效果，具体是制作一个圆形窗口。<code>irq_demo</code> 使用新的 irq 处理程序，充分利用嵌套中断和改变 irq 优先级。至于 <code>mode7ex</code>，你最好自己亲眼看看。</p>
+</li>
+</ul>
+<h3 id="jul-23-2006-v124"><a class="header" href="#jul-23-2006-v124">Jul 23, 2006 (v1.2.4)</a></h3>
+<ul>
+<li><img src="./img/log/bul_new.png" alt="new" /> 新增了一章相当长的<a href="asm.html">ARM/Thumb 汇编</a>。不过这仍是一个草稿版本。大部分内容都在了，但我还需要重新调整章节顺序，并对全文做拼写/语法检查。</li>
+<li>还有更多拼写修正 <kbd>&gt;_&lt;</kbd>。</li>
+</ul>
+<h3 id="jun-3-2006-v123"><a class="header" href="#jun-3-2006-v123">Jun 3, 2006 (v1.2.3)</a></h3>
+<ul>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> 将 makefile 和构建说明改为使用 devkitARM r19。</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> 所有章节和小节现在都带编号了，w00t！</li>
+<li><img src="./img/log/bul_excl.png" alt="fix" /> 为大多数结构体添加了对齐属性，因为如果你想让结构体拷贝正常工作，这些属性现在基本上_是必需的_。更多信息见<a href="bitmaps.html#ssec-data-align">此处</a></li>
+</ul>
+<h3 id="apr-28-2006-v122"><a class="header" href="#apr-28-2006-v122">Apr 28, 2006 (v1.2.2)</a></h3>
+<ul>
+<li><img src="./img/log/bul_new.png" alt="new" /> 终于明白了我偶尔在仿射对象中看到的 1 像素偏移是什么原因（感谢 NEiM0D）。更新了 <a href="affobj.html">affobj.htm</a> 和 <code>obj_aff</code> 以修正。</li>
+<li><img src="./img/log/bul_swap.png" alt="swap" /> 把新的偏心仿射对象内容移到了它的<a href="affobj.html">合适位置</a>。</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> 基于<a href="http://www.devkitpro.org/devstudio.shtml" title="" target="_blank">这个</a>做了一些小的 sed 处理，把 GCC 错误报告转换成 Visual C++ 格式。</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> 既然我的 html 自动编号系统能用了（至少第一次尝试可以），text.htm 现在去除了交叉引用。耶。</li>
+<li>对中断和 gfx 做了一些小改动。</li>
+<li>加入了 Javascript 让 id 属性可见。以后大概会加更多。</li>
+</ul>
+<h3 id="apr-28-2006-v121"><a class="header" href="#apr-28-2006-v121">Apr 28, 2006 (v1.2.1)</a></h3>
+<ul>
+<li><img src="./img/log/bul_excl.png" alt="fix" /> 看来 no$gba 不喜欢你使用段镜像，比如我对 REG_INTMAIN 和 REG_IFBIOS 所做的那样。它们现在使用了正确的地址。</li>
+<li><img src="./img/log/bul_excl.png" alt="fix" /> intro.htm 中的拼写修正。再次感谢，Mick。</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> 为扩展和高级项目准备了新 makefile。这意味着 makefile.htm 现在有点过时了。</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> 针对 devkitARM 的改动更新了 <a href="setup.html">setup.htm</a>。也稍微改了图。</li>
+<li><img src="./img/log/bul_new.png" alt="new" /> 新增名为<a href="lab.html">实验室</a>的章节，我会把那些几乎、但还没完全准备好的新东西放在这里。目前包含关于优先级和精灵排序的文字，以及一段围绕非中心参考点做仿射变换的讨论。两者都带有名为 <code>prio_demo</code> 和 <code>oacombo</code> 的新演示。</li>
+<li><img src="./img/log/bul_new.png" alt="new" /> 在 <a href="setup.html">setup.htm</a> 中加入了如何通过 context 或 PN 运行 makefile 的说明。</li>
+<li><img src="./img/log/bul_new.png" alt="new" /> 在多处加入了 gfx2gba 和 grit 的转换说明。</li>
+<li>在 bitmaps.htm 的<a href="bitmaps.html#sec-data">数据小节</a>中加了更多笔记。</li>
+</ul>
+<div class="nh">
+<p>Probable upcoming changes（可能的后续改动）</p>
+</div>
+<p>我打算对 tonc 的代码做一些改动。首先，我会尝试把基础演示中的代码与 libtonc 解耦，这样它们会更容易理解，因为你不必再去翻看所有其他东西。其次，这能让我重新打磨并优化 libtonc，目前它在某些方面受限于我不得不把一些东西做得比我想的要简单。当然，这是我想_要_做的事；但我真的说不准什么时候（以及是否）会去做。</p>
+<p>另外，我有点想把当前的 DMA 演示换成<a href="https://gbadev.net/forum-archive/thread/9/9023.html" title="" target="_blank">这个</a>，它看起来酷多了，尽管其中多了不少“魔法”。呃，走着瞧吧。</p>
+<h3 id="mar-21-2006-v12"><a class="header" href="#mar-21-2006-v12">Mar 21, 2006 (v1.2)</a></h3>
+<p>更多非最终的更新。实际上还不少。</p>
+<ul>
+<li><img src="./img/log/bul_excl.png" alt="fix" /> 又修正了一些拼写错误。</li>
+<li><img src="./img/log/bul_excl.png" alt="fix" /> <code>bg_init()</code> 从未初始化过 <code>BGINFO</code> 的位置。哎呀。</li>
+<li><img src="./img/log/bul_swap.png" alt="swap" /> 把章节顺序稍微挪动了一下。我把<a href="keys.html">按键</a>移到了<a href="bitmaps.html">位图</a>紧后面，那个位置本来就更合适。</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> 用各自演示的完整或近乎完整的代码更新了<a href="first.html">首个演示</a>、<a href="bitmaps.html">位图模式</a>、<a href="regobj.html">常规精灵</a>、<a href="regbg.html">常规背景</a>、<a href="affobj.html">仿射精灵</a>、<a href="affbg.html">仿射背景</a>、<a href="gfx.html">图形效果</a>和<a href="timers.html">定时器</a>。</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> <a href="first.html">首个演示</a>现在有两个演示，一个纯粹用硬编码数字（muwahaha！），另一个遵循更合理的编程原则。同时也对这些做了更详细的说明。</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> 为<a href="regbg.html">常规背景</a>加了两个演示，其中一个引入了 libtonc 及其文字函数，这在后面会反复出现。说到这个……</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> 重新编写了 <code>bld_demo</code>、<code>m7_demo</code>、<code>mos_demo</code>、<code>obj_aff</code> 和 <code>tmr_demo</code>，改用 libtonc 的文字，这样你能更清楚地看到在改什么。</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> 在绝大多数演示中，用 libtonc 的 <code>memcpy16/32</code> 和 <code>memset16/32</code> 替换了 copiers/fillers，是在<a href="regbg.html#ssec-demo-hello">它引入之后</a>。</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> 为许多寄存器表格加入了<a href="intro.html#ssec-note-reg">字段定义</a>。</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> 重组了 <a href="keys.html">keys.htm</a> 的部分内容，以更好地解释我所用的各种函数。</li>
+<li><img src="./img/log/bul_new.png" alt="new" /> 加入了一段关于<a href="fixed.html#sec-rmdiv">倒数（ reciprocal ）乘法的除法</a>的讨厌内容。胆小者勿入。</li>
+<li>为<a href="first.html#ssec-2nd-make">第二个演示</a>加入了一个简单的模板 makefile 和讲解。</li>
+<li><img src="./img/log/bul_new.png" alt="new" /> 加入了关于<a href="keys.html#ssec-adv-tri">三态按键状态</a>的小节。事实上，几乎所有能从中受益的演示都改用了它。一行代码代替四行，而且还更快。在我看来是个赢招。</li>
+<li><img src="./img/log/bul_new.png" alt="new" /> 加入了关于<a href="bitmaps.html#ssec-data-proc">正确构建流程</a>的小节，这部分在整节里一直缺失。对于任何一直跟着非 tonc 教程、并采纳了它们编码规范的人来说，这基本是<strong>必读</strong>内容。</li>
+<li>合并了定点数和 LUT 两章，并重写了其中大部分。</li>
+<li>jake2431 在这个帖子里收集了不少有用的链接：<a href="https://gbadev.net/forum-archive/thread/18/8353.html" title="" target="_blank">forum:8353</a>。如果你是 C 和/或 GBA/NDS 编程的新手，我推荐你去看看。</li>
+</ul>
+<h3 id="jan-27-2006-v11"><a class="header" href="#jan-27-2006-v11">Jan 27, 2006 (v1.1)</a></h3>
+<p>嘿，原来那还不是最终更新 <kbd>:P</kbd>。</p>
+<ul>
+<li>在 <a href="setup.html">setup</a> 里加了一个小提示，讲如何摆脱 MSVC 6.0 一直坚持创建的那些没用的目录。</li>
+<li><img src="./img/log/bul_excl.png" alt="fix" /> 修正了 devkitARM 的 URL 和版本号。（不过我不明白我为什么要在意这个，因为在我发出来的那一秒就会有新版本。该死的，Dave，别发了！<kbd>&gt;_&lt;</kbd>）</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> 文字里更多代码。至少前几页是。</li>
+<li>两个新章节：一个是关于<a href="text.html">文字系统基础</a>，另一个是关于<a href="sndsqr.html">产生蜂鸣声</a>。后者还没完全完成，但应该足够让你起步了。与它们配套的共有 5 个新演示：4 个关于文字，1 个关于声音。</li>
+<li><img src="./img/log/bul_swap.png" alt="swap" /> 更多改名。不过这次只涉及演示名称，所以不用担心。</li>
+<li>加入/移动了关于<a href="bitmaps.html#sec-data">如何处理数据</a>的小节。这解释了一些你可能会或不会遇到的麻烦。但如果你遇到了，知道它们为什么发生以及如何修复是件好事，不是吗？</li>
+</ul>
+<h3 id="jun-28-2005-v10"><a class="header" href="#jun-28-2005-v10">Jun 28, 2005 (v1.0)</a></h3>
+<p>最终更新。大概吧。不是因为我做完了，而是因为有太多东西要改、要加，不如从头再来更容易。在我开始写 tonc 时，我对 GBA 编程还几乎一无所知，只能边学边尽力而为。现在我年纪大了一点，也聪明了一点（好吧，至少年纪大了），对正确的流程、什么有用什么没用，以及人们会在哪里卡住都知道得更多了（感谢新手论坛里各位的问题！）。按照我的构想，tonc 2 会_大_得多、好得多，而且有更多爆炸！呃，是演示。Tonclib 会做一次大改，用新名字和新的、优化过的函数，包括所有模式的文字、内存例程等等。但到达那一步需要一段时间，所以我想我最后再更新一次原版。</p>
+<ul>
+<li><img src="./img/log/bul_excl.png" alt="fix" /> 非常多、非常多的拼写和语法修正。多到离谱。拜托各位，告诉我这些事啊！</li>
+<li><img src="./img/log/bul_excl.png" alt="fix" /> <code>DMA_SRC_RESET</code> 是 <code>0x01800000</code>，不是 <code>0x00600000</code>。正是这个让 <code>dma_demo</code> 的结果那么奇怪。同时也修正了 <code>sbb_aff</code> 的黑色十字准星，它在 OAM 里的 <em>x</em> 和 <em>y</em> 值被调换了。该死的属性 x、y 顺序。</li>
+<li><img src="./img/log/bul_swap.png" alt="swap" /> 改名。很多。这部分属于遵循 GBA 社区标准（<code>OBJ_ATTR</code>、charblock、screenblock、swi 命名）以及其他分类问题（<code>REG_DISPCNT</code> 的 <code>DCNT_x</code> 之类；零值位定义的下方下划线，相信我这是好事）。我擅自创建了一个 <code>legacy.h</code>，把所有这些旧名字重新定义为新名字，这样如果你不想，就不必自己改名。不过旧名字已被弃用了。这次改名只是完整的 tonc2 改名的一部分，但我现在还不能处理函数，因为那_会_破坏旧代码。</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> 一些小的功能改动。最值得注意的是，<code>key_poll()</code> 现在_已经反转_了 <code>REG_KEYINPUT</code>（以前叫 <code>REG_P1</code>）。这是件好事，因为现在同步函数会更有意义。另外，<code>m4_plot()</code>（以前叫 <code>_vid_plot8</code>）现在真的是逐像素绘制，而不是每两个像素。</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> 内存例程 <code>memcpy16/32</code> 和 <code>memset16/32</code> 用汇编做了优化，大概是你见过最快的。速度可与 <code>CpuFastSet</code> 匹敌，但没有对齐/大小方面的要求。</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> <code>swi.s</code> 包含了所有 BIOS 例程的调用。一些额外的被移到了 <code>swi_ex.s</code>。</li>
+<li>加入了 <code>x_BUILD</code> 宏，用于在簇中设置位标志。可能有用，也可能没用。</li>
+<li>为位图模式加入了矩形绘制器。优化得相当不错。</li>
+<li><img src="./img/log/bul_excl.png" alt="fix" /> 修正了 Firefox 的列表外边距。或者说，把列表外边距修正为标准要求、但 MSIE 没有遵循的样子。（要是能弄明白那个 &lt;col&gt; 标签该怎么办就好了）</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> 重新设计了寄存器表格的样式。</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> 我终于想明白如何用纯 html 而不是图片来做矩阵，所以几乎_所有_方程现在都是 html 了。我估计它已经相当接近 MathML，但因为 MSIE 原生不支持它，而我又不想让你额外下载东西（旧版本上可能还用不了），所以暂时这样就够了。（如果可以的话，我要躺下让脑子恢复知觉了）</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> 所有章节、方程、表格等现在都有了用于链接的 id，并且（也许）在我搞明白怎么做之后会实现自动编号。</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> <code>int_demo</code> 现在为直接 isr 使用单独的文件，并恰当使用了段和 ARM/Thumb 代码。详见<a href="interrupts.html#sec-demo">演示说明</a>。</li>
+</ul>
+<p>我想大概就这些了，不过应该够多了。我手头有一些 tonc2 的文字、示例和库，虽然可能不是最终形态。它们可以获取，但仅限应要求。如果有人有建议或请求，我会看看能做什么。这也适用于你犯过、并认为别人可能也会犯的（编译器和链接器抓不到的）错误。其中不少我已经从论坛里知道了（比如你应当<span class="ack">不要</span>对局部变量使用字节或半字，因为这会严重拖垮性能，只用 <code>int</code> 或 <code>u32</code>，<em><strong>拜托了</strong></em>。非常拜托。加糖的那种。还要加糖霜和鲜奶油。）不过不需要知道每一件小事，尤其是如果它已经被写得很好的 <a href="https://gbadev.net/forum-archive/thread/14/418.html" title="" target="_blank">gbadev 论坛 FAQ</a> 或这里某处覆盖到了的话。</p>
+<p>如果有人知道我如何能自动跟踪所有页眉/方程/图的编号（不用 CSS2，因为 MSIE 支持得不好 <kbd>:(</kbd>），那会_非常_有帮助。其实编号本身不是问题，_引用_它们才是。</p>
+<p>另外，我还需要更多关于图块地图/精灵碰撞检测_以及_响应的真实例子。我知道包围盒的东西和检测的基础（甚至是逐像素的），但无论怎么做，我似乎都会在某些细节上卡住，比如斜向移动，以及当物体每帧移动超过一个像素时。我特别想看看真实的平台游戏里是怎么处理复杂场景的，那种有多个精灵-精灵、精灵-背景碰撞的，而不只是单个精灵-背景。</p>
+<h3 id="dec-5-2004-v0996"><a class="header" href="#dec-5-2004-v0996">Dec 5, 2004 (v0.99.6)</a></h3>
+<p>加入了关于数制、位和位运算的<a href="numbers.html">数字</a>页面。我要提醒你，它相当大。我有一阵子没加东西了，我想我有点过火了 <kbd>:\</kbd>。以后也许会把它拆成小块。也许吧。</p>
+<p>DragonBASIC 正在转移到一个新域名，所以旧 URL 现在失效了。目前你仍可以在<a href="http://forums.zhilaware.starfusion.orgb/" title="" target="_blank">这里</a>找到论坛，但编译器本身暂时还悬而未决。</p>
+<h3 id="aug-3-2004-v0995"><a class="header" href="#aug-3-2004-v0995">Aug 3, 2004 (v0.99.5)</a></h3>
+<ul>
+<li><img src="./img/log/bul_excl.png" alt="fix" /> 做了一些全局的小修正。第一个 mode7 演示和页面现在为相机位置使用了不同的名字，这样它就不会和来自 mode7d 的 <strong>v</strong> 冲突。</li>
+<li>以 <code>txt_demo</code> 的形式加入了一个简陋的文字演示。</li>
+</ul>
+<p>我想这会是接下来一阵子的最后一次更新，原因有几个。首先，我想我得真正用上其中一些东西，才能看出哪里有问题。其次，我想我可能得在转换器，以及如何友好地把纯二进制文件加入演示上多花点功夫。第三，PERN 带着复仇回来了。这样一来，现在继续开发 Tonc 似乎没什么意义，因为新的 PERN 看起来会非常、非常完整。</p>
+<h3 id="jul-16-2004-v0995"><a class="header" href="#jul-16-2004-v0995">Jul 16, 2004 (v0.99.5)</a></h3>
+<ul>
+<li><img src="./img/log/bul_excl.png" alt="fix" /> 修正了 <code>aff_rotscale2</code>，它本_不该_缩小源角度，而该缩小它的一个副本。把 <code>MAPBLOCK</code> 定义为包含 1024（=32*32）个图块，而不是 512。之前和图块块搞混了。</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> 对图块/地图功能做了_很多_小改动。所有地图/图块结构现在都是简单的 typedef，所以你可以通过简单的数组访问来访问它们的内部，而不是用（内联）函数。内联函数本身已被移除。</li>
+<li>稍微改了下 <code>BGINFO</code> 结构，并加了一些地图函数。</li>
+</ul>
+<p>如果这些改动给你带来任何不便，我表示抱歉，但我认为从长远来看这样更好。</p>
+<h3 id="jul-11-2004-v0994"><a class="header" href="#jul-11-2004-v0994">Jul 11, 2004 (v0.99.4)</a></h3>
+<ul>
+<li>在 <a href="setup.html">setup</a> 中降低了 MSVC makefile 项目的优先级。</li>
+<li>清掉了 <a href="mode7ex.html">mode7ex</a> 中几个不大不小、也不小不小的错误。嗯，我确实说过还会有一些我尚未发现的。</li>
+<li><img src="./img/log/bul_swap.png" alt="swap" /> 把寄存器 <code>REG_DISPSTAT</code> 的中断请求从 <code>X_INT</code> 改名为 <code>X_IRQ</code>，这样更规范。</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> 修改了 <a href="swi.html">swi.htm</a>，展示如何为此使用纯汇编，并新增了一个关于 aapcs 的小节。同时也重命名了一些仿射结构体和函数；已经警告过你了。</li>
+<li>还有更多拼写修正，它们到底是从哪儿冒出来的？我发誓如果我再看到一个 “it’s”/“its” 混用我就要尖叫了。[后来那天] 好了，到此为止：<em>AAAAAAAARRRRHRHRHRRGGGHHHH!!!</em></li>
+<li><img src="./img/log/bul_excl.png" alt="fix" /> 修正了若干旋转-缩放方程，它们在中间步骤里把旋转和缩放的操作弄错了。哎呀。</li>
+<li><img src="./img/log/bul_excl.png" alt="fix" /> 修正了一个窗口控制宏（忘了几个移位）。现在应该正常了。应该。</li>
+<li>在库里加入了 <code>geom.h|.c</code>，因为我打算更频繁地使用点和矩形。同时也加入了 <code>ABS</code>、<code>SGN</code> 和 <code>SWAP</code> 宏。</li>
+<li>所有 multiboot 演示（也就是全部）现在都带 <code>mb.gba</code> 扩展名，以表明身份。</li>
+<li>把 <code>key_pressed()</code> 改名为 <code>key_hit()</code>，这样可以少一点关于这个函数到底做什么的困惑（感谢^H^Hs 提供名字的 Dark Angel（看，撇号几乎自动就出来了 <kbd>:(</kbd>）。</li>
+</ul>
+<p>我正在做一个不错的文字系统。如果有人有需求我看看能做什么。</p>
+<h3 id="june-27-2004-v0993"><a class="header" href="#june-27-2004-v0993">June 27, 2004 (v0.99.3)</a></h3>
+<p>啊，终于到家了，这里有像样的电脑，还有 Kink-FM 从我的音响里轰出来，爽极了！<kbd>=)</kbd></p>
+<ul>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> 在<a href="makefile.html#sec-flags">选项列表</a>里加入了 <code>-Map</code> 和 <code>-Wl</code> 命令行选项。</li>
+<li><img src="./img/log/bul_swap.png" alt="swap" /> 把只使用一次的图形数据移到了使用它们的演示文件夹里；现在 gfx 目录里只有共享图形。</li>
+<li><img src="./img/log/bul_swap.png" alt="swap" /> 不得不重写 <code>swi.s</code>，因为 `utils clean’ 命令会销毁所有同名的 .s 文件（如果存在一个同名的 .c）。在复制新东西时，请确保你的 <code>utils</code> 目录里没有 <code>swi.c</code>。</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> <a href="mode7ex.html">mode7ex.htm</a> 页面终于完成了。是的，我知道它又长又满是讨厌的线性代数；如果你读着费劲和/或有让它能更易读的建议，请告诉我。</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> 配套的 <code>mode7d</code> 演示基本达到了我想要的状态。当然还有一些小问题，但应该足够让你起步了。</li>
+</ul>
+<h3 id="june-21-2004-v0992"><a class="header" href="#june-21-2004-v0992">June 21, 2004 (v0.99.2)</a></h3>
+<ul>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> 我对 <code>mode7d</code> 做了很多改动；所有真正的 mode 7 代码现在都在单独的文件中，所以在其他项目里使用它更容易了。不过 mode7ex.htm 还需要很多工作，你可以在 <a href="../files/m7theory.zip">m7theory.zip</a> 找到大部分文字的草稿。是的，它是个 Word 文档；是的，我知道这很糟；是的，我会在文字稳定且易懂时把它转成 html（请告诉我这方面我需要改什么）；而且是的，我会手动做这个转换，因为 Word 应该被禁止在距离 HTML 500 码以内出现。也许更远。</li>
+<li><img src="./img/log/bul_excl.png" alt="fix" /> 对<a href="matrix.html">矩阵</a>页面做了一些小修正。我真傻，把叉积的定义全搞错了。</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> 在<a href="keys.html">按键</a>页面加入了关于 <code>REG_P1CNT</code> 的信息。这又是只有本站点覆盖的内容 <kbd>:)</kbd>。</li>
+</ul>
+<p>在一台 P2-300、24MB 内存的机器上开发：VBA 以 50% 速度运行（mode7d 是 23%），最小化一个窗口要花几秒。靠，这太烂了。</p>
+<h3 id="june-11-2004-v0991"><a class="header" href="#june-11-2004-v0991">June 11, 2004 (v0.99.1)</a></h3>
+<ul>
+<li><img src="./img/log/bul_excl.png" alt="fix" /> 修正了样式表，让背景图片、颜色、边框等等在 Mozilla 上如我所愿地显示。抱歉，不知道那些错误的注释会把事情搞砸这么多。做了一次校验，去掉了所有非法内容……除了一处：我用来把某些东西保持在一起的 &lt;nobr&gt; 标签。</li>
+<li><img src="./img/log/bul_swap.png" alt="swap" /> 所有 BIOS 调用现在都在 <code>swi.s</code> 里，用汇编。那里才是它们该在的地方。</li>
+</ul>
+<h3 id="june-3-2004-v099"><a class="header" href="#june-3-2004-v099">June 3, 2004 (v0.99)</a></h3>
+<ul>
+<li><img src="./img/log/bul_excl.png" alt="fix" /> 发现了<a href="affobj.html#sec-wrap">环绕伪影</a>，并相应修改了精灵页面。<code>obj_aff</code> 现在允许移动精灵，这样你可以亲眼看到这个伪影。</li>
+<li><img src="./img/log/bul_swap.png" alt="swap" /> 终于克服了对近乎空目录的厌恶（文件这样会太寂寞），把所有演示代码放进了单独的目录。现在，要是我也能克服我的 if 恐惧症就好了……</li>
+<li>在 <a href="swi.html#sec-vsync2">swi.htm</a> 加入了关于用中断做 vsync 的小节，以及配套演示 <code>swi_vsync</code>。你需要看看这些。</li>
+<li>加入了 <code>int_enable_ex</code> 和 <code>int_disable_ex</code>，应该能让中断相关的工作更容易。不过，我并不是 100% 确定我是否把所有寄存器和标志都弄对了。</li>
+<li><img src="./img/log/bul_excl.png" alt="fix" /> C++ 不喜欢你对 volatile 变量做结构体拷贝，比如 <code>bga_update_ex</code> 所做的那样。或者应该说，曾经不喜欢。</li>
+<li>学了一些新的 CSS 技巧，正在更新并结构化_所有_页面的布局。大部分是细微的东西，比如标准化方程布局，并给代码和寄存器列表加一个微妙边框，让它们在打印时更突出。不微妙的是，现在每张图片都应该有图注了。</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> 恢复了 <a href="mode7ex.html">mode7ex.htm</a> 及其配套演示 <code>mode7d</code> 的工作。加入可变俯仰（pitch）比我想象的容易，w00t！不过还是有点小 bug。</li>
+</ul>
+<p>有了这些改动，建议在升级时保存或移除旧的 Tonc 内容，以避免重复文件和其他不一致。</p>
+<h3 id="may-24-2004-v0985"><a class="header" href="#may-24-2004-v0985">May 24, 2004 (v0.98.5)</a></h3>
+<ul>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> devkitARM 现在是 Tonc 的主要开发工具包。Makefile 和文字都已更新以匹配这一变化。</li>
+<li><img src="./img/log/bul_upgr.png" alt="upgrade" /> 现在使用一个单独的中断文件，而不是自定义的 crt0.S，并在这个过程中弄懂了这玩意儿的 The Point®。文字为了反映更新的见解做了修改，<code>int_demo.c</code> 也一样。</li>
+<li>开始着手<a href="glossary.html">术语表</a>。</li>
+<li>在 Tonc 代码的 readme 里加入了如何不用 Visual C++ 运行 makefile 的说明。真蠢，我以前居然没想到。</li>
+<li><img src="./img/log/bul_excl.png" alt="fix" /> <code>REG_IF</code> 在 <code>0400:0202</code>，不是 <code>0400:0200</code>，哎呀！</li>
+<li>如你所见，我正在尝试为日志条目使用特定含义的项目符号。不过我还得想清楚什么图片对应什么用途。</li>
+<li>重写了 <code>tonc.mak</code> 里的 <code>build_all</code> 和 <code>clean_all</code> 目标。它们现在相当繁琐，但行为更正确，并且允许我在人们觉得把所有东西都堆在 <code>examples</code> 文件夹太乱时，切换到“一个演示，一个目录”的结构。</li>
+</ul>
+<p>我现在非常非常累，所以如果我哪里搞砸了也不奇怪。等我有机会 sssslssszzzzzzz…… 的时候会修好的。</p>
+<h3 id="may-16-2004-v098"><a class="header" href="#may-16-2004-v098">May 16, 2004 (v0.98)</a></h3>
+<ul>
+<li><img src="./img/log/bul_excl.png" alt="fix" /> 很多改动。首先，我终于有办法在真机上测试了，哇哦！！！不过，它也指出你终究不能把对象图块块用于背景 <code>:(</code>。我在好几个页面上加了我早期硬件测试的经验。</li>
+<li><img src="./img/log/bul_excl.png" alt="fix" /> 包括<a href="gfx.html#sec-win">窗口</a>小节。看来你对窗口的垂直设置得非常小心。更新了窗口演示，不再用 u16 算术来计算窗口大小（它是按字节给的），并做了更精确的移动。</li>
+<li><img src="./img/log/bul_swap.png" alt="swap" /> 把 DMA 代码挪了挪。我现在用 <code>dma_memcpy()</code> 做一般拷贝，并把旧的 <code>DMA_CPY()</code> 宏重命名为 <code>DMA_TRANSFER</code>，还调整了参数顺序以匹配 <code>memcpy</code>。这样更有意义。</li>
+<li><img src="./img/log/bul_swap.png" alt="swap" /> 同时把 <code>oi_set</code> 改为 <code>oi_set_attr</code>，把 <code>oi_pos</code> 改为 <code>oi_set_pos</code>。</li>
+<li><code>Tonc Utils</code> 配置现在把工具代码编译成一个库。这是 <code>mode7d</code> 需要的。</li>
+<li>在 <code>tonc.mak</code> 里创建了 <code>build_all</code> 规则。手工重建所有东西真的让我抓狂。</li>
+<li>更多随机清理。入口页面的图片现在也是链接了。重要提示现在放在红框里，更显眼。加入了 <code>bm_mode.c</code> 的演示代码，展示载入图片和使用按键的基本步骤。我应该更早把完整代码贴到教程前面。在 <a href="affine.html#sec-finish">affine.htm</a> 加了一个定点数单位矩阵的例子，确保人们不会试图用浮点数。</li>
+<li><img src="./img/log/bul_excl.png" alt="fix" /> 修正了 <a href="swi.html">swi.htm</a>。<em>又来了！</em> 我发誓，如果我在这里再发现一个错误，有人就要挨揍了。而且挨揍的不会是我。这次是 arctan2 的范围错了（应该是整圈）。让这个错误更糟的是，我应该（也确实）一直知道它本来就该是整圈的；毕竟这是 arctan2 存在的理由。</li>
+<li><a href="matrix.html">矩阵页面</a> 完成了。</li>
+<li>看 <a href="http://www.villainsupply.com" title="" target="_blank">villainsupply.com</a> 时差点从椅子上笑翻下来。哎哟。</li>
+<li>看完 E3 上的任天堂东西后几乎被自己的口水淹死。咕噜。</li>
+<li><code>key_demo</code> 里用的图片把 <code>KEY_START</code> 和 <code>KEY_SELECT</code> 的调色板索引搞反了。我从来没真正注意到，因为模拟器没有真正的 start 和 select 按钮。所以，又一次，硬件测试救了场。</li>
+</ul>
+<h3 id="apr-29-2004-v097"><a class="header" href="#apr-29-2004-v097">Apr 29, 2004 (v0.97)</a></h3>
+<ul>
+<li>加入了 devkitARM 的链接以及让它工作的说明。我非常有可能在未来切换到这个工具链。</li>
+<li>把大多数宏转换成了内联函数。更安全、更易读，而且一样快。是的，请。</li>
+<li>一些关于图块计数和仿射变换的更多图示。</li>
+<li>待办：完成矩阵页面（也许还有 mode7ex 页面）。而且既然我有了我的<a href="http://www.coranac.com/projects/#mirach" title="" target="_blank">图块地图编辑器 Mirach</a>，我也也许能用它做点什么。而且我真的、真的需要开始搞一个文字系统了。</li>
+</ul>
+<h3 id="apr-9-2004-v097"><a class="header" href="#apr-9-2004-v097">Apr 9, 2004 (v0.97)</a></h3>
+<p>对象仿射函数现在有对应的背景版本了，而且 <code>mode7d</code> 进展顺利。</p>
+<h3 id="apr-4-2004-v096"><a class="header" href="#apr-4-2004-v096">Apr 4, 2004 (v0.96)</a></h3>
+<p>重命名了 OAM 结构体和相关项。_又_一次。这到底什么时候才是个头？！？另外，多亏了 Lupin 在 3D 精灵放置上的问题，我终于找回了对矩阵变换的感觉。既然又搞懂了，我希望在不久的将来扩充 mode7 章节。我已经有一个能用的 3D 精灵放置例子，就是以 <code>mode7d</code> 的形式。</p>
+<h3 id="mar-31-2004-v096"><a class="header" href="#mar-31-2004-v096">Mar 31, 2004 (v0.96)</a></h3>
+<p>在做向量/矩阵页面，一些页面顺序的调整，以及更多随机的小清理。</p>
+<h3 id="mar-24-2004-v096"><a class="header" href="#mar-24-2004-v096">Mar 24, 2004 (v0.96)</a></h3>
+<p>把 <a href="swi_htm">swi.htm</a> 里的汇编清单替换成了正确的 Thumb 清单。我忘了我已经不用 ARM 代码了。</p>
+<h3 id="mar-20-2004-v096"><a class="header" href="#mar-20-2004-v096">Mar 20, 2004 (v0.96)</a></h3>
+<p>就在你以为做完了的时候，你又发现两件能改进的事。可恶。总之，我改了获取正弦和余弦的方式。它们现在都是宏，使用一个 512 项的 <code>s16</code> 正弦 LUT。另外，我终于想明白如何直接对 <code>vid_page</code> 做 XOR 来实现页翻转。还有，哦对了，用于“只编译不汇编”的编译器标志应该是 <code>-S</code>，不是 <code>-s</code>。哎呀。<br />
+我想我终于知道如何修改我的仿射函数，使其无需使用 <code>OBJ_AFFINE</code> 结构也能应用于背景，不过真正去做可能还要一阵子。</p>
+<h3 id="mar-17-2004-v095"><a class="header" href="#mar-17-2004-v095">Mar 17, 2004 (v0.95)</a></h3>
+<p>在 <code>swi_demo</code> 里加入了 ArcTan2 函数，并修正了 <code>swi.htm</code> 仍然包含的那些错误。可恶，我还以为在最近一次名字和代码修改后，我已经彻底清除了所有不一致。</p>
+<h3 id="mar-14-2004-v095"><a class="header" href="#mar-14-2004-v095">Mar 14, 2004 (v0.95)</a></h3>
+<p>日志里的第一条。我重写了关于精灵和背景的部分，把 glyphs 改成 tiles、把 tiles 改成 tegels（希望我全改到了 <code>:]</code>），最后一次更新了所有代码，并写了关于如何设置 DKA、MSVC 和 makefile 的章节。我想 Tonc 现在可以投入使用啦，哇哦！</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="refs.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="refs.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

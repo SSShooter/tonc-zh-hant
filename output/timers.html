@@ -1,0 +1,421 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>定时器 - Tonc - GBA Programming in rot13</title>
+
+
+        <!-- Custom HTML head -->
+        <!-- Matomo tracking code -->
+        <script>
+          var _paq = window._paq = window._paq || [];
+          /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+          _paq.push(['trackPageView']);
+          _paq.push(['enableLinkTracking']);
+          (function() {
+            var u="//stats.gbdev.io/";
+            _paq.push(['setTrackerUrl', u+'matomo.php']);
+            _paq.push(['setSiteId', '3']);
+            var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+            g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+          })();
+        </script>
+        <!-- End Matomo Code -->
+
+        <meta name="description" content="GBA Programming tutorial">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="theme/css/tonc.css">
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="foreword.html">前言</a></li><li class="chapter-item expanded affix "><a href="intro.html">引言</a></li><li class="chapter-item expanded affix "><li class="part-title">GBA 基础</li><li class="chapter-item expanded "><a href="hardware.html"><strong aria-hidden="true">1.</strong> GBA 硬件</a></li><li class="chapter-item expanded "><a href="setup.html"><strong aria-hidden="true">2.</strong> 搭建开发环境</a></li><li class="chapter-item expanded "><a href="first.html"><strong aria-hidden="true">3.</strong> 我的第一个 GBA 演示程序</a></li><li class="chapter-item expanded "><a href="video.html"><strong aria-hidden="true">4.</strong> 视频显示入门</a></li><li class="chapter-item expanded "><a href="bitmaps.html"><strong aria-hidden="true">5.</strong> 位图模式</a></li><li class="chapter-item expanded "><a href="keys.html"><strong aria-hidden="true">6.</strong> GBA 按键</a></li><li class="chapter-item expanded "><a href="objbg.html"><strong aria-hidden="true">7.</strong> 精灵与图块背景概述</a></li><li class="chapter-item expanded "><a href="regobj.html"><strong aria-hidden="true">8.</strong> 常规精灵</a></li><li class="chapter-item expanded "><a href="regbg.html"><strong aria-hidden="true">9.</strong> 常规图块背景</a></li><li class="chapter-item expanded affix "><li class="part-title">GBA 进阶</li><li class="chapter-item expanded "><a href="affine.html"><strong aria-hidden="true">10.</strong> 仿射变换矩阵</a></li><li class="chapter-item expanded "><a href="affobj.html"><strong aria-hidden="true">11.</strong> 仿射精灵</a></li><li class="chapter-item expanded "><a href="affbg.html"><strong aria-hidden="true">12.</strong> 仿射图块背景</a></li><li class="chapter-item expanded "><a href="gfx.html"><strong aria-hidden="true">13.</strong> 图形特效</a></li><li class="chapter-item expanded "><a href="dma.html"><strong aria-hidden="true">14.</strong> 直接内存访问（DMA）</a></li><li class="chapter-item expanded "><a href="timers.html"><strong aria-hidden="true">15.</strong> 定时器</a></li><li class="chapter-item expanded "><a href="interrupts.html"><strong aria-hidden="true">16.</strong> 硬件中断</a></li><li class="chapter-item expanded "><a href="swi.html"><strong aria-hidden="true">17.</strong> BIOS 调用（SWI）</a></li><li class="chapter-item expanded "><a href="sndsqr.html"><strong aria-hidden="true">18.</strong> 哔！GBA 声音入门</a></li><li class="chapter-item expanded affix "><li class="part-title">进阶 / 应用</li><li class="chapter-item expanded "><a href="text.html"><strong aria-hidden="true">19.</strong> 文本系统</a></li><li class="chapter-item expanded "><a href="mode7.html"><strong aria-hidden="true">20.</strong> Mode 7</a></li><li class="chapter-item expanded "><a href="mode7ex.html"><strong aria-hidden="true">21.</strong> 更多 Mode 7 技巧</a></li><li class="chapter-item expanded "><a href="tte.html"><strong aria-hidden="true">22.</strong> Tonc 文本引擎</a></li><li class="chapter-item expanded "><a href="asm.html"><strong aria-hidden="true">23.</strong> ARM 汇编速成</a></li><li class="chapter-item expanded "><a href="lab.html"><strong aria-hidden="true">24.</strong> 实验室</a></li><li class="chapter-item expanded affix "><li class="spacer"></li><li class="chapter-item expanded affix "><a href="numbers.html">附录 A - 数字、比特与位运算</a></li><li class="chapter-item expanded affix "><a href="fixed.html">附录 B - 定点数与查找表（LUT）</a></li><li class="chapter-item expanded affix "><a href="matrix.html">附录 C - 向量与矩阵数学</a></li><li class="chapter-item expanded affix "><a href="makefile.html">附录 D - 更多关于 makefile 与编译器选项</a></li><li class="chapter-item expanded affix "><a href="edmake.html">附录 E - 通过编辑器进行 Make</a></li><li class="chapter-item expanded affix "><a href="refs.html">附录 F - 参考文献</a></li><li class="chapter-item expanded affix "><a href="log.html">附录 G - 更新日志</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <!--<div class="sidebar-resize-indicator"></div>-->
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <!--<li role="none"><button role="menuitem" class="theme" id="tonc_dark">Tonc Dark</button></li>-->
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="tonc">Tonc Classic</button></li>
+                            <!--<li role="none"><button role="menuitem" class="theme" id="tonc-dark">Tonc Dark</button></li>-->
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Tonc - GBA Programming in rot13</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/gbadev-org/tonc" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                        <a href="https://github.com/gbadev-org/tonc/edit/master/content/timers.md" title="Suggest an edit" aria-label="Suggest an edit">
+                            <i id="git-edit-button" class="fa fa-edit"></i>
+                        </a>
+                        <a id="en-version-link" href="#" title="English version" aria-label="English version" target="_blank" rel="noopener">
+                            <i id="en-version-button" class="fa fa-language"></i>
+                        </a>
+                        <script>
+                            (function () {
+                                var EN_BASE = "https://gbadev.net/tonc/";
+                                var seg = (window.location.pathname || "").split("/").pop();
+                                var enHref = EN_BASE + (seg && seg !== "index.html" ? seg : "");
+                                var el = document.getElementById("en-version-link");
+                                if (el) { el.href = enHref; }
+                            })();
+                        </script>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="15-定时器"><a class="header" href="#15-定时器">15. 定时器</a></h1>
+<ul>
+<li><a href="#sec-intro">时机就是一切</a></li>
+<li><a href="#sec-tmr">GBA 定时器</a></li>
+<li><a href="#sec-demo">定时器演示：像钟表一样</a></li>
+</ul>
+<h2 id="sec-intro"><a class="header" href="#sec-intro">时机就是一切</a></h2>
+<p>回想一下，有多少次你听到一个笑话因为抖包袱太早或太晚而被毁掉；回想一下超级马里奥（或任何平台游戏）里所有那些失败的跳跃；回想一下在马里奥赛车起步时因为轰油门太早而打滑；你的无敌时间恰恰在红龟壳顶到你屁[消音]股之前消失；在老派射击游戏里，因为突然的卡顿而没能躲开那阵弹幕。想到这一切以及类似的场景，你就会同意：在游戏里，正如在生活中，时机就是一切。</p>
+<p>讽刺的是，定时<em>器</em>（timers）反而没那么重要。纵观电子游戏历史，程序员们都是围绕一个计时机制来构建游戏的：屏幕的垂直刷新率。换句话说，就是 VBlank（垂直消隐）。这是一台面向机器的定时器（你按帧数计），而不是面向人的（那种你会按秒计）。对于主机来说，这非常好用，因为硬件总是相同的。（当然，除了有些国家用 NTSC 电视（@ 60 Hz），而另一些用 PAL 电视（@ 50 Hz）。生活在后者阵营且有条件接触两种电视的人都知道差别，并会诅咒一个事实：大多数游戏都源自 NTSC 国家。）虽然 VBlank 定时器无处不在，但它并非唯一。GBA 有 4 个时钟定时器供你使用。本节介绍这些定时器。</p>
+<h2 id="sec-tmr"><a class="header" href="#sec-tmr">GBA 定时器</a></h2>
+<p>所有能想得到定时器的工作方式都差不多。你有某个以固定频率振荡的东西（比如 CPU 时钟或钟摆的摆动）。每经过一个完整的周期，计数器就加一，你就有了一个定时器。很简单，不是吗？</p>
+<p>GBA 定时器的基本频率是 CPU 频率，即 2<sup>24</sup> ≈ 16.78 MHz。换句话说，CPU 的一个<dfn>时钟周期</dfn>耗时 2<sup>−24</sup> ≈ 59.6 ns。由于这对我们人类来说是个非常糟糕的时间尺度，GBA 允许 4 种不同的频率（更准确说是周期）：1、64、256 和 1024 个周期。这些频率的一些细节见 table 15.1。通过巧妙地使用定时器寄存器，你实际上能创建任意频率的定时器，但稍后再详述。应当指出，屏幕恰好每 280,896 个周期刷新一次。</p>
+<div class="lblock">
+<table id="tbl:tmr-freq" class="table-data">
+<caption align="bottom">
+  <b>Table 15.1</b>: 定时器频率
+</caption>
+<col span=4 align="right">
+<tr><th>#cycles<th>frequency<th>period
+<tr><td>  1 <td>16.78 MHz<td>59.59 ns
+<tr><td>  64 <td>262.21 kHz<td>3.815 &mu;s
+<tr><td> 256 <td>65.536 kHz<td>15.26 &mu;s
+<tr><td>1024 <td>16.384 kHz<td>61.04 &mu;s
+</table>
+</div>
+<h3 id="ssec-tmr-regs"><a class="header" href="#ssec-tmr-regs">定时器寄存器</a></h3>
+<p>GBA 有 4 个定时器，定时器 0 到 3。每个定时器有两个寄存器：一个数据寄存器（<code>REG_TMxD</code>）和一个控制寄存器（<code>REG_TMxCNT</code>）。地址可以在 table 15.2 中找到。</p>
+<div class="lblock">
+<table id="tbl:tmr-reg">
+<caption align="bottom">
+  <b>Table 15.2</b>: 定时器寄存器地址
+</caption>
+<tr><th>reg<th>function<th>address
+<tr><td><code>REG_TMxD</code><td>data
+	<td><code>0400:0100h  + 04h</code>·x
+<tr><td><code>REG_TMxCNT</code><td>control
+	<td><code>0400:0102h + 04h</code>·x
+</table>
+</div>
+<h3 id="ssec-reg-tmxcnt"><a class="header" href="#ssec-reg-tmxcnt">REG_TMxCNT</a></h3>
+<div class="reg">
+<table class="table-reg" id="tbl:reg-tmxcnt">
+<caption class="reg">
+  REG_TMxCNT @ 0400:0102 + 4<i>x</i>
+</caption>
+<tr class="bits">
+	<td>F E D C B A 9 8 <td>7 <td>6 <td>5 4 3 <td>2 <td>1 0
+<tr class="bf">
+  <td>-
+  <td class="rclr0">En
+  <td class="rclr1">I
+  <td>-
+  <td class="rclr3">CM
+  <td class="rclr2">Fr
+</table>
+<table class="table-reg-vert">
+  <col class="bits" width=40>
+  <col class="bf" width="8%">
+  <col class="def" width="12%">
+<tr align="left"><th>bits<th>name<th>define<th>description
+<tbody valign="top">
+<tr class="bg0">
+  <td>0-1<td class="rclr2">Fr
+  <td>TM_FREQ_y
+  <td>定时器<b>频率</b>。分别为 1、64、256 或 1024 个周期对应 0-3。</td>
+    <code>y</code> 在该宏中是周期数。
+<tr class="bg1">
+  <td> 2 <td class="rclr3">CM
+  <td>TM_CASCADE
+  <td><b>级联模式</b>。当<b>前一个</b>（<code>x</code>&minus;1）定时器溢出（<code>REG_TM(x-1)D= 
+    0xffff</code>）时，本定时器也会加一。设置了此位的定时器并<b>不</b>自行计数，不过你仍然需要把它使能。显然，这对于定时器 0 无效。如果你打算用它，请确保你完全理解我刚才说的；此地对疏忽者是个死亡陷阱。
+<tr class="bg0">
+  <td> 6 <td class="rclr1">I
+  <td>TM_IRQ
+  <td>溢出时触发中断。
+<tr class="bg1">
+  <td> 7 <td class="rclr0">En
+  <td>TM_ENABLE
+  <td>使能定时器。
+</tbody>
+</table>
+</div>
+<h3 id="ssec-reg-tmxd"><a class="header" href="#ssec-reg-tmxd">REG_TMxD</a></h3>
+<p>数据寄存器 <code>REG_TMxD</code> 是一个 16 位数字，它的工作方式与你一开始预期的略有不同，但归根结底它是有道理的。你从寄存器<strong>读</strong>出的值是<strong>当前</strong>的定时器计数值。到目前为止，一切正常。然而，你<strong>写</strong>入 <code>REG_TMxD</code> 的值，是计数器在定时器被使能（通过 <code>TM_ENABLE</code>）或溢出时开始计数的<strong>初始值</strong>。这有几个“有趣“的后果。为了便于说明，定义变量 <em>n</em> 为初始值（写入数），<em>c</em> 为当前计数值（读出数）。
+<br></p>
+<p>首先，当你像这样设置一个 <em>n</em>（比如 <code>c000h</code>）：</p>
+<pre><code class="language-c">    REG_TM2D= 0xc000;
+</code></pre>
+<p>你<em>并没有</em>把当前定时器计数值 <em>c</em> 设为 <em>n</em>（=<code>c000h</code>）。事实上，如果定时器被禁用，那么 <em>c</em>= 0。然而，一旦你使能计数器，那么 <em>c = n</em> 并从此处继续。而且当定时器溢出时，它也会重置为该值。顺便说一句，由于 <em>n</em> 只是起始值，先设置 <em>n</em>、再使能定时器很重要。</p>
+<p>其次，问问你自己：当你再次禁用定时器时会发生什么？嗯，计数器保留其当前值。然而，当你随后<strong>使能</strong>它时，<em>c</em> 会再次重置为 <em>n</em>。如果你想要禁用定时器一段时间（比如游戏暂停时），然后再从它停下的地方继续，这就有点烦人了。嗯，是的，但有办法实现它。怎么做？通过设置 <code>TM_CASCADE</code> 把它变成一个级联定时器！在 <code>REG_TMxCNT</code> 中设置该位会使定时器仅在前一个定时器溢出时才增加。如果你阻止这种情况发生（比如禁用它），那么你实际上就禁用了你的定时器。</p>
+<p>最后，给定某个 <em>n</em>，定时器将在 <em>T</em>= <code>10000h</code>−<em>n</em> 次递增后溢出。或者，多亏了补码的美妙，直接就是 <em>T</em>= −<em>n</em>。配合级联定时器（或中断），你可以构建任意频率的定时器，这正是你想要的定时器。</p>
+<div class="box warning"><p class="box-title">写入 REG_TMxD 的方式很怪</p>
+<p>写入 REG_TMxD 可能并不像你想的那样。它并<em>不</em>设置定时器的值。相反，它设置的是下一次定时器运行的<em>初始</em>值。</p>
+</div>
+<h2 id="sec-demo"><a class="header" href="#sec-demo">定时器演示：像钟表一样</a></h2>
+<p>在今天的演示中，我将展示如何用定时器做一个简单的数字时钟。为此，我们需要一个 1 Hz 的定时器。由于它不能直接得到，我将用定时器 2 和 3 搭建一个级联定时器系统。定时器 3 会被设为级联模式，在定时器 2 溢出时更新。这样就能让溢出恰好以一赫兹的频率发生。时钟频率是 2<sup>24</sup>，也就是 1024*0x4000。通过将定时器 2 设为 <code>TM_FREQ_1024</code> 并从 −0x4000 开始，级联的定时器 3 实际上就成了一个 1 Hz 计数器。</p>
+<div class="cpt_fr" style="width:240px;">
+<img alt="时钟演示" src="./img/demo/tmr_demo.png" id="fig:tmr-demo">
+<p><strong>Fig 15.1</strong>: <code>tmr_demo</code>。</p>
+</div>
+<p>每当定时器 3 更新时，演示就把秒数转换为时、分、秒并打印在屏幕上（见 fig 15.1）。是的，我在这里用了除法和取模，因为这是最简单的做法，而且在这个特定演示里我消耗得起这些周期。</p>
+<p>演示可以用 Select 和 Start 来（取消）暂停。Start 禁用定时器 2，从而也禁用了定时器 3。Select 把定时器 2 也变成一个级联定时器，而由于定时器 1 是禁用的，这样做也会停止定时器 2（和 3）。区别在于你取消暂停时会发生什么。通过禁用一个定时器，它会从初始值重新开始；但用级联停止它实际上让定时器保持活动，一旦级联被移除它就会简单地继续计数。差别很微妙，但后者更合适。</p>
+<pre><code class="language-c">// Using a the "Berk" font from headspins font collection.
+
+#include &lt;stdio.h&gt;
+#include &lt;tonc.h&gt;
+#include "berk.h"
+
+void tmr_test()
+{
+    // Overflow every ~1 second:
+    // 0x4000 ticks @ FREQ_1024
+
+    REG_TM2D= -0x4000;          // 0x4000 ticks till overflow
+    REG_TM2CNT= TM_FREQ_1024;   // we're using the 1024 cycle timer
+
+    // cascade into tm3
+    REG_TM3CNT= TM_ENABLE | TM_CASCADE;
+
+    u32 sec= -1;
+
+    while(1)
+    {
+        vid_vsync();
+        key_poll();
+
+        if(REG_TM3D != sec)
+        {
+            sec= REG_TM3D;
+            tte_printf("#{es;P:24,60}%02d:%02d:%02d", 
+                sec/3600, (sec%3600)/60, sec%60);
+        }
+
+        if(key_hit(KEY_START))  // pause by disabling timer
+            REG_TM2CNT ^= TM_ENABLE;
+
+        if(key_hit(KEY_SELECT)) // pause by enabling cascade
+            REG_TM2CNT ^= TM_CASCADE;
+    }
+}
+
+int main()
+{
+    // set-up berk font
+    tte_init_se(0, BG_CBB(0)|BG_SBB(31), 1, 0, 0, &amp;berkFont, se_drawg);
+    tte_init_con();
+    memcpy16(pal_bg_mem, berkPal, berkPalLen/4);
+
+    REG_DISPCNT= DCNT_MODE0 | DCNT_BG0;
+
+    tmr_test();
+
+    return 0;
+}
+</code></pre>
+<p>这只是定时器相当简单的一种用法。当然，我本可以同样轻易地用 VBlank 来记录秒数，而这本来就是通常的做法。硬件定时器通常保留给定时的 DMA 使用，定时的 DMA 用于<a href="https://stuij.github.io/deku-sound-tutorial/g" title="" target="_blank">声音混音器</a>，而非用于游戏定时器。不过还有一个能想到的用途，即性能剖析：检查你的函数有多快。其中一个<a href="text.html#ssec-demo-se2">文本系统演示</a>就是用它来检测几个复制例程的速度。</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="dma.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="interrupts.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="dma.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="interrupts.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

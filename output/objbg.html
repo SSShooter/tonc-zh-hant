@@ -1,0 +1,464 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>精灵与图块背景概述 - Tonc - GBA Programming in rot13</title>
+
+
+        <!-- Custom HTML head -->
+        <!-- Matomo tracking code -->
+        <script>
+          var _paq = window._paq = window._paq || [];
+          /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+          _paq.push(['trackPageView']);
+          _paq.push(['enableLinkTracking']);
+          (function() {
+            var u="//stats.gbdev.io/";
+            _paq.push(['setTrackerUrl', u+'matomo.php']);
+            _paq.push(['setSiteId', '3']);
+            var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+            g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+          })();
+        </script>
+        <!-- End Matomo Code -->
+
+        <meta name="description" content="GBA Programming tutorial">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="theme/css/tonc.css">
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="foreword.html">前言</a></li><li class="chapter-item expanded affix "><a href="intro.html">引言</a></li><li class="chapter-item expanded affix "><li class="part-title">GBA 基础</li><li class="chapter-item expanded "><a href="hardware.html"><strong aria-hidden="true">1.</strong> GBA 硬件</a></li><li class="chapter-item expanded "><a href="setup.html"><strong aria-hidden="true">2.</strong> 搭建开发环境</a></li><li class="chapter-item expanded "><a href="first.html"><strong aria-hidden="true">3.</strong> 我的第一个 GBA 演示程序</a></li><li class="chapter-item expanded "><a href="video.html"><strong aria-hidden="true">4.</strong> 视频显示入门</a></li><li class="chapter-item expanded "><a href="bitmaps.html"><strong aria-hidden="true">5.</strong> 位图模式</a></li><li class="chapter-item expanded "><a href="keys.html"><strong aria-hidden="true">6.</strong> GBA 按键</a></li><li class="chapter-item expanded "><a href="objbg.html"><strong aria-hidden="true">7.</strong> 精灵与图块背景概述</a></li><li class="chapter-item expanded "><a href="regobj.html"><strong aria-hidden="true">8.</strong> 常规精灵</a></li><li class="chapter-item expanded "><a href="regbg.html"><strong aria-hidden="true">9.</strong> 常规图块背景</a></li><li class="chapter-item expanded affix "><li class="part-title">GBA 进阶</li><li class="chapter-item expanded "><a href="affine.html"><strong aria-hidden="true">10.</strong> 仿射变换矩阵</a></li><li class="chapter-item expanded "><a href="affobj.html"><strong aria-hidden="true">11.</strong> 仿射精灵</a></li><li class="chapter-item expanded "><a href="affbg.html"><strong aria-hidden="true">12.</strong> 仿射图块背景</a></li><li class="chapter-item expanded "><a href="gfx.html"><strong aria-hidden="true">13.</strong> 图形特效</a></li><li class="chapter-item expanded "><a href="dma.html"><strong aria-hidden="true">14.</strong> 直接内存访问（DMA）</a></li><li class="chapter-item expanded "><a href="timers.html"><strong aria-hidden="true">15.</strong> 定时器</a></li><li class="chapter-item expanded "><a href="interrupts.html"><strong aria-hidden="true">16.</strong> 硬件中断</a></li><li class="chapter-item expanded "><a href="swi.html"><strong aria-hidden="true">17.</strong> BIOS 调用（SWI）</a></li><li class="chapter-item expanded "><a href="sndsqr.html"><strong aria-hidden="true">18.</strong> 哔！GBA 声音入门</a></li><li class="chapter-item expanded affix "><li class="part-title">进阶 / 应用</li><li class="chapter-item expanded "><a href="text.html"><strong aria-hidden="true">19.</strong> 文本系统</a></li><li class="chapter-item expanded "><a href="mode7.html"><strong aria-hidden="true">20.</strong> Mode 7</a></li><li class="chapter-item expanded "><a href="mode7ex.html"><strong aria-hidden="true">21.</strong> 更多 Mode 7 技巧</a></li><li class="chapter-item expanded "><a href="tte.html"><strong aria-hidden="true">22.</strong> Tonc 文本引擎</a></li><li class="chapter-item expanded "><a href="asm.html"><strong aria-hidden="true">23.</strong> ARM 汇编速成</a></li><li class="chapter-item expanded "><a href="lab.html"><strong aria-hidden="true">24.</strong> 实验室</a></li><li class="chapter-item expanded affix "><li class="spacer"></li><li class="chapter-item expanded affix "><a href="numbers.html">附录 A - 数字、比特与位运算</a></li><li class="chapter-item expanded affix "><a href="fixed.html">附录 B - 定点数与查找表（LUT）</a></li><li class="chapter-item expanded affix "><a href="matrix.html">附录 C - 向量与矩阵数学</a></li><li class="chapter-item expanded affix "><a href="makefile.html">附录 D - 更多关于 makefile 与编译器选项</a></li><li class="chapter-item expanded affix "><a href="edmake.html">附录 E - 通过编辑器进行 Make</a></li><li class="chapter-item expanded affix "><a href="refs.html">附录 F - 参考文献</a></li><li class="chapter-item expanded affix "><a href="log.html">附录 G - 更新日志</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <!--<div class="sidebar-resize-indicator"></div>-->
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <!--<li role="none"><button role="menuitem" class="theme" id="tonc_dark">Tonc Dark</button></li>-->
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="tonc">Tonc Classic</button></li>
+                            <!--<li role="none"><button role="menuitem" class="theme" id="tonc-dark">Tonc Dark</button></li>-->
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Tonc - GBA Programming in rot13</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/gbadev-org/tonc" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                        <a href="https://github.com/gbadev-org/tonc/edit/master/content/objbg.md" title="Suggest an edit" aria-label="Suggest an edit">
+                            <i id="git-edit-button" class="fa fa-edit"></i>
+                        </a>
+                        <a id="en-version-link" href="#" title="English version" aria-label="English version" target="_blank" rel="noopener">
+                            <i id="en-version-button" class="fa fa-language"></i>
+                        </a>
+                        <script>
+                            (function () {
+                                var EN_BASE = "https://gbadev.net/tonc/";
+                                var seg = (window.location.pathname || "").split("/").pop();
+                                var enHref = EN_BASE + (seg && seg !== "index.html" ? seg : "");
+                                var el = document.getElementById("en-version-link");
+                                if (el) { el.href = enHref; }
+                            })();
+                        </script>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="7-精灵与背景概述"><a class="header" href="#7-精灵与背景概述">7. 精灵与背景概述</a></h1>
+<ul>
+<li><a href="#sec-intro">精灵与背景简介</a></li>
+<li><a href="#sec-ctrl">精灵与背景控制</a></li>
+<li><a href="#sec-map">精灵与背景映射</a></li>
+<li><a href="#sec-img">精灵与背景图像数据</a></li>
+<li><a href="#sec-summary">总结</a></li>
+<li><a href="#sec-name">名字里有什么？</a></li>
+</ul>
+<h2 id="sec-intro"><a class="header" href="#sec-intro">精灵与背景简介</a></h2>
+<p>虽然你可以做完全基于位图模式的游戏，但你会发现极少有游戏这样做。简单的原因是，所有图形都将由软件渲染。无论你的代码多好，那始终是个缓慢的过程。现在，我并不是说它做不到：GBA 上有几个 FPS（比如 Wolfenstein 和 Doom）。我<em>是</em>说，除非你愿意把代码优化到极致，否则你会很难做到。</p>
+<p>绝大多数使用 GBA 的<dfn>硬件图形</dfn>，它有两种形式：<dfn>精灵</dfn>和<dfn>图块背景</dfn>（简称“background“或“bg“）。正如我在<a href="video.html#sec-vid-types">视频入门</a>中所说，图块背景由一个图块矩阵（因此得名）构成，每个图块包含一个指向 8x8 像素位图的索引，这个位图被称为<dfn>图块</dfn>。所以最终屏幕上是一个图块矩阵。这里有四个这样的背景，大小从 128x128 像素（32x32 图块）到 1024x1024 像素（128x128 图块）不等。精灵是较小的对象，大小在 8x8 到 64x64 像素之间。一共有 128 个，你可以让它们彼此独立移动。像背景一样，精灵也是由图块构建的。</p>
+<p>除了单纯的像素轰击，硬件还负责渲染的若干其他方面。首先，它使用<dfn>颜色键控</dfn>来排除某些像素显示（即，这些像素是透明的）。基本上，如果图块的像素值为零，它就是透明的。此外，硬件还负责许多其他效果，比如翻转、半透明混合，以及<a href="affine.html">仿射变换</a>如旋转和缩放。</p>
+<p>诀窍在于设置好这个过程。需要留意的三个基本步骤是：<dfn>控制</dfn>、<dfn>映射</dfn>和<dfn>图像数据</dfn>。这些步骤的边界有点模糊，但用这种方式看待是有帮助的，因为它让你能把精灵和背景看作同一枚硬币的两面。而统一是件好事®。当然，差异仍然存在，只是体现在细节上。
+<br></p>
+<p>本页宽泛地概述了我在接下来几页要讲的内容。如果你不能立即理解，别担心，那目前并不是重点。先让它渗入你的大脑，读完其他页面，你就能明白我在这里说的是什么了。</p>
+<h2 id="sec-ctrl"><a class="header" href="#sec-ctrl">精灵与背景控制</a></h2>
+<p>渲染的第一步是控制。控制涵盖了作用在精灵或背景整体上的东西，比如这些东西本身的激活、是否使用 16 或 256 色图块，以及半透明混合和变换等效果。首先是你是否一开始就想要使用这些东西。这是通过在显示控制寄存器 <a href="video.html#tbl-reg-dispcnt"><code>REG_DISPCNT</code></a> 中设置正确的位来完成的。一旦你做了这个，还有用于背景的进一步控制寄存器：<code>REG_BGxCNT</code> 寄存器（<code>0400:0008h</code>-<code>0400:000Fh</code>）。对于精灵，有<dfn>对象属性内存</dfn>，即 OAM，位于 <code>0700:0000h</code>。128 个精灵中每一个都有三个所谓的<dfn>属性</dfn>（因此叫 OAM），涵盖了精灵的控制和映射两方面。</p>
+<h2 id="sec-map"><a class="header" href="#sec-map">精灵与背景映射</a></h2>
+<p>控制和映射之间有很多灰色地带，但还是来吧。映射关乎使用哪些图块以及它们去哪的一切。如前所述，精灵和背景的屏幕外观都是由图块并排排列构建的。你必须告诉 GBA 要 blit 哪些图块到什么位置。Fig 7.1a-c（下）阐释了这一点。在 fig 7.1b 中你看到图块。注意精灵和背景都有自己的一套图块。</p>
+<p>在 fig 7.1c 中你看到这些图块是如何被使用的。背景使用一个<dfn>图块地图</dfn>，它工作起来就像一个普通的调色板位图，只是它是由<dfn>屏幕块条目</dfn>（带图块索引）而非像素（含颜色索引）组成的矩阵。抱歉，一个什么？！？屏幕块条目。是的，我知道这名字有点傻。问题是你需要把地图中的条目（屏幕块条目，简称 <dfn>SE</dfn>）和图像数据（实际图块）清楚区分开。不幸的是，“tile” 这个词常用来指两者。我会坚持用 tile 指实际图形信息，而由于图块地图存放在叫屏幕块的东西里，地图数据就叫屏幕块条目或 SE。总之，每个 SE 有自己的图块索引。它还包含用于水平翻转和垂直翻转的位，如果是 16 色背景，还有一个调色板组的索引。不过在 fig 7.1c 中，你只看到图块索引。</p>
+<p>对于精灵，有点不同，但基本步骤不变。你给<em>整个</em>精灵一个图块索引；GBA 然后通过查看精灵的形状和大小以及<dfn>精灵映射模式</dfn>来推算出要用的其他图块。我会在<a href="regobj.html#sec-oam">后面</a>解释这是什么意思；只说映射模式是 1D 或 2D，取决于 <code>REG_DISPCNT{6}</code> 就够了。在本例中，我用了 1D 映射，它规定一个精灵应使用的图块是连续的。像背景一样，还有用于 16 色精灵的额外翻转标志和调色板信息。与背景不同，这些作用于<em>整个</em>精灵，而非仅一个图块。而且，精灵的组成图块总是相邻的，所以你可以有点想象力地把一个精灵看作一个微型的图块背景。</p>
+<p>属于映射步骤的还有<a href="affine.html">仿射变换矩阵</a>（如果有）。用这个 2x2 矩阵你可以旋转、缩放或错切精灵或背景。关于它如何工作似乎有大量的困惑，所以我写了详细的数学描述来解释它是如何运作的。底线：矩阵从屏幕空间映射到纹理空间，而<em>不是</em>反过来。尽管所有参考文档都以迂回的方式说明了这一点，但迄今为止我看到的几乎所有旋转-缩放矩阵都是不正确的。如果你的代码基于 PERN 的，你的很可能也是。</p>
+<div class="cblock" id="fig:tile-gfx">
+<table id="img-tile-use">
+<col span=2>
+<tr valign="top">
+<td>
+  <div class="cpt" style="width:200px">
+  <img src="./img/tile_gfx_render.png"
+    alt="精灵和背景的示例"
+    width=192><br>
+  <b>Fig 7.1a</b>: 背景上的 2 个精灵。
+  </div>
+<td rowspan=2>
+  <div class="cpt" style="width:384px">
+  <img src="./img/tile_gfx_map.png"
+    alt="图块用法" width=384><br>
+  <b>Fig 7.1c</b>: 背景和精灵的图块用法。
+    背景每个 SE 一个图块，精灵则是左上角图块。
+    为清晰起见省略了默认图块（索引 0）。
+  </div>
+<tr>
+<td>
+  <div class="cpt" style="width:200px">
+  <img src="./img/tile_gfx_tileset.png"
+    alt="背景和精灵的图块"><br>
+  <b>Fig 7.1b</b>: 背景（上）和
+    精灵（下）图块。
+  </div>
+</table>
+</div>
+<h2 id="sec-img"><a class="header" href="#sec-img">精灵与背景图像数据</a></h2>
+<p>图像数据是 GBA 实际用来生成图像的。这意味着两样东西：图块和调色板。</p>
+<h3 id="ssec-img-tiles"><a class="header" href="#ssec-img-tiles">图块</a></h3>
+<p>精灵和背景由一个叫<dfn>图块</dfn>的较小位图矩阵组成。你基本的图块是一个 8x8 位图。图块有 4bpp（16 色 / 16 个调色板）和 8bpp（256 色 / 1 个调色板）两种变体。类比浮点数，我称它们为<dfn>s-图块</dfn>（单尺寸图块）和<dfn>d-图块</dfn>（双尺寸图块）。一个 s-图块长 32（20h）字节，一个 d-图块 64（40h）字节。默认的图块类型是 4bpp 变体（s-图块）。如果我说图块而不提哪种类型，那要么无所谓，要么就是 s-图块。只要注意上下文就好。</p>
+<p>有时人们误解了“以图块工作“真正意味着什么。在图块模式中，VRAM <em>不是</em>一个从中选取图块的大位图，而是一堆 8x8 像素位图（即，图块）的集合。理解这两种方法的区别很重要！考虑一个大位图中的 8x8 矩形，和一个 8x8 图块。在大位图中，前 8 个像素之后的数据包含同一条扫描线的接下来 8 个像素；“图块“的下一行可以在更远处找到。在图块模式中，图块的下一扫描行紧跟当前行。</p>
+<p>基本上，在图块模式下 VRAM 工作为一个 8×<em>N</em>·8 的位图。因为这么小的宽度用起来不实际，它们通常还是被呈现为更宽的位图。一个例子是 VBA 的图块查看器，它把字符块显示为 256x256 的位图；我在 fig 7.2a 中做了类似的事。重要的是记住这些并不能准确模仿 VRAM 的内容；要重现 VRAM 的实际内容，你需要像 fig 7.2b 那样的东西，但，当然，没谁会疯到用那种方式编辑位图。很可能你需要一个能把位图拆成 8x8 块的工具。或者把它重排成宽度为 8 像素的位图，本质上是一回事。</p>
+<p>像所有位图一样，让精灵和背景的图块位深与 VRAM 中数据的位深对应是程序员的责任（意思是你！）。如果不同步，fig 7.2a 那样的东西可能会显示为 fig 7.2c。这种事迟早可能发生，因为所有图形在使用前都需要在系统外转换；一个放错位置的转换选项就足以酿成。</p>
+<div class="cblock" id="fig:tile-as">
+<table id="img-bad-bpp">
+<tr valign="top">
+<td>
+  <div class="cpt" style="width:192px">
+  <img src="./img/tile_8as8.png" width=192 
+    alt="8 bpp 图块">
+  <b>Fig 7.2a</b>: 8bpp 图块。
+  </div>
+</td>
+<td>
+  <div class="cpt" style="width:192px">
+  <img src="./img/tile_as_bm.png" width=192 
+    alt="8 bpp 图块作为位图">
+  <b>Fig 7.2b</b>: 8bpp 图块作为位图。
+  </div>
+</td>
+<tr>
+<td colspan=2>
+  <div class="cpt" style="width:384px">
+  <img src="./img/tile_8as4.png" width=384
+    alt="如前，但被解释为 4 bpp">
+  <b>Fig 7.2c</b>: 
+    fig 7.2a 的数据，被解释为 4bpp 数据。
+    如果你看到像这样的东西（你会的），现在你知道为什么了。
+  </div>
+</td>
+</table>
+</div>
+<div class="box tip"><p class="box-title">图块图形注意事项</p>
+<p>记住并理解以下几点：</p>
+<ol>
+<li>每个图块的数据是顺序存储的，下一组 8 个像素紧跟上一行之后。VRAM 基本上是一个宽 8 像素的大位图。图形转换器应该能把更大的位图转换成这种格式。</li>
+<li>一如既往，留意你的位深。</li>
+</ol>
+</div>
+<div class="box tip"><p class="box-title">图形转换器小技巧</p>
+<p>如果你想做自己的转换工具，这里有个小技巧能帮你处理图块。分阶段工作；<em>不要</em>直接从普通的线性位图写到数据文件。创建一个平铺函数，它接受一个位图并把图块排成宽 1 个图块、高 <em>H</em> 个图块的位图。然后它可以正常导出。如果你允许可变的图块宽度（不把 8 像素宽度写死），你也可以把它用于其他目的。例如，要创建 16x16 精灵，先用 width=16 排列，再用 width=8。</p>
+</div>
+<h3 id="ssec-img-cbb"><a class="header" href="#ssec-img-cbb">图块块（又称字符块）</a></h3>
+<p>所有图块都存储在<dfn>字符块</dfn>中。尽管我很希望它们被称为 tile-block（图块块），因为那正是它们<em>所</em>由之组成的块，但传统上图块被称为字符（不要与编程类型的字符：一个 8 位整数混淆），所以这些家伙被称为 charblock。每个字符块长 16kb（4000h 字节），所以有 512（4000h/20h）个 s-图块或 256（4000h/40h）个 d-图块的空间。你也可以把字符块看作图块的矩阵；s-图块是 32x16，d-图块是 16x16（或 32x8）。整个 96kb 的 VRAM 可以看作 6 个字符块。</p>
+<p>如前所述，有 6 个图块块，即 4 个用于背景（0-3）和 2 个用于精灵（4-5）。对于图块背景，图块计数从一个给定的<dfn>字符基块</dfn>（字符基的块，简称 CBB）开始，由 <code>REG_BGxCNT</code>{2-3} 指示。精灵图块索引总是从较低的精灵块（块 4，从 <code>0601:0000h</code> 开始）开始。</p>
+<p>如果图块索引用背景和精灵同样的方案就好了，但事实并非如此。对于精灵，编号总是遵循 s-图块（20h 偏移），即使是 d-图块，但背景坚持它们指示的图块大小：4bpp 模式下 20h 偏移，8bpp 模式下 40h 偏移。</p>
+<div class="box warning"><p class="box-title">背景与精灵的图块索引</p>
+<p>精灵的图块索引之间总是相隔 32 字节，背景图块索引使用 32 或 64 字节偏移，取决于它们设置的位深。</p>
+</div>
+<p>现在，常规背景和精灵都有 10 位用于图块索引。这意味着 1024 个允许的索引。由于每个字符块包含 512 个 s-图块，你不仅能访问基块，也能访问它后面的那个块。而如果你的背景用 d-图块，你实际上能访问总共四个块！现在，由于图块背景可以从四个背景字符块中的任何一个开始计数，你可能会想尝试也用精灵字符块（块 4 和 5）。在我测试过的模拟器上，这确实能工作。然而，在真实 GBA 上，它不行。这正是你<em>需要</em>在真实硬件上测试的原因之。关于这个主题的更多内容，见<a href="regbg.html#ssec-map-subtle">背景图块微妙之处</a>和 <a href="regbg.html#sec-demo"><code>cbb_demo</code></a>。</p>
+<p>关于可用字符块你需要知道的另一件事是，在某种<a href="bitmaps.html">位图</a>模式中，位图会延伸到较低的精灵块中。因此，在这种情况下，你只能使用较高的精灵块（包含图块 512 到 1023）。</p>
+<p>多亏了 <code>typedef</code> 这个美妙的概念，你可以为图块和字符块定义类型，这样就能通过简单的数组访问快速得出图块的地址。另一种方法是使用宏或内联函数来计算正确的地址。不过，最终你选哪种方法几乎无所谓。当然，typedef 方法允许使用 <code>sizeof</code> 运算符，当你需要复制一定数量的图块时会很方便。而且，结构体复制比简单循环更快，需要的 C 代码也更少。</p>
+<pre><code class="language-c">// tile 8x8@4bpp: 32bytes; 8 ints
+typedef struct { u32 data[8];  } TILE, TILE4;
+// d-tile: double-sized tile (8bpp)
+typedef struct { u32 data[16]; } TILE8;
+// tile block: 32x16 tiles, 16x16 d-tiles
+typedef TILE  CHARBLOCK[512];
+typedef TILE8 CHARBLOCK8[256];
+
+#define tile_mem  ( (CHARBLOCK*)0x06000000)
+#define tile8_mem ((CHARBLOCK8*)0x06000000)
+
+//In code somewhere
+TILE *ptr= &amp;tile_mem[4][12];   // block 4 (== lower object block), tile 12
+
+// Copy a tile from data to sprite-mem, tile 12
+tile_mem[4][12] = *(TILE*)spriteData;
+</code></pre>
+<h3 id="ssec-img-clr"><a class="header" href="#ssec-img-clr">调色板与图块颜色</a></h3>
+<p>精灵和背景有独立的调色板。背景调色板先位于 <code>0500:0000h</code>，紧接着是精灵调色板（<code>0500:0200h</code>）。两个调色板都包含 256 个 15 位颜色项。</p>
+<p>在 8 位颜色模式下，图块中的像素值是该像素的调色板索引。在 4 位颜色模式下，像素值包含调色板索引的低半字节；高半字节是<dfn>调色板组</dfn>索引，它可以在精灵的属性中找到，也可以在图块的高半字节中找到。如果像素值为 0，那么该像素不会被渲染（即，将是透明的）。</p>
+<p>因为 16 色模式和透明问题，你的位图编辑器保持调色板完好<em>至关重要</em>。我根据个人经验知道 MS-Paint 和 Visual C 位图编辑器做不到，所以你可能想用别的东西。其他 GBA 开发者的最爱是 <a href="https://graphicsgale.com/us/" title="" target="_blank">Graphics Gale</a> 和 <a href="http://www.gimp.org" title="" target="_blank">GIMP</a>。当然，既然我有<a href="http://www.coranac.com/projects/#usenti" title="" target="_blank">自己的位图编辑器</a>，我更偏好用它。</p>
+<h2 id="sec-summary"><a class="header" href="#sec-summary">总结</a></h2>
+<p>这是精灵和背景各种属性的简短列表。如果你不能立即理解也没关系；我会在接下来的页面更详细地解释。</p>
+<div class="cblock">
+<table id="tbl:sum" class="table-data" width="70%">
+<col span=3 valign="top">
+<tr><th width="30%">项目		<th>背景		<th>精灵
+<tr><td>数量		<td>4 (2 仿射)	<td>128	(32 仿射)
+<tr>
+  <td>最大尺寸
+  <td><b>reg</b>: 512x512<br><b>aff</b>: 1024x1024		<td>64x64
+<tr><td>控制			<td><code>REG_BGxCNT</code>		<td>OAM
+<tr><td>基图块块		<td>0-3						<td>4
+<tr>
+  <td>可用图块 <i>id</i>
+  <td><b>reg</b>: 0-1023 <br><b>aff</b>: 0-255
+  <td><b>modes 0-2</b>: 0-1023 <br><b>modes 3-5</b>: 512-1023
+<tr>
+  <td>图块内存偏移
+  <td>按图块大小: <br><b>4bpp</b>: start= base + <i>id</i>*32
+  <br><b>8bpp</b>: start= base + <i>id</i>*64
+  <td>始终按 4bpp 图块大小: <br>start= base + <i>id</i>*32
+<tr>
+  <td>映射
+  <td><b>reg</b>: 完整地图被分成 32&times;32 图块的地图块。
+    （分块地图）<br>
+    <b>aff</b>: 一个图块矩阵，就像一个普通位图（扁平
+    地图）
+  <td>如果一个精灵大小为 <i>m &times; n</i> 个图块:<br>
+    <b>1D 映射</b>: 使用 <i>m*n</i> 个连续图块，
+    从 <i>id</i> 开始<br>
+    <b>2D 映射</b>: 图块块是 32&times;32 矩阵；使用的图块
+    是矩阵 <i>m</i> 行中的 <i>n</i> 列，
+    从 <i>id</i> 开始。
+<tr>
+  <td>翻转
+  <td>每个图块可以单独翻转
+  <td>翻转整个精灵
+<tr><td>调色板		<td><code>0500:0000h</code>	<td><code>0500:0200h</code>
+</table>
+</div>
+<h2 id="sec-name"><a class="header" href="#sec-name">名字里有什么？</a></h2>
+<p>嗯，既然你是程序员你就该知道答案：太多了。如果你不同意，访问 <a href="https://www.mindprod.com/jgloss/unmain.html" title="" target="_blank">How To Write Unmaintanable Code</a> 网站，看看他们的一些条目。我的命名方案与 GBA 社区的有点不同。我这么做不只是因为我想唱反调。我发现一些传统名字不完整、有误导性且含糊。我目前几乎没动力仅仅因为别人都这么做就遵循传统。但你仍然需要知道传统名字，就因为别人都知道。所以这里有一份名字差异列表。</p>
+<div class="cblock">
+<table id="tbl:name" class="table-data" width="70%">
+<col span=3 valign="top">
+<tr><th>项目		<th>传统		<th>Tonc
+<tr>
+  <td>精灵和背景图像数据
+  <td>tiles
+  <td>tiles
+<tr>
+  <td>图块地图条目
+  <td>tiles  (你能感受到困惑吗？)
+  <td>screenblock entries / SE
+<tr>
+  <td>变换矩阵
+  <td>Rot/Scale matrix
+  <td>affine matrix / <b>P</b>
+<tr><td>精灵类型		<td>?? vs Rot/Scale	<td> regular vs affine
+<tr><td>背景类型	<td>text vs rot	<td> regular vs affine
+<tr>
+  <td>精灵图块的存放处（<code>0601:0000</code>）
+  <td><code>OAMData</code> (即，不是<i>真正的</i> OAM，它在
+    <code>0700:0000</code>)
+  <td><code>tile_mem_obj</code>
+<tr><td>OAM（<code>0700:0000</code>）
+  <td><code>OAMData</code> 或 <code>OAMMem</code>
+  <td><code>oam_mem</code>
+</table>
+</div>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="keys.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="regobj.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="keys.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="regobj.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

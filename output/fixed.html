@@ -1,0 +1,1265 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>附录 B - 定点数与查找表（LUT） - Tonc - GBA Programming in rot13</title>
+
+
+        <!-- Custom HTML head -->
+        <!-- Matomo tracking code -->
+        <script>
+          var _paq = window._paq = window._paq || [];
+          /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+          _paq.push(['trackPageView']);
+          _paq.push(['enableLinkTracking']);
+          (function() {
+            var u="//stats.gbdev.io/";
+            _paq.push(['setTrackerUrl', u+'matomo.php']);
+            _paq.push(['setSiteId', '3']);
+            var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+            g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+          })();
+        </script>
+        <!-- End Matomo Code -->
+
+        <meta name="description" content="GBA Programming tutorial">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="theme/css/tonc.css">
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="foreword.html">前言</a></li><li class="chapter-item expanded affix "><a href="intro.html">引言</a></li><li class="chapter-item expanded affix "><li class="part-title">GBA 基础</li><li class="chapter-item expanded "><a href="hardware.html"><strong aria-hidden="true">1.</strong> GBA 硬件</a></li><li class="chapter-item expanded "><a href="setup.html"><strong aria-hidden="true">2.</strong> 搭建开发环境</a></li><li class="chapter-item expanded "><a href="first.html"><strong aria-hidden="true">3.</strong> 我的第一个 GBA 演示程序</a></li><li class="chapter-item expanded "><a href="video.html"><strong aria-hidden="true">4.</strong> 视频显示入门</a></li><li class="chapter-item expanded "><a href="bitmaps.html"><strong aria-hidden="true">5.</strong> 位图模式</a></li><li class="chapter-item expanded "><a href="keys.html"><strong aria-hidden="true">6.</strong> GBA 按键</a></li><li class="chapter-item expanded "><a href="objbg.html"><strong aria-hidden="true">7.</strong> 精灵与图块背景概述</a></li><li class="chapter-item expanded "><a href="regobj.html"><strong aria-hidden="true">8.</strong> 常规精灵</a></li><li class="chapter-item expanded "><a href="regbg.html"><strong aria-hidden="true">9.</strong> 常规图块背景</a></li><li class="chapter-item expanded affix "><li class="part-title">GBA 进阶</li><li class="chapter-item expanded "><a href="affine.html"><strong aria-hidden="true">10.</strong> 仿射变换矩阵</a></li><li class="chapter-item expanded "><a href="affobj.html"><strong aria-hidden="true">11.</strong> 仿射精灵</a></li><li class="chapter-item expanded "><a href="affbg.html"><strong aria-hidden="true">12.</strong> 仿射图块背景</a></li><li class="chapter-item expanded "><a href="gfx.html"><strong aria-hidden="true">13.</strong> 图形特效</a></li><li class="chapter-item expanded "><a href="dma.html"><strong aria-hidden="true">14.</strong> 直接内存访问（DMA）</a></li><li class="chapter-item expanded "><a href="timers.html"><strong aria-hidden="true">15.</strong> 定时器</a></li><li class="chapter-item expanded "><a href="interrupts.html"><strong aria-hidden="true">16.</strong> 硬件中断</a></li><li class="chapter-item expanded "><a href="swi.html"><strong aria-hidden="true">17.</strong> BIOS 调用（SWI）</a></li><li class="chapter-item expanded "><a href="sndsqr.html"><strong aria-hidden="true">18.</strong> 哔！GBA 声音入门</a></li><li class="chapter-item expanded affix "><li class="part-title">进阶 / 应用</li><li class="chapter-item expanded "><a href="text.html"><strong aria-hidden="true">19.</strong> 文本系统</a></li><li class="chapter-item expanded "><a href="mode7.html"><strong aria-hidden="true">20.</strong> Mode 7</a></li><li class="chapter-item expanded "><a href="mode7ex.html"><strong aria-hidden="true">21.</strong> 更多 Mode 7 技巧</a></li><li class="chapter-item expanded "><a href="tte.html"><strong aria-hidden="true">22.</strong> Tonc 文本引擎</a></li><li class="chapter-item expanded "><a href="asm.html"><strong aria-hidden="true">23.</strong> ARM 汇编速成</a></li><li class="chapter-item expanded "><a href="lab.html"><strong aria-hidden="true">24.</strong> 实验室</a></li><li class="chapter-item expanded affix "><li class="spacer"></li><li class="chapter-item expanded affix "><a href="numbers.html">附录 A - 数字、比特与位运算</a></li><li class="chapter-item expanded affix "><a href="fixed.html">附录 B - 定点数与查找表（LUT）</a></li><li class="chapter-item expanded affix "><a href="matrix.html">附录 C - 向量与矩阵数学</a></li><li class="chapter-item expanded affix "><a href="makefile.html">附录 D - 更多关于 makefile 与编译器选项</a></li><li class="chapter-item expanded affix "><a href="edmake.html">附录 E - 通过编辑器进行 Make</a></li><li class="chapter-item expanded affix "><a href="refs.html">附录 F - 参考文献</a></li><li class="chapter-item expanded affix "><a href="log.html">附录 G - 更新日志</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <!--<div class="sidebar-resize-indicator"></div>-->
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <!--<li role="none"><button role="menuitem" class="theme" id="tonc_dark">Tonc Dark</button></li>-->
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="tonc">Tonc Classic</button></li>
+                            <!--<li role="none"><button role="menuitem" class="theme" id="tonc-dark">Tonc Dark</button></li>-->
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Tonc - GBA Programming in rot13</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/gbadev-org/tonc" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                        <a href="https://github.com/gbadev-org/tonc/edit/master/content/fixed.md" title="Suggest an edit" aria-label="Suggest an edit">
+                            <i id="git-edit-button" class="fa fa-edit"></i>
+                        </a>
+                        <a id="en-version-link" href="#" title="English version" aria-label="English version" target="_blank" rel="noopener">
+                            <i id="en-version-button" class="fa fa-language"></i>
+                        </a>
+                        <script>
+                            (function () {
+                                var EN_BASE = "https://gbadev.net/tonc/";
+                                var seg = (window.location.pathname || "").split("/").pop();
+                                var enHref = EN_BASE + (seg && seg !== "index.html" ? seg : "");
+                                var el = document.getElementById("en-version-link");
+                                if (el) { el.href = enHref; }
+                            })();
+                        </script>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="b-定点数与查找表lut"><a class="header" href="#b-定点数与查找表lut">B. 定点数与查找表（LUT）</a></h1>
+<ul>
+<li><a href="#sec-intro">什么是定点数</a></li>
+<li><a href="#sec-fmath">定点数运算</a></li>
+<li><a href="#sec-rmdiv">伪造除法（可选）</a></li>
+<li><a href="#sec-lut">查找表（LUT）</a></li>
+</ul>
+<h2 id="sec-intro"><a class="header" href="#sec-intro">什么是定点数</a></h2>
+<p>粗略地说，数字有两种：整数和浮点数。对大多数严肃的数学运算，整数都不够用，因为按定义它们不允许有小数。所以对 3D 游戏你会用浮点运算。在专门浮点硬件出现之前的旧日子里，那东西非常慢！至少比整数运算慢。幸运的是，有一种用整数假冒带小数点数字的方法。这就是 <dfn>定点数运算（fixed-point math）</dfn>。</p>
+<h3 id="ssec-fix-gen"><a class="header" href="#ssec-fix-gen">一般定点数</a></h3>
+<p>举个例。假设你钱包里有 $10.78（十美元七十八美分）。如果你想把这笔金额写成整数就有问题，因为你要么丢掉小数部分（$10），要么把它四舍五入成 $11。不过，你也可以不按美元而是按 <em>分</em> 来写。那样你会写 1078，这是个整数，问题解决了。</p>
+<p>定点数运算就是这么工作的。你不是数“单位”，而是数 <em>分数</em>。在前面的例子里，你以分、也就是百分之一来计数。定点数有一个整数部分（“10”）和一个小数部分（“78”）。既然小数部分用了 2 位数字，我们称这种为 <dfn>x.2</dfn> 格式的定点数。</p>
+<p>注意，PC 自 1990 年代中期起就有了浮点单元（FPU）。这使得浮点运算和整数运算一样快（有时甚至更快），所以除了光栅化之外，用定点数运算并不真的值得费劲，因为从 <code>float</code> 到 <code>int</code> 的转换仍然很慢。然而，GBA 不擅长浮点，所以它全程都是定点运算。</p>
+<h3 id="ssec-fix-gba"><a class="header" href="#ssec-fix-gba">GBA 中的定点数用法</a></h3>
+<p>因为计算机使用<a href="numbers.html#ssec-num-basen">二进制系统</a>，用十进制作为定点数的基础是愚蠢的。幸运的是，你可以用任何进制做定点数运算，包括二进制。基本格式是 <em>i</em>.<em>f</em>，其中 <em>i</em> 是整数位数，<em>f</em> 是小数位数。通常，只有小数位数重要，所以你也会看到只写“.<em>f</em>”。</p>
+<p>GBA 在好些地方用定点数运算。比如<a href="affine.html">仿射参数</a>，全是 .8 定点数（简称“<dfn>fixeds</dfn>”）。实际上，这意味着你以 1/2<sup>8</sup> = 1/256 为单位计数，精度为 0.004。所以当你往像 REG_BG2PA 这样的寄存器写 256 时，它实际被解释为 256/256=1.00。REG_BG2PA=512 即 2.00，640 即 2.50，等等。当然，这在十进制里有点难看出来，但拿计算器你会确认这是真的。为此，通常更方便的是用十六进制写它们：256=0x100→1.00，512=0x200→2.00，640=0x280→2.50（记住 8 是 16/2，即一半）。</p>
+<pre><code class="language-c">// .8 fixed point examples : counting in fractions of 256
+
+int a= 256;         // 256/256 = 1.00
+int a= 1 &lt;&lt; 8;      // Ditto
+int a= 0x100;       // Ditto
+
+int b= 0x200;       // 0x200/256 = 512/256 = 2.00
+int c= 0x080;       // 0x080/256 = 128/256 = 0.50
+int d= 0x280;       // 0x280/256 = 640/256 = 2.50
+</code></pre>
+<p>仿射寄存器不是唯一用定点数的地方，尽管那里最易辨认。<a href="gfx.html#sec-blend">混合权重</a>本质上也是定点数，只是它们是 1.4 定点数而非 .8 定点数。这实际上是个要点：你给定点数设定的位置是任意的，你甚至可以在过程中切换位置。现在，数字本身不会告诉你小数点在哪，所以要么自己记住，要么——更好——在注释里写下来。相信我，你绝不想在冗长算法的中间去猜定点数的位置。</p>
+<div class="box tip"><p class="box-title">注释你的定点数位置</p>
+<p>当你使用定点数变量时，试着标明它们的定点数格式，特别是在你需要它们做较长计算、点的位置可能随所用操作而移动时。</p>
+</div>
+<h3 id="ssec-fix-sign"><a class="header" href="#ssec-fix-sign">定点数与符号</a></h3>
+<p>定点数本该是浮点数的穷人替代品，而浮点数是包含负数的。这意味着它们本该是 <em>有符号</em> 的。或者至少通常是。例如，仿射寄存器用有符号的 8.8 定点数，但混合权重是无符号的 1.4 定点数。你可能觉得这几乎无关紧要，但<a href="numbers.html#bits-int-sign">符号</a>如果不小心真的能把事情搞砸。假设你用定点数表示位置和速度。即便你的位置总为正，速度也不会，所以有符号数更合适。此外，如果你的定点数是半字，比如 8.8 定点数，有符号的“−1”会是 <code>0xFFFFFFFF</code>，即一个恰当的“−1”，而无符号的“−1”是 <code>0x0000FFFF</code>，那其实是个正数。你不会是第一个在这上面栽跟头的人，也不会是最后一个。所以有符号定点数，拜托。</p>
+<p>另一点要注意的是有符号定点数常被标明的方式。你可能会看到“1.<em>n</em>.<em>f</em>”这样的形式。这是为了表示一个符号位、<em>n</em> 个整数位和 <em>f</em> 个小数位。严格来说，这是 <strong>错的</strong>。定点数只是普通整数，只是被解释为分数。这意味着它们遵循<a href="numbers.html#bits-int-neg">补码（two’s complement）</a>，并且虽然置位的顶位确实表示负数，但它并不是 <em>那个</em> 符号位。正如我所说，“−1”在补码里是 <code>0xFFFFFFFF</code>，而不是符号-数值（sign and magnitude）里的 <code>0x80000001</code>。你可能不觉得这个区别有多大意义、觉得显然它仍是补码，但考虑到浮点格式 <em>确实</em> 有独立的符号位，我说它值得记住。</p>
+<div class="box warning"><p class="box-title">有符号定点数格式记法</p>
+<p>有符号定点数格式有时被标为“1.<em>n</em>.<em>f</em>”。由此你可能会以为它们像浮点格式那样有个独立的符号位，但这是 <strong>不正确的</strong>。它们仍是普通整数，用补码表示负数。</p>
+</div>
+<h2 id="sec-fmath"><a class="header" href="#sec-fmath">定点数运算</a></h2>
+<p>知道定点数是什么是一回事，你还得以某种方式使用它们。我们关心三件事。</p>
+<ul>
+<li>在普通整数或浮点与定点数之间转换。</li>
+<li>算术运算。</li>
+<li>溢出。</li>
+</ul>
+<p>这些项目没有哪个难懂，但每个都有其别扭之处。事实上，溢出 <em>只是</em> 一个问题，算不上真正的项目。本节聚焦 24.8 有符号定点数，我会用一个 typedef 为 int 的“FIXED”类型。虽然只用这种定点格式，但这里涉及的主题也能轻松应用到其他格式。</p>
+<h3 id="ssec-fmath-conv"><a class="header" href="#ssec-fmath-conv">定点数的相互转换</a></h3>
+<p>我不太确定“转换”在这里是不是正确的词。定点数和普通数的唯一区别是一个缩放因子 <em>M</em>。从 FIXED 到 int 或 float 所需的一切，就是通过乘或除来计入那个缩放。是的，真的就这么简单。因为我们用的缩放是 2 的幂，整数↔FIXED 转换甚至可以用移位完成。你可以自己在代码里加移位，但编译器足够聪明，会把 2 的幂的乘除自己转成移位。</p>
+<pre><code class="language-c">typedef s32 FIXED;         //! 32bit FIXED in 24.8 format
+
+// For other fixed formats, change FIX_SHIFT and the rest goes with it.
+
+//! Convert an integer to fixed-point
+INLINE FIXED int2fx(int d)
+{   return d&lt;&lt;FIX_SHIFT;    }
+
+//! Convert a float to fixed-point
+INLINE FIXED float2fx(float f)
+{   return (FIXED)(f*FIX_SCALEF);   }
+
+
+//! Convert a fixed point value to an unsigned integer.
+INLINE u32 fx2uint(FIXED fx)    
+{   return fx&gt;&gt;FIX_SHIFT;   }
+
+//! Get the unsigned fractional part of a fixed point value (orly?).
+INLINE u32 fx2ufrac(FIXED fx)
+{   return fx&amp;FIX_MASK; }
+
+//! Convert a FIXED point value to an signed integer.
+INLINE int fx2int(FIXED fx)
+{   return fx/FIX_SCALE;    }
+
+//! Convert a fixed point value to floating point.
+INLINE float fx2float(FIXED fx)
+{   return fx/FIX_SCALEF;   }
+</code></pre>
+<h4 id="舍入与负数不一致问题"><a class="header" href="#舍入与负数不一致问题">舍入与负数不一致问题</a></h4>
+<p>转换几乎和上面描述的一样简单。两个可能出问题的地方是舍入不一致和负小数。注意我说的是它们 <em>可能</em> 有问题；取决于你心里想什么。我不打算在这里解释所有来龙去脉，因为它们通常没那么大问题，但你需要意识到它们。</p>
+<p>如果你不是编程新手，你无疑会意识到从 float 到 int 的舍入问题：简单的强制类型转换会截断一个数，而不是真正四舍五入。例如，<code>(int)1.7</code> 给出结果 1 而非 2。前面的宏有同样的问题（如果你能这么叫的话）。浮点到整数的四舍五入是在四舍五入前给浮点数加半个（0.5），我们也可以把它用到定点数转换上。当然，这里的半个值取决于定点数的位数。例如，.8 定点数，½ 是 0x80=128（256/2），对 .16 定点数是 0x8000=32768。在向下移位前加上它就能正确四舍五入。四舍五入其实有多种方式，你可以读 <a href="https://web.archive.org/web/20060204155500/http://www.bookofhook.com/Article/GameDevelopment/AnIntroductiontoFixedPoin.html" title="" target="_blank">“An Introduction to Fixed Point Math” by Brian Hook</a>。</p>
+<p>然后是负数的问题。坦白说，负数的除法总是个麻烦。基本问题是它们总是向零取整：+3/4 和 −3/4 都给出 0。某些方面这说得通，但某方面又说不通：它在零附近打断了输出的序列。这本身就烦人，但更糟的是右移位 <em>不</em> 遵循这种行为；它总是移向负无穷。换句话说，对负整数的除法，除法和右移运算符并 <em>不</em> 相同。选哪种方法是你自己的设计考量。就我个人而言，我倾向于用移位，因为它给出更一致的结果。</p>
+<div class="cblock">
+<table id="tbl:neg-div" class="table-data">
+<caption align="bottom">
+  <b>Table B.1</b>：
+  零附近的除法与右移。
+</caption>
+<col span=19 width=20>
+<tbody align="center">
+<tr>
+  <th><i>x</i> 
+  <td> -8<td> -7<td> -6<td> -5<td> -4<td> -3<td> -2<td> -1<td>  0
+  <td>  1<td>  2<td>  3<td>  4<td>  5<td>  6<td>  7<td>  8<td>  9
+<tr>
+  <th><i>x</i>/4 
+  <td> -2<td> <b>-1</b><td> <b>-1</b><td> <b>-1</b><td> -1
+  <td>  <b>0</b><td>  <b>0</b><td>  <b>0</b><td>  0
+  <td>  0<td>  0<td>  0<td>  1<td>  1<td>  1<td>  1<td>  2<td>  2
+<tr>
+  <th><i>x</i>&gt;&gt;2 
+  <td> -2<td> <b>-2</b><td> <b>-2</b><td> <b>-2</b><td> -1
+  <td> <b>-1</b><td> <b>-1</b><td> <b>-1</b><td>  0
+  <td>  0<td>  0<td>  0<td>  1<td>  1<td>  1<td>  1<td>  2<td>  2
+</tbody>
+</table>
+</div>
+<p>负数的除法麻烦在你想处理小数部分时更糟。用 AND 掩码实际上会摧毁一个数的符号。例如，8.8 的 −2¼ 是 −0x0240 = 0xFDC0。用 0xFF 掩码会得到 0xC0 = ¾，一个正数，而且还是错的分数。另一方面 0xFDC0&gt;&gt;8 是 −3，无论好坏，而 −3 + ¾ 确实是 −2¼，所以从那种意义上说它确实成立。它是否对你成立，要你自己决定。如果你想以某种方式显示定点数（比如本例中的 -2.40），你得比仅仅移位和掩码更有创意。现在，我连碰都不碰那个。</p>
+<div class="box warning"><p class="box-title">转换负的定点数</p>
+<p>从负的定点数到整数的转换尤其混乱，且因为存在多个同样有效的解决方案而更复杂。选哪个由你决定。如果可以，避免这种可能；定点到整数的转换通常保留给算术的最后阶段，如果你能以某种方式确保那些数是正的，就这么做。</p>
+</div>
+<h3 id="ssec-fmath-ops"><a class="header" href="#ssec-fmath-ops">算术运算</a></h3>
+<p>定点数仍是整数，所以它们共享其算术运算。不过，有时需要小心以保持定点处于正确位置。过程和十进制算术一样。例如，0.01+0.02 = 0.03；你通常会为这个和去掉小数点，留下 1 和 2，相加得 3，再把小数点放回去。这本质上也是定点数的工作方式。但当加 0.1 和 0.02 时，定点小数不是 1 和 2，而是 <strong>10</strong> 和 2。这里的关键是，对加法（和减法），小数点应在同一位置。</p>
+<p>乘法和除法也发生类似的事。以乘法 0.2×0.3 为例。2×3 等于 6，然后放回小数点得到 0.6，对吧？嗯，如果你 preschool（学前）作业做好了，会知道结果其实应该是 0.06。不仅小数相乘，<em>缩放</em> 也相乘。</p>
+<p>这两点都适用于定点数运算。如果你始终用同一个定点数，加法和减法不会有问题。对乘法和除法，你还要计入额外的缩放因子。定点-定点乘法之后需要除以缩放，而定点-定点除法在除法 <em>之前</em> 需要乘一个缩放。在两种情况下，缩放校正位置的原因都是为了保持最高精度。方程 1 和 2 以更数学化的形式展示了这点。定点数总是由常数乘以定点缩放 <em>M</em> 给出。加法和减法保持缩放，乘法和除法不保持，所以你要分别去掉或加上一个缩放因子。</p>
+<!--
+\begin{matrix}
+fa & = & a \cdot M \\
+fb & = & b \cdot M
+\end{matrix}
+-->
+<table id="eq:fix-add">
+<tr>
+  <td class="eqnrcell">(B.1)</td>
+  <td class="eqcell">
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <mstyle displaystyle="true" scriptlevel="0">
+    <mrow data-mjx-texclass="ORD">
+      <mtable rowspacing=".5em" columnspacing="1em" displaystyle="true">
+        <mtr>
+          <mtd>
+            <mtable columnspacing="1em" rowspacing="4pt">
+              <mtr>
+                <mtd>
+                  <mi>f</mi>
+                  <mi>a</mi>
+                </mtd>
+                <mtd>
+                  <mo>=</mo>
+                </mtd>
+                <mtd>
+                  <mi>a</mi>
+                  <mo>&#x22C5;</mo>
+                  <mi>M</mi>
+                </mtd>
+              </mtr>
+              <mtr>
+                <mtd>
+                  <mi>f</mi>
+                  <mi>b</mi>
+                </mtd>
+                <mtd>
+                  <mo>=</mo>
+                </mtd>
+                <mtd>
+                  <mi>b</mi>
+                  <mo>&#x22C5;</mo>
+                  <mi>M</mi>
+                </mtd>
+              </mtr>
+            </mtable>
+          </mtd>
+        </mtr>
+      </mtable>
+    </mrow>
+  </mstyle>
+</math>
+  </td>
+</tr>
+</table>
+<!--
+\begin{matrix}
+fc & = & fa+fb & = & (a+b) \cdot M \\
+fd & = & fa-fb & = & (a-b) \cdot M \\
+fe & = & fa \cdot fb & = & (a \cdot b) \cdot M^2 \\
+ff & = & fa / fb & = & a/b
+\end{matrix}
+-->
+<table id="eq:fix-mul">
+<tr>
+  <td class="eqnrcell">(B.2)</td>
+  <td class="eqcell">
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <mstyle displaystyle="true" scriptlevel="0">
+    <mrow data-mjx-texclass="ORD">
+      <mtable rowspacing=".5em" columnspacing="1em" displaystyle="true">
+        <mtr>
+          <mtd>
+            <mtable columnspacing="1em" rowspacing="4pt">
+              <mtr>
+                <mtd>
+                  <mi>f</mi>
+                  <mi>c</mi>
+                </mtd>
+                <mtd>
+                  <mo>=</mo>
+                </mtd>
+                <mtd>
+                  <mi>f</mi>
+                  <mi>a</mi>
+                  <mo>+</mo>
+                  <mi>f</mi>
+                  <mi>b</mi>
+                </mtd>
+                <mtd>
+                  <mo>=</mo>
+                </mtd>
+                <mtd>
+                  <mo stretchy="false">(</mo>
+                  <mi>a</mi>
+                  <mo>+</mo>
+                  <mi>b</mi>
+                  <mo stretchy="false">)</mo>
+                  <mo>&#x22C5;</mo>
+                  <mi>M</mi>
+                </mtd>
+              </mtr>
+              <mtr>
+                <mtd>
+                  <mi>f</mi>
+                  <mi>d</mi>
+                </mtd>
+                <mtd>
+                  <mo>=</mo>
+                </mtd>
+                <mtd>
+                  <mi>f</mi>
+                  <mi>a</mi>
+                  <mo>&#x2212;</mo>
+                  <mi>f</mi>
+                  <mi>b</mi>
+                </mtd>
+                <mtd>
+                  <mo>=</mo>
+                </mtd>
+                <mtd>
+                  <mo stretchy="false">(</mo>
+                  <mi>a</mi>
+                  <mo>&#x2212;</mo>
+                  <mi>b</mi>
+                  <mo stretchy="false">)</mo>
+                  <mo>&#x22C5;</mo>
+                  <mi>M</mi>
+                </mtd>
+              </mtr>
+              <mtr>
+                <mtd>
+                  <mi>f</mi>
+                  <mi>e</mi>
+                </mtd>
+                <mtd>
+                  <mo>=</mo>
+                </mtd>
+                <mtd>
+                  <mi>f</mi>
+                  <mi>a</mi>
+                  <mo>&#x22C5;</mo>
+                  <mi>f</mi>
+                  <mi>b</mi>
+                </mtd>
+                <mtd>
+                  <mo>=</mo>
+                </mtd>
+                <mtd>
+                  <mo stretchy="false">(</mo>
+                  <mi>a</mi>
+                  <mo>&#x22C5;</mo>
+                  <mi>b</mi>
+                  <mo stretchy="false">)</mo>
+                  <mo>&#x22C5;</mo>
+                  <msup>
+                    <mi>M</mi>
+                    <mn>2</mn>
+                  </msup>
+                </mtd>
+              </mtr>
+              <mtr>
+                <mtd>
+                  <mi>f</mi>
+                  <mi>f</mi>
+                </mtd>
+                <mtd>
+                  <mo>=</mo>
+                </mtd>
+                <mtd>
+                  <mi>f</mi>
+                  <mi>a</mi>
+                  <mrow data-mjx-texclass="ORD">
+                    <mo>/</mo>
+                  </mrow>
+                  <mi>f</mi>
+                  <mi>b</mi>
+                </mtd>
+                <mtd>
+                  <mo>=</mo>
+                </mtd>
+                <mtd>
+                  <mi>a</mi>
+                  <mrow data-mjx-texclass="ORD">
+                    <mo>/</mo>
+                  </mrow>
+                  <mi>b</mi>
+                </mtd>
+              </mtr>
+            </mtable>
+          </mtd>
+        </mtr>
+      </mtable>
+    </mrow>
+  </mstyle>
+</math>
+</tr>
+</table>
+<pre><code class="language-c">//! Add two fixed point values
+INLINE FIXED fxadd(FIXED fa, FIXED fb)
+{   return fa + fb;         }
+
+//! Subtract two fixed point values
+INLINE FIXED fxsub(FIXED fa, FIXED fb)
+{   return fa - fb;         }
+
+//! Multiply two fixed point values
+INLINE FIXED fxmul(FIXED fa, FIXED fb)
+{   return (fa*fb)&gt;&gt;FIX_SHIFT;              }
+
+//! Divide two fixed point values.
+INLINE FIXED fxdiv(FIXED fa, FIXED fb)
+{   return ((fa)*FIX_SCALE)/(fb);           }
+</code></pre>
+<h3 id="ssec-fmath-flow"><a class="header" href="#ssec-fmath-flow">上溢与下溢</a></h3>
+<p>这其实是乘法和除法的缩放问题的一个子集。溢出是指操作结果高于你用来存储它的位数。这对任何整数乘法都是个潜在问题，但在定点数运算里它发生得更频繁，因为不仅定点数被向上缩放，定点数相乘还会把它放大 <em>两倍</em>。一次 .8 定点乘法其“一”在 2<sup>16</sup>，对半字来说已经超出范围。</p>
+<p>为应对额外缩放的一种方法是，不在乘法之后而在之前校正；虽然过程中你会损失一些精度。一个不错的折衷是在乘法前把两个操作数都右移半个完整移位量。</p>
+<p>定点除法有类似的问题，叫下溢。作为简单例子，考虑整数除法 <em>a</em>/<em>b</em> 在 <em>b</em>&gt;<em>a</em> 时会发生什么。没错：结果会是零，即便你想要的是个分数。为补救这种行为，先把分子按 <em>M</em> 向上缩放（这可能导致也可能不导致溢出问题 <kbd>:P</kbd>）。</p>
+<p>如你所见，定点数运算的原理并不那么困难或神秘。但你必须保持头脑清醒：一次漏掉或放错位置的移位，整个东西就崩塌。如果你在搞新算法，考虑先用浮点做（最好在 PC 上），只在确认算法本身有效后才转到定点数。</p>
+<h2 id="sec-rmdiv"><a class="header" href="#sec-rmdiv">伪造除法（可选）</a></h2>
+<div class="box warning"><p class="box-title">数学密集且可选</p>
+<p>本节关于一个有时有用的优化技术。它不仅介绍了该技术，还推导了它的用途和安全限度。因此，途中会有些恼人的数学。你很可能在不详细了解本节内容的情况下也安然无恙，但当你需要摆脱一些慢速除法时它能帮上忙。</p>
+</div>
+<p>你可能听过这句话“除以常数就是乘它的倒数”。这个技术可以用来去掉除法，代之以快得多的乘法。例如 <em>x</em>/3 = <em>x</em>·(1/3) = <em>x</em>·0.333333。乍一看，这似乎帮不上忙：1/<em>y</em> 的整数形式按定义总是零；替代方案是浮点，那也不怎么妙，而且你 <em>仍然</em> 需要一次除法才能到那一步！这些都是真的，但重要的是这些问题可以避开。整数/浮点问题可以通过用定点数代替来解决。至于除法，记住我们谈论的是除以 <em>常数</em>，而常数的算术是在编译时而非运行时做的。所以问题解决了，对吧？呃，是的。当然。表层问题解决了，但现在两个老问题——溢出和舍入——又抬起它们丑陋的头。</p>
+<p>下面是“<em>x</em>/12”计算的代码。ARM 编译的代码为 1/12 创建了一个 .33 定点数，然后用 64 位乘法做除法。另一方面，Thumb 版本没有（确实也不能）这么做，而是用了标准、慢速的除法例程。如果你想摆脱这个耗时的除法，你得自己处理。说明一下，是的我知道即便你懂 ARM 汇编，它为什么这么做也可能很难跟上。这正是本节的目的。</p>
+<pre><code class="language-armasm">@ Calculating y= x/12
+
+@ === Thumb version ===
+    ldr     r0, .L0     @ load numerator
+    ldr     r0, [r0]
+    mov     r1, #12     @ set denominator
+    bl      __divsi3    @ call the division routine
+    ldr     r1, .L0+4
+    str     r0, [r1]
+.L0:
+    .align  2
+    .word   x
+    .word   y
+
+@ === ARM version ===
+    ldr     r1, .L1         @ Load M=2^33/12
+    ldr     r3, .L1+4
+    ldr     r3, [r3]        @ Load x
+    smull   r2, r0, r1, r3  @ r0,r2= x*M (64bit)
+    mov     r3, r3, asr #31     @ s = x&gt;=0 ? 0 : -1 (for sign correction)
+    rsb     r3, r3, r0, asr #1  @ y= (x*M)/2 - s = x/12
+    ldr     r1, .L1+8
+    str     r3, [r1]        @  store y
+.L1:
+    .align  2
+    .word   715827883   @ 0x2AAAAAAB (≈ 2^33/12 )
+    .word   x
+    .word   y
+</code></pre>
+<p>本节其余部分是关于识别和处理这些问题，以及推导该技术安全使用的一些准则。但首先，我们需要一些定义。</p>
+<p>整数除法；正整数 <em>p</em>、<em>q</em>、<em>r</em></p>
+<!--
+r = \left\lfloor p/q \right\rfloor \iff p = r \cdot q + p \text{%}q
+-->
+<table id="eq:int-div">
+<tr>
+  <td class="eqnrcell">(B.3)</td>
+  <td class="eqcell">
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <mstyle displaystyle="true" scriptlevel="0">
+    <mrow data-mjx-texclass="ORD">
+      <mtable rowspacing=".5em" columnspacing="1em" displaystyle="true">
+        <mtr>
+          <mtd>
+            <mi>r</mi>
+            <mo>=</mo>
+            <mrow data-mjx-texclass="INNER">
+              <mo data-mjx-texclass="OPEN">&#x230A;</mo>
+              <mi>p</mi>
+              <mrow data-mjx-texclass="ORD">
+                <mo>/</mo>
+              </mrow>
+              <mi>q</mi>
+              <mo data-mjx-texclass="CLOSE">&#x230B;</mo>
+            </mrow>
+            <mstyle scriptlevel="0">
+              <mspace width="0.278em"></mspace>
+            </mstyle>
+            <mo stretchy="false">&#x27FA;</mo>
+            <mstyle scriptlevel="0">
+              <mspace width="0.278em"></mspace>
+            </mstyle>
+            <mi>p</mi>
+            <mo>=</mo>
+            <mi>r</mi>
+            <mo>&#x22C5;</mo>
+            <mi>q</mi>
+            <mo>+</mo>
+            <mi>p</mi>
+            <mo>%</mo>
+            <mi>q</mi>
+          </mtd>
+        </mtr>
+      </mtable>
+    </mrow>
+  </mstyle>
+</math>
+  </td>
+</tr>
+</table>
+<p>近似；正整数 <em>x</em>、<em>y</em>、<em>a</em>、<em>m</em>、<em>n</em> 和真实误差项 δ</p>
+<!--
+y = \left\lfloor x/a \right\rfloor = \left\lfloor (x \cdot m)/n \right\rfloor + \delta
+-->
+<table id="eq:div-aprx">
+<tr>
+  <td class="eqnrcell">(B.4)</td>
+  <td class="eqcell">
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <mstyle displaystyle="true" scriptlevel="0">
+    <mrow data-mjx-texclass="ORD">
+      <mtable rowspacing=".5em" columnspacing="1em" displaystyle="true">
+        <mtr>
+          <mtd>
+            <mi>y</mi>
+            <mo>=</mo>
+            <mrow data-mjx-texclass="INNER">
+              <mo data-mjx-texclass="OPEN">&#x230A;</mo>
+              <mi>x</mi>
+              <mrow data-mjx-texclass="ORD">
+                <mo>/</mo>
+              </mrow>
+              <mi>a</mi>
+              <mo data-mjx-texclass="CLOSE">&#x230B;</mo>
+            </mrow>
+            <mo>=</mo>
+            <mrow data-mjx-texclass="INNER">
+              <mo data-mjx-texclass="OPEN">&#x230A;</mo>
+              <mo stretchy="false">(</mo>
+              <mi>x</mi>
+              <mo>&#x22C5;</mo>
+              <mi>m</mi>
+              <mo stretchy="false">)</mo>
+              <mrow data-mjx-texclass="ORD">
+                <mo>/</mo>
+              </mrow>
+              <mi>n</mi>
+              <mo data-mjx-texclass="CLOSE">&#x230B;</mo>
+            </mrow>
+            <mo>+</mo>
+            <mi>&#x3B4;</mi>
+          </mtd>
+        </mtr>
+      </mtable>
+    </mrow>
+  </mstyle>
+</math>
+  </td>
+</tr>
+</table>
+<p>我用下取整（⌊<em>p</em>/<em>q</em>⌋）表示整数除法，它基本是真除法的向下取整版本。和通常一样，模（modulo）是余数，通常用 <em>p</em> − <em>r·q</em> 计算。近似 1/<em>a</em> 的关键在于项 <em>m</em> 和 <em>n</em>。在我们的情形里 <em>n</em> 会是 2 的幂 <em>n</em>=2<sup>F</sup>，这样我们可以用移位，但没必要。δ 是任何近似都固有的误差项。注意我这里只用了正整数；对负数，如果你想模仿“真”除法，需要给结果加一。（或者，减去符号位，这同样有效，正如你在上面 ARM 汇编里看到的。）</p>
+<div class="box note"><p class="box-title">伪造负除法与取整</p>
+<p>本节关于正数。如果你想要标准的整数除法结果（向零取整），当分子为负时你得加一。这通过减去符号位可以快速完成。</p>
+<pre><code class="language-c">// pseudo-code for division by constant M
+int x, y;
+y= fake_div(x, M);  // shift-like div
+y -= y&gt;&gt;31;         // convert to /-like division
+</code></pre>
+<p>如果你要向负无穷取整，你得做点别的。但我不太确定是什么，老实说。</p>
+</div>
+<h3 id="ssec-rmdiv-try"><a class="header" href="#ssec-rmdiv-try">原理</a></h3>
+<p>成功需要两样东西。首先，找 <em>m</em> 的方法。其次，判断近似何时会失效的方法。后者可从 eq B.4 推导。近似的误差由 ⌊ε/<em>n</em>⌋ 给出，所以只要它是零你就安全。</p>
+<!--
+x \cdot m - n \cdot \left\lfloor x/A \right\rfloor = \varepsilon \\
+\text{Fail if: } \varepsilon \ge n
+-->
+<table id="eq:aprx-fail">
+<tr>
+  <td class="eqnrcell">(B.5)</td>
+  <td class="eqcell">
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <mstyle displaystyle="true" scriptlevel="0">
+    <mrow data-mjx-texclass="ORD">
+      <mtable rowspacing=".5em" columnspacing="1em" displaystyle="true">
+        <mtr>
+          <mtd>
+            <mi>x</mi>
+            <mo>&#x22C5;</mo>
+            <mi>m</mi>
+            <mo>&#x2212;</mo>
+            <mi>n</mi>
+            <mo>&#x22C5;</mo>
+            <mrow data-mjx-texclass="INNER">
+              <mo data-mjx-texclass="OPEN">&#x230A;</mo>
+              <mi>x</mi>
+              <mrow data-mjx-texclass="ORD">
+                <mo>/</mo>
+              </mrow>
+              <mi>A</mi>
+              <mo data-mjx-texclass="CLOSE">&#x230B;</mo>
+            </mrow>
+            <mo>=</mo>
+            <mi>&#x3B5;</mi>
+          </mtd>
+        </mtr>
+        <mtr>
+          <mtd>
+            <mtext>Fail if:&#xA0;</mtext>
+            <mi>&#x3B5;</mi>
+            <mo>&#x2265;</mo>
+            <mi>n</mi>
+          </mtd>
+        </mtr>
+      </mtable>
+    </mrow>
+  </mstyle>
+</math>
+  </td>
+</tr>
+</table>
+<p>至于找 <em>m</em>。回想 ⌊1/<em>A</em>⌋ = ⌊(<em>n·A</em>)/<em>n</em>⌋，所以似乎用 <em>m</em> = ⌊<em>n</em>/<em>A</em>⌋ 会是个好值。然而，并非如此。</p>
+<p>这大概是举个例子的好时机。考虑 <em>A</em> = 3 的情况，就像一开始那样。我们这里用 .8 定点数，也就是说 <em>k</em> = 8 且 <em>n</em>=256。我们的试探 <em>m</em> 于是就是 <em>m</em> = ⌊<em>n</em>/<em>A</em>⌋ = 85 = 0x55，余数为 1。</p>
+<p>另一种看待它的方式是转到十六进制浮点并取前 <em>F</em> 位。这没你想的那么难。找分数浮点数的方法是乘基数，写下整数部分，把余数乘基数，写下整数部分，如此继续。下面的表是 1/7 的十六进制版本（我没用 1/3 是因为那相当单调）。如你所见，十六进制里 1/7 是 0.249249…h。对三分之一做这个，你会得到 0.5555…h。</p>
+<div class="lblock">
+<table id="tbl:hexfloat" class="table-data">
+<caption align="bottom">
+  <b>Table B.2</b>： 
+  以基 <i>B</i>=16 表示的 1/7 的浮点形式
+</caption>
+<tbody align="center">
+<tr><th> x <th> x&middot;B <th> x&middot;&#x230A;B/7&#x230B; <th> x&middot;B%7
+<tr><th width=16> 1 <td> 16  <td> 2     <td> 2
+<tr><th> 2 <td> 32  <td> 4     <td> 4
+<tr><th> 4 <td> 64  <td> 9     <td> 1
+<tr><th> 1 <td> 16  <td> 2     <td> 2
+<tr><th> 2 <td> 32  <td> 4     <td> 4
+</tbody>
+</table>
+</div>
+<p>所以十六进制里 1/3 是零，后面跟着一串五，或者说在截断的 .8 定点数记法里就是 <em>m</em>=0x55。现在看当你做乘倒数那套时会发生什么。这里我用十六进制浮点，且 <em>y</em>=⌊(<em>x·m</em>)/<em>n</em>⌋，如 eq B.4。你实际得到的是整数部分，忽略（十六进制）小数</p>
+<div class="cblock">
+<table id="tbl:rmdiv-bad" class="table-data">
+<caption align="bottom">
+  <b>Table B.3</b>： 
+  <i>x</i>/3，使用 <i>m</i>= &#x230A;256/3&#x230B; = 0x55。在 3、6 等处出错……
+</caption>
+<tbody align="center">
+<tr><th>x
+  <th> 0 <th> 1 <th> 2 <th> 3 <th> 4 <th> 5 <th> 6 <th> 7
+<tr><th>y=(x&middot;m)&gt;&gt;F
+  <td> 0.00h        <td> 0.55h <td> 0.AAh 
+  <td> <b>0.FFh</b> <td> 1.54h <td> 1.A9h
+  <td> <b>1.FEh</b> <td> 2.53h
+<tr><th>true <i>x</i>/3
+  <td> 0 <td> 0 <td> 0 <td> 1 <td> 1 <td> 1 <td> 2 <td> 2
+</tbody>
+</table>
+</div>
+<p>如你所见，问题几乎 <em>立刻</em> 就出现了！你甚至还没到 <em>x</em>=<em>A</em> 就遇到麻烦。这 <em>不是</em> 精度问题：你可以用 .128 定点数，它还是偏的。这纯粹是<dfn>舍入误差（round-off error）</dfn>的结果，用浮点也会一样发生。当你用倒数除法时，<em>m</em> 应当向上取整，而非向下。你可以用对齐技巧：先加 <em>A</em>−1，再除。现在 <em>m</em>=0x56，你就安全了。至少，暂时。</p>
+<!--
+m = \left\lfloor (n+A-1)/A \right\rfloor
+-->
+<table id="eq:reci-m">
+<tr>
+  <td class="eqnrcell">(B.6)</td>
+  <td class="eqcell">
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <mstyle displaystyle="true" scriptlevel="0">
+    <mrow data-mjx-texclass="ORD">
+      <mtable rowspacing=".5em" columnspacing="1em" displaystyle="true">
+        <mtr>
+          <mtd>
+            <mi>m</mi>
+            <mo>=</mo>
+            <mrow data-mjx-texclass="INNER">
+              <mo data-mjx-texclass="OPEN">&#x230A;</mo>
+              <mo stretchy="false">(</mo>
+              <mi>n</mi>
+              <mo>+</mo>
+              <mi>A</mi>
+              <mo>&#x2212;</mo>
+              <mn>1</mn>
+              <mo stretchy="false">)</mo>
+              <mrow data-mjx-texclass="ORD">
+                <mo>/</mo>
+              </mrow>
+              <mi>A</mi>
+              <mo data-mjx-texclass="CLOSE">&#x230B;</mo>
+            </mrow>
+          </mtd>
+        </mtr>
+      </mtable>
+    </mrow>
+  </mstyle>
+</math>
+  </td>
+</tr>
+</table>
+<div class="cblock">
+<table id="tbl:rmdiv-good" class="table-data">
+<caption align="bottom">
+  <b>Table B.4</b>： 
+  <i>x</i>/3，使用 <i>m</i>= &#x230A;(256+2)/3&#x230B; = 0x56。在 3、6 等处仍然正确……
+</caption>
+<tbody align="center">
+<tr><th>x
+  <th> 0 <th> 1 <th> 2 <th> 3 <th> 4 <th> 5 <th> 6 <th> 7
+<tr><th>y=(x&middot;m)&gt;&gt;F
+  <td> 0.00h <td> 0.56h <td> 0.ACh 
+  <td> 1.02h <td> 1.58h <td> 1.AEh
+  <td> 2.04h <td> 2.5Ah
+<tr><th>true <i>x</i>/3
+  <td> 0 <td> 0 <td> 0 <td> 1 <td> 1 <td> 1 <td> 2 <td> 2
+</tbody>
+</table>
+</div>
+<p>是的，你安全了。但能安全多久？最终，你会达到一个 <em>x</em> 值，在那里会有麻烦。这次关乎精度。幸运的是，你能为 <em>x</em> 和 <em>n</em> 推导出安全限度，说明事情何时会变糟。真实范围可能稍好一点，因为 eq B.5 的误差条件会跳来跳去，但小心驶得万年船。推导从 eq B.5 开始，用到 eq B.3 和一个关于模的技巧，即 <em>p</em>%<em>q</em> ∈ [0, <em>q</em>⟩。</p>
+<!--
+\begin{matrix}
+x \cdot m - n \left\lfloor x/A \right\rfloor & < & n &  \\
+x \cdot m \cdot a - n \left\lfloor x/A \right\rfloor A & < & n \cdot A & \text{[insert } \left\lfloor x/A \right\rfloor A=x-x \text{%} A \text{]} \\
+x \cdot m \cdot A - n \cdot x + n(x \text{%} A) & < & n \cdot A & \text{[insert } \max(x \text{%} A) = A - 1 \text{]} \\
+x(m \cdot A - n) + n(A - 1) & < & n \cdot A &  \\
+x(m \cdot A - n) & < & n & 
+\end{matrix}
+-->
+<table id="eq:lims">
+<tr>
+  <td class="eqnrcell" rowspan=6>(B.7)</td>
+  <td class="eqcell">
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <mstyle displaystyle="true" scriptlevel="0">
+    <mrow data-mjx-texclass="ORD">
+      <mtable rowspacing=".5em" columnspacing="1em" displaystyle="true">
+        <mtr>
+          <mtd>
+            <mtable columnspacing="1em" rowspacing="4pt">
+              <mtr>
+                <mtd>
+                  <mi>x</mi>
+                  <mo>&#x22C5;</mo>
+                  <mi>m</mi>
+                  <mo>&#x2212;</mo>
+                  <mi>n</mi>
+                  <mrow data-mjx-texclass="INNER">
+                    <mo data-mjx-texclass="OPEN">&#x230A;</mo>
+                    <mi>x</mi>
+                    <mrow data-mjx-texclass="ORD">
+                      <mo>/</mo>
+                    </mrow>
+                    <mi>A</mi>
+                    <mo data-mjx-texclass="CLOSE">&#x230B;</mo>
+                  </mrow>
+                </mtd>
+                <mtd>
+                  <mo>&lt;</mo>
+                </mtd>
+                <mtd>
+                  <mi>n</mi>
+                </mtd>
+                <mtd></mtd>
+              </mtr>
+              <mtr>
+                <mtd>
+                  <mi>x</mi>
+                  <mo>&#x22C5;</mo>
+                  <mi>m</mi>
+                  <mo>&#x22C5;</mo>
+                  <mi>a</mi>
+                  <mo>&#x2212;</mo>
+                  <mi>n</mi>
+                  <mrow data-mjx-texclass="INNER">
+                    <mo data-mjx-texclass="OPEN">&#x230A;</mo>
+                    <mi>x</mi>
+                    <mrow data-mjx-texclass="ORD">
+                      <mo>/</mo>
+                    </mrow>
+                    <mi>A</mi>
+                    <mo data-mjx-texclass="CLOSE">&#x230B;</mo>
+                  </mrow>
+                  <mi>A</mi>
+                </mtd>
+                <mtd>
+                  <mo>&lt;</mo>
+                </mtd>
+                <mtd>
+                  <mi>n</mi>
+                  <mo>&#x22C5;</mo>
+                  <mi>A</mi>
+                </mtd>
+                <mtd>
+                  <mtext>[insert&#xA0;</mtext>
+                  <mrow data-mjx-texclass="INNER">
+                    <mo data-mjx-texclass="OPEN">&#x230A;</mo>
+                    <mi>x</mi>
+                    <mrow data-mjx-texclass="ORD">
+                      <mo>/</mo>
+                    </mrow>
+                    <mi>A</mi>
+                    <mo data-mjx-texclass="CLOSE">&#x230B;</mo>
+                  </mrow>
+                  <mi>A</mi>
+                  <mo>=</mo>
+                  <mi>x</mi>
+                  <mo>&#x2212;</mo>
+                  <mi>x</mi>
+                  <mo>%</mo>
+                  <mi>A</mi>
+                  <mtext>]</mtext>
+                </mtd>
+              </mtr>
+              <mtr>
+                <mtd>
+                  <mi>x</mi>
+                  <mo>&#x22C5;</mo>
+                  <mi>m</mi>
+                  <mo>&#x22C5;</mo>
+                  <mi>A</mi>
+                  <mo>&#x2212;</mo>
+                  <mi>n</mi>
+                  <mo>&#x22C5;</mo>
+                  <mi>x</mi>
+                  <mo>+</mo>
+                  <mi>n</mi>
+                  <mo stretchy="false">(</mo>
+                  <mi>x</mi>
+                  <mo>%</mo>
+                  <mi>A</mi>
+                  <mo stretchy="false">)</mo>
+                </mtd>
+                <mtd>
+                  <mo>&lt;</mo>
+                </mtd>
+                <mtd>
+                  <mi>n</mi>
+                  <mo>&#x22C5;</mo>
+                  <mi>A</mi>
+                </mtd>
+                <mtd>
+                  <mtext>[insert&#xA0;</mtext>
+                  <mo data-mjx-texclass="OP" movablelimits="true">max</mo>
+                  <mo stretchy="false">(</mo>
+                  <mi>x</mi>
+                  <mo>%</mo>
+                  <mi>A</mi>
+                  <mo stretchy="false">)</mo>
+                  <mo>=</mo>
+                  <mi>A</mi>
+                  <mo>&#x2212;</mo>
+                  <mn>1</mn>
+                  <mtext>]</mtext>
+                </mtd>
+              </mtr>
+              <mtr>
+                <mtd>
+                  <mi>x</mi>
+                  <mo stretchy="false">(</mo>
+                  <mi>m</mi>
+                  <mo>&#x22C5;</mo>
+                  <mi>A</mi>
+                  <mo>&#x2212;</mo>
+                  <mi>n</mi>
+                  <mo stretchy="false">)</mo>
+                  <mo>+</mo>
+                  <mi>n</mi>
+                  <mo stretchy="false">(</mo>
+                  <mi>A</mi>
+                  <mo>&#x2212;</mo>
+                  <mn>1</mn>
+                  <mo stretchy="false">)</mo>
+                </mtd>
+                <mtd>
+                  <mo>&lt;</mo>
+                </mtd>
+                <mtd>
+                  <mi>n</mi>
+                  <mo>&#x22C5;</mo>
+                  <mi>A</mi>
+                </mtd>
+                <mtd></mtd>
+              </mtr>
+              <mtr>
+                <mtd>
+                  <mi>x</mi>
+                  <mo stretchy="false">(</mo>
+                  <mi>m</mi>
+                  <mo>&#x22C5;</mo>
+                  <mi>A</mi>
+                  <mo>&#x2212;</mo>
+                  <mi>n</mi>
+                  <mo stretchy="false">)</mo>
+                </mtd>
+                <mtd>
+                  <mo>&lt;</mo>
+                </mtd>
+                <mtd>
+                  <mi>n</mi>
+                </mtd>
+                <mtd></mtd>
+              </mtr>
+            </mtable>
+          </mtd>
+        </mtr>
+      </mtable>
+    </mrow>
+  </mstyle>
+</math>
+  </td>
+</tr>
+</table>
+<p>由此结果，我们可以轻松算出给定 <em>A</em> 和 <em>n</em> 的最大有效 <em>x</em>：</p>
+<table id="eq:lim-x">
+<tr>
+  <td class="eqnrcell">(B.8)
+  <td class="eqcell"><i>x</i> &lt; <i>n</i> / 
+    (<i>m&middot;A</i> &minus; <i>n</i>)
+</table>
+<p><em>n</em> 的下限由这个事实得出：由 (6) 知，max(<em>m·A</em>) = <em>n</em>+<em>A</em>−1，所以：</p>
+<table id="eq:lim-n">
+<tr>
+  <td class="eqnrcell">(B.9)
+  <td class="eqcell"><i>n</i> &gt; <i>x</i>(<i>A</i>&minus;1)
+</table>
+<p>基本就这些。当然还有一点多出来的东西。由于你要做乘法，乘积 <em>m·A</em> 必须能装进一个变量。所以数字的实际上限约为 16 位。你有时可以通过移出 <em>A</em> 的低零位来稍微缓解这个限制。例如，对 <em>A</em>=10=5·2，你可以在整个计算前先把 <em>x</em> 右移一次。甚至 360 也是 45·8，这样你能省下三位。还有，注意即便你超过限度，结果仍正确的可能性很大，或者只差一点点（看 eq B.5）。那样你应该能相对快地找到真答案。</p>
+<div class="box tip"><p class="box-title">ARM 的“int/const int”除法总是安全</p>
+<p>我们现在能看到为什么 GCC 总能安全地优化 32 位除法。32 位 <em>x</em> 和 <em>A</em> 的上限当然是 2<sup>32</sup>。它的安全限度是 2<sup>64</sup>−2<sup>32</sup>，这总能装进 <code>smull</code> 的 64 位结果。</p>
+</div>
+<p>当然，你不会想一直把这些东西打进去。所以这里有两个能替你干活的宏。它们看着吓人，但预处理器和编译器知道怎么处理。我建议别把它们转成内联函数，因为不知为何你很可能会丢掉代码本应带来的任何好处。</p>
+<pre><code class="language-c">// Division by reciprocal multiplication
+// a, and fp _must_ be constants
+
+//! Get the reciprocal of \a a with \a fp fractional bits
+#define FX_RECIPROCAL(a, fp)    ( ((1&lt;&lt;(fp))+(a)-1)/(a) )
+
+//! Division of x/a by reciprocal multiplication
+#define FX_RECIMUL(x, a, fp)    ( ((x)*((1&lt;&lt;(fp))+(a)-1)/(a))&gt;&gt;(fp) )
+</code></pre>
+<h3 id="ssec-rmdiv-sum"><a class="header" href="#ssec-rmdiv-sum">总结</a></h3>
+<p>永远别忘了这是个有点 hack 的东西，且 <strong>只</strong> 在 <em>A</em> 是常数时有效。整点的目的是让除法发生在编译时而非运行时，而只有 <em>A</em> 是常数才有可能。常数好的一点是它们按定义是预先知道的。负值和大抵 2 的幂若需要也可以在编译时解决。</p>
+<p>倒数乘数 <em>m</em> 并 <em>不</em> 仅仅是 ⌊<em>n</em>/<em>A</em>⌋，原因是舍入误差。总是向上取整。换句话说：</p>
+<blockquote>
+<p><em>m</em> = ⌊(<em>n</em>+<em>A</em>−1) / <em>A</em>⌋</p>
+</blockquote>
+<p>然后是除法失效的问题，即近似与“真”的 ⌊<em>x</em>/<em>A</em>⌋ 不同的情况。确切条件其实无关紧要，但知道 <em>x</em> 的安全范围、以及反过来对给定 <em>x</em> 范围你需要什么 <em>n</em> 是有用的。同样，因为重要项都是常数，它们可以提前算好。注意下面给的关系代表的是 <em>A</em> 的限度，而非 <em>那个</em> 限度。失效的实际数字可能松一点，但取决于环境，而那些环境相关的关系会更复杂。</p>
+<blockquote>
+<p><em>x</em> &lt; <em>n</em> / (<em>m·a</em> − <em>n</em>)</p>
+</blockquote>
+<blockquote>
+<p><em>n</em> &gt; <em>x</em>(<em>A</em>−1)</p>
+</blockquote>
+<p>最后，如果你完全搞不懂这整节在说什么，我建议别用这个策略。它是个部分安全的除法优化技术，虽然它能比普通除法快不少，但在非关键区域可能不值得。只是，用你的判断。</p>
+<div class="box note"><p class="box-title">替代方法</p>
+<p>倒数乘法有一个替代方法：与其把 <em>n</em>/<em>A</em> 向上取整，你也可以给 <em>x</em> 加 1，得到</p>
+<blockquote>
+<p><em>y</em> = ⌊<em>x</em> / <em>A</em>⌋ ≈ (<em>x</em>+1) × ⌊<em>N</em> / <em>A</em> / <em>N</em>⌋</p>
+</blockquote>
+<p>这也会消除 table B.3 描述的问题。安全条件和之前几乎一样，但对负 <em>x</em> 的除法有些区别。如果你 <em>真的</em> 必须知道，细节可以按需提供。</p>
+</div>
+<h2 id="sec-lut"><a class="header" href="#sec-lut">查找表（LUT）</a></h2>
+<p><dfn>查找表（look-up table）</dfn>（或称 <dfn>LUT</dfn>）嘛，嗯，就是一张你用来查找东西的表。这相当显然，不是吗？重点是你能做得真的 <em>很快</em>。举个简单的例，2<sup>5</sup> 是多少，3<sup>5</sup> 是多少？真正的程序员（应该）会立刻知道第一个，但另一个可能要花稍长点时间去找。为什么？因为但凡有点自尊的程序员都把 2 的幂记在心里，至少到 2<sup>10</sup>。2 的幂在编程中如此频繁出现，你已经把答案背下来了——你一看到“2<sup>5</sup>”这个问题，你不会通过重复乘法去算答案，你的大脑只是简单地在记忆里 <strong>查</strong> 它，几乎不假思索地给出答案。十进制乘法表也一样：7×8？56，就这样。但换成比如 3 的幂或十六进制乘法，过程就失败了，你得用又难又长的老办法。我想说的是：当你能直接查到时，事情能快得多，而不必做正确的计算。</p>
+<p>查找表的概念对计算机也成立，否则我不会提它。这种情况下，查找表不过是一个你塞满你觉得可能需要查的东西的数组。</p>
+<h3 id="ssec-lut-sin"><a class="header" href="#ssec-lut-sin">示例：正弦/余弦查找表</a></h3>
+<p>经典例子是三角学 LUT。正弦和余弦是昂贵的操作，在 GBA 上尤其，所以最好做一个它们的表，你只需花费一次内存访问，而非经历两次（昂贵的）类型转换、浮点函数。一个简单的做法是创建两个 FIXED 数组，比如各 360 个元素（每个角度一个），在游戏开始时填好。</p>
+<pre><code class="language-c">#define PI 3.14159265
+#define DEGREES    360      // Full circle
+
+FIXED sin_lut[DEGREES], cos_lut[DEGREES];
+
+// A really simple (and slow and wasteful) LUT builder
+void sincos_init()
+{
+    const double conv= 2*PI/DEGREES;
+    for(int ii=0; ii&lt;DEGREES; ii++)
+    {
+        sin_lut[ii]= (FIXED)(sin(conv*ii)*FIX_SCALEF);
+        cos_lut[ii]= (FIXED)(cos(conv*ii)*FIX_SCALEF);
+    }
+}
+</code></pre>
+<p>然而，这个特定方法有严重缺陷。是的，它能工作，是的，它简单，但绝对有改进空间。先说一个如果你用这个函数会立刻可见的问题，它实际上要花几 <em>秒</em> 才能完成。是的，标准三角例程就是这么慢。这是个相当温和的问题，因为你只需调用一次，但仍是问题。此外，因为数组不是常数，它们被放进 IWRAM。那基本上是把 10% 的 IWRAM 浪费在除了初始化外从不改变的东西上。有几个办法改进这两点，比如利用正弦-余弦对称性来减少计算时间并让表重叠，但为什么要在游戏里计算它们呢？在 PC 上预计算这些表，再把数据导出成数组一样容易：那样它们就是常数（即不霸占 IWRAM），而且 GBA 不必为它们的初始化花一个周期。</p>
+<p>第二个改进是用更高的定点小数。正弦和余弦的范围是 [−1, +1]。这意味着对 LUT 用 8.8 定点数，我其实在浪费 6 个本可用于更高精度的位。所以我要做的是用 4.12 定点数。是的，你可以上到 .14 定点数，但 12 是个更漂亮的数。</p>
+<p>最后一点改进，我不打算用 360 个单位表示一个圆，而是用一个 2 的幂；这里是 512。这有两个好处：</p>
+<ul>
+<li>对环绕（α&lt;0 或 α&gt;2π），我可以用位掩码而非 if 语句或 *倒吸一口气* 取模。</li>
+<li>因为余弦只是偏移的正弦，且因为第一点，我现在只需要一张表就能覆盖两种波形，并且可以用偏移角度和掩码环绕从一种波形得到另一种。</li>
+</ul>
+<p>这两点都能让生活轻松许多。</p>
+<p>说明一下，这么做完全没问题。正弦和余弦的形式来自沿单位圆周长行进；那条路径上的划分数是任意的。360 有历史意义，但也仅此而已。面对现实吧，你也说不清一“度”是多少，重要的是圆的划分。360° 是一整圆，90° 是四分之一圆，等等。现在一整圆是 512，128（512/4）是四分之一，如此类推。一个简单粗糙的 sin LUT 生成器大概长这样。总结一下：</p>
+<ul>
+<li>在 GBA 之外预计算 LUT，像普通 const 数组一样链接进来。</li>
+<li>用 4.12 定点数而非 4.8。</li>
+<li>把 LUT 分成 2 的幂（如 512），而非 360。</li>
+</ul>
+<pre><code class="language-c">// Example sine LUT generator
+#include &lt;stdio.h&gt;
+#include &lt;math.h&gt;
+
+#define M_PI 3.1415926535f
+#define SIN_SIZE 512
+#define SIN_FP 12
+
+int main()
+{
+    int ii;
+    FILE *fp= fopen("sinlut.c", "w");
+    unsigned short hw;
+
+    fprintf(fp, "//\n// Sine LUT; %d entries, %d fixeds\n//\n\n", 
+        SIN_SIZE, SIN_FP);
+    fprintf(fp, "const short sin_lut[%d]=\n{", SIN_SIZE);
+    for(ii=0; ii&lt;SIN_SIZE; ii++)
+    {
+        hw= (unsigned short)(sin(ii*2*M_PI/SIN_SIZE)*(1&lt;&lt;SIN_FP));
+        if(ii%8 == 0)
+            fputs("\n\t", fp);
+        fprintf(fp, "0x%04X, ", hw);
+    }
+    fputs("\n};\n", fp);
+
+    fclose(fp);
+    return 0;
+}
+</code></pre>
+<p>它创建一个文件 sinlut.c，其中包含一个 512 半字的数组 <code>sin_lut</code>。注意虽然我这里创建的是 C 文件，你同样可以在汇编文件里建表，甚至就作为二进制文件，之后以某种方式链接到项目。实际找正弦和余弦值通过 <code>lu_sin()</code> 和 <code>lu_cos()</code> 函数。</p>
+<pre><code class="language-c">// Sine/cosine lookups. 
+// NOTE: theta's range is [0, 0xFFFF] for [0,2π⟩, just like the 
+// BIOS functions
+
+//! Look-up a sine value
+INLINE s32 lu_sin(u32 theta)
+{   return sin_lut[(theta&gt;&gt;7)&amp;0x1FF];   }
+
+//! Look-up a cosine value
+INLINE s32 lu_cos(u32 theta)
+{   return sin_lut[((theta&gt;&gt;7)+128)&amp;0x1FF]; }
+</code></pre>
+<h4 id="关于-excellut"><a class="header" href="#关于-excellut">关于 excellut</a></h4>
+<p>我其实没用上面展示的生成器来生成 libtonc 的 LUT。相反，我用的是自己的 <a href="http://www.coranac.com/projects/#excellut" title="" target="_blank">excellut</a>。这不是程序，而是个 Excel 文件。是的，我说的是 Excel。用电子表格程序建 LUT 的好处是你能用它做 <em>任何</em> 种类的数学表，测试它是否有想要的精度，并绘图等等。然后当你满意了，就可以以你选择的方式导出电子表格的一部分。这种灵活性如何？</p>
+<h4 id="精度与分辨率"><a class="header" href="#精度与分辨率">精度与分辨率</a></h4>
+<p>这是建 LUT 时要考虑的两件主要事情。<dfn>精度（Accuracy）</dfn> 关乎每个条目中有意义位的位数；<dfn>分辨率（resolution）</dfn> 是各条目在自变量空间上相隔多远。两者都是越大越好，但当然有空间上的权衡。需要折衷，再一次，这非常取决于你打算拿它做什么。</p>
+<p>对精度，你需要考虑函数的范围。如前所述，正弦范围是 [−1, +1]，用 8.8 定点数会浪费 6 个本可用于更高有效位的位。对我用于<a href="mode7.html">第一个 mode 7 章</a>的除法 LUT，我需要 1/1 到 1/160，那用 .8 定点数 <em>不</em> 会好用，所以我在那里用 .16 定点数，它可能仍不够，但更高可能引发溢出问题。</p>
+<p>第二个问题，分辨率，和你有多少条目绑定。即便你有无尽的精度，如果它们摊得太稀也没多大用。这类似于屏幕分辨率：即便有 32 位色，如果你只有 17 英寸显示器、320×240 分辨率，东西看着也会很糟。另一方面，过高的分辨率如果精度跟不上也没用。多数值得做 LUT 的函数会是平滑曲线，对任何给定精度，你会达到一个点，再增加分辨率只会往 LUT 里加相同的值，那会浪费空间。记住，如果你确实需要，必要时总能做插值。</p>
+<p>例如，我的 512、8.8 定点数正弦 LUT 的头几个值读出来是“0x0000, 0x0003, 0x0006, 0x0009”，那正是导数最大的地方，所以这是你会看到的最大相邻差值。如果我把分辨率提高四倍，差值会在最后一位；再高就无用，除非我也提高精度。</p>
+<p>所以实际上是三方折衷。精度与分辨率之间（函数的导数会有帮助找到这个平衡）需要平衡，而这两者又要与你想分配给 LUT 的 ROM 空间相抗衡。再一次，能判断正确平衡点的只有你。</p>
+<h3 id="ssec-lut-lerp"><a class="header" href="#ssec-lut-lerp">查找表的线性插值</a></h3>
+<p>查找表本质上是函数采样得到的一堆点。如果你总是访问数组的这些点，那没问题，但如果你想取点之间的位置呢？一个例子是定点数角度，比如（余）弦内联函数里的 <code>theta</code>。通常，定点数的低位是直接截掉，用前面的点。虽然快，但结果会有一定精度损失。</p>
+<div class="cpt_fr" style="width:256px;">
+  <img src="img/math/lutlerp.png" id="fig:lerp" 
+    alt="lut lerp" width=256><br>
+  <b>Fig B.1</b>: 通过直接 
+  查找或线性插值来近似一个正弦。
+</div>
+<p>更准确的解决方案是用周围的点插值到想要的点。其中最简单的是<dfn>线性插值（linear interpolation）</dfn>（或称 <dfn>lerp</dfn>）。假设你有点 <em>x</em><sub>a</sub> 和 <em>x</em><sub>b</sub>，函数值分别为 <em>y</em><sub>a</sub> 和 <em>y</em><sub>b</sub>。这可用来定义一条直线。点 <em>x</em> 的函数值于是可以插值得到：</p>
+<table id="eq:lerp">
+<tr>
+  <td class="eqnrcell">(B.10)
+  <td class="eqcell">
+    <i>y</i> = 
+  <td class="eqcell">
+	<table>
+	  <tr><td class="bdrB"><i>y</i><sub>b</sub> &minus; <i>y</i><sub>a</sub>
+	  <tr><td><i>x</i><sub>b</sub> &minus; <i>x</i><sub>a</sub>
+	</table>
+  <td class="eqcell">
+    (<i>x</i> &minus; <i>x</i><sub>a</sub>) + <i>y</i><sub>a</sub>
+</table>
+<p>Fig B.1 给出了线性插值能带来区别的示例。这里我有一个以 16 点采样、.12f 精度的正弦函数。蓝线是真实的正弦函数。品红线是用前一点直接查找的结果，黄线是 lerp。注意蓝线和黄线几乎一样，但品红线可能差很多。考虑 <em>x</em> = 4.5，用红色给出。LUT 值偏差 8.5%，但 lerp 值只偏差 0.5%：那好了 16 倍！确实，这是个夸张的例子，但 lerp 能带来巨大差异。</p>
+<p>那么怎么实现？嗯，本质上用 eq B.10。里面的除法看着吓人，但记住相邻点的差总是 1——对定点数则是 2 的幂。一个高效实现会是：</p>
+<pre><code class="language-c">//! Linear interpolator for 32bit LUTs.
+/*! A LUT is essentially the discrete form of a function, f(\i x).
+*   You can get values for non-integer \i x via (linear) 
+*   interpolation between f(x) and f(x+1).
+*   \param lut  The LUT to interpolate from.
+*   \param x    Fixed point number to interpolate at.
+*   \param shift    Number of fixed-point bits of \a x.
+*/
+INLINE int lu_lerp32(const s32 lut[], int x, const int shift)
+{
+    int xa, ya, yb;
+    xa=x&gt;&gt;shift;
+    ya= lut[xa]; yb= lut[xa+1];
+    return ya + ((yb-ya)*(x-(xa&lt;&lt;shift))&gt;&gt;shift);
+}
+</code></pre>
+<p>那是给 32 位 LUT 用的版本，还有一个 16 位版本叫 <code>lu_lerp16()</code>，主体相同，只是声明不同。在 C++ 里这会是个不错的函数模板。</p>
+<p>这些函数适用于每种 LUT，除了在上界处有个小麻烦。假设你有 <em>N</em> 个条目的 LUT。函数用了 <em>x</em>+1，而 <em>N</em>−1 和 <em>N</em> 之间的最后区间很可能不存在。这会在那一点严重搞乱插值。与其作为特例处理，不如给 LUT 加一个点。实际上 <code>sinlut</code> 有 513 个点，而非 512。（实际上，为了字对齐它有 514 个点，但那不是重点。）</p>
+<div class="box warning"><p class="box-title">在上界处 lerp</p>
+<p>线性插值需要 <em>x</em> 上下两侧的采样点，这会在上界处引发问题。在那里加一个采样点来“把围栏合上”，就像那样。</p>
+</div>
+<p>直接查找也被称为 0 阶插值；线性插值是 1 阶。更高阶也存在，但需要更多周围点和更多更复杂的计算。只有在你真的、真的必须时才去尝试那些。</p>
+<h3 id="ssec-lut-nomath"><a class="header" href="#ssec-lut-nomath">非数学的查找表</a></h3>
+<p>虽然查找表最明显的用途是预计算数学函数，但 LUT 不限于数学。在我的<a href="text.html">文本系统</a>里，例如，我用查找表做字符→图块索引的转换。这给了我比原本可能的更广的图块分布范围。默认字体用 ASCII 字符 32-127，这些图块通常在图块 0 到 95。但如果出于某种原因我只需要数字图块，我可以只为数字设置字符 LUT，文本系统会从那里接管。其余图块就空出来作他用。</p>
+<p>另一个用途是标志查找。Visual C++ 附带的库用 LUT 做字符类型例程 <code>isalpha()</code>、<code>isnum()</code> 之类。有一张带位标志的表，你用这些例程时它们只抓取恰当的元素并做一点位测试。你在游戏编程里也能找到类似的，比如一张带图块类型位标志的表：背景、可走、陷阱，等等。与其用庞大的 switch 块，你可能只需做一次数组查找，那快得多。</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="numbers.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="matrix.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="numbers.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="matrix.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

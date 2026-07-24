@@ -1,0 +1,872 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>常规精灵 - Tonc - GBA Programming in rot13</title>
+
+
+        <!-- Custom HTML head -->
+        <!-- Matomo tracking code -->
+        <script>
+          var _paq = window._paq = window._paq || [];
+          /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+          _paq.push(['trackPageView']);
+          _paq.push(['enableLinkTracking']);
+          (function() {
+            var u="//stats.gbdev.io/";
+            _paq.push(['setTrackerUrl', u+'matomo.php']);
+            _paq.push(['setSiteId', '3']);
+            var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+            g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+          })();
+        </script>
+        <!-- End Matomo Code -->
+
+        <meta name="description" content="GBA Programming tutorial">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="theme/css/tonc.css">
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="foreword.html">前言</a></li><li class="chapter-item expanded affix "><a href="intro.html">引言</a></li><li class="chapter-item expanded affix "><li class="part-title">GBA 基础</li><li class="chapter-item expanded "><a href="hardware.html"><strong aria-hidden="true">1.</strong> GBA 硬件</a></li><li class="chapter-item expanded "><a href="setup.html"><strong aria-hidden="true">2.</strong> 搭建开发环境</a></li><li class="chapter-item expanded "><a href="first.html"><strong aria-hidden="true">3.</strong> 我的第一个 GBA 演示程序</a></li><li class="chapter-item expanded "><a href="video.html"><strong aria-hidden="true">4.</strong> 视频显示入门</a></li><li class="chapter-item expanded "><a href="bitmaps.html"><strong aria-hidden="true">5.</strong> 位图模式</a></li><li class="chapter-item expanded "><a href="keys.html"><strong aria-hidden="true">6.</strong> GBA 按键</a></li><li class="chapter-item expanded "><a href="objbg.html"><strong aria-hidden="true">7.</strong> 精灵与图块背景概述</a></li><li class="chapter-item expanded "><a href="regobj.html"><strong aria-hidden="true">8.</strong> 常规精灵</a></li><li class="chapter-item expanded "><a href="regbg.html"><strong aria-hidden="true">9.</strong> 常规图块背景</a></li><li class="chapter-item expanded affix "><li class="part-title">GBA 进阶</li><li class="chapter-item expanded "><a href="affine.html"><strong aria-hidden="true">10.</strong> 仿射变换矩阵</a></li><li class="chapter-item expanded "><a href="affobj.html"><strong aria-hidden="true">11.</strong> 仿射精灵</a></li><li class="chapter-item expanded "><a href="affbg.html"><strong aria-hidden="true">12.</strong> 仿射图块背景</a></li><li class="chapter-item expanded "><a href="gfx.html"><strong aria-hidden="true">13.</strong> 图形特效</a></li><li class="chapter-item expanded "><a href="dma.html"><strong aria-hidden="true">14.</strong> 直接内存访问（DMA）</a></li><li class="chapter-item expanded "><a href="timers.html"><strong aria-hidden="true">15.</strong> 定时器</a></li><li class="chapter-item expanded "><a href="interrupts.html"><strong aria-hidden="true">16.</strong> 硬件中断</a></li><li class="chapter-item expanded "><a href="swi.html"><strong aria-hidden="true">17.</strong> BIOS 调用（SWI）</a></li><li class="chapter-item expanded "><a href="sndsqr.html"><strong aria-hidden="true">18.</strong> 哔！GBA 声音入门</a></li><li class="chapter-item expanded affix "><li class="part-title">进阶 / 应用</li><li class="chapter-item expanded "><a href="text.html"><strong aria-hidden="true">19.</strong> 文本系统</a></li><li class="chapter-item expanded "><a href="mode7.html"><strong aria-hidden="true">20.</strong> Mode 7</a></li><li class="chapter-item expanded "><a href="mode7ex.html"><strong aria-hidden="true">21.</strong> 更多 Mode 7 技巧</a></li><li class="chapter-item expanded "><a href="tte.html"><strong aria-hidden="true">22.</strong> Tonc 文本引擎</a></li><li class="chapter-item expanded "><a href="asm.html"><strong aria-hidden="true">23.</strong> ARM 汇编速成</a></li><li class="chapter-item expanded "><a href="lab.html"><strong aria-hidden="true">24.</strong> 实验室</a></li><li class="chapter-item expanded affix "><li class="spacer"></li><li class="chapter-item expanded affix "><a href="numbers.html">附录 A - 数字、比特与位运算</a></li><li class="chapter-item expanded affix "><a href="fixed.html">附录 B - 定点数与查找表（LUT）</a></li><li class="chapter-item expanded affix "><a href="matrix.html">附录 C - 向量与矩阵数学</a></li><li class="chapter-item expanded affix "><a href="makefile.html">附录 D - 更多关于 makefile 与编译器选项</a></li><li class="chapter-item expanded affix "><a href="edmake.html">附录 E - 通过编辑器进行 Make</a></li><li class="chapter-item expanded affix "><a href="refs.html">附录 F - 参考文献</a></li><li class="chapter-item expanded affix "><a href="log.html">附录 G - 更新日志</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <!--<div class="sidebar-resize-indicator"></div>-->
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <!--<li role="none"><button role="menuitem" class="theme" id="tonc_dark">Tonc Dark</button></li>-->
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="tonc">Tonc Classic</button></li>
+                            <!--<li role="none"><button role="menuitem" class="theme" id="tonc-dark">Tonc Dark</button></li>-->
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Tonc - GBA Programming in rot13</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/gbadev-org/tonc" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                        <a href="https://github.com/gbadev-org/tonc/edit/master/content/regobj.md" title="Suggest an edit" aria-label="Suggest an edit">
+                            <i id="git-edit-button" class="fa fa-edit"></i>
+                        </a>
+                        <a id="en-version-link" href="#" title="English version" aria-label="English version" target="_blank" rel="noopener">
+                            <i id="en-version-button" class="fa fa-language"></i>
+                        </a>
+                        <script>
+                            (function () {
+                                var EN_BASE = "https://gbadev.net/tonc/";
+                                var seg = (window.location.pathname || "").split("/").pop();
+                                var enHref = EN_BASE + (seg && seg !== "index.html" ? seg : "");
+                                var el = document.getElementById("en-version-link");
+                                if (el) { el.href = enHref; }
+                            })();
+                        </script>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="8-常规精灵"><a class="header" href="#8-常规精灵">8. 常规精灵</a></h1>
+<ul>
+<li><a href="#sec-intro">精灵简介</a></li>
+<li><a href="#sec-tiles">精灵图像数据与映射模式</a></li>
+<li><a href="#sec-oam">精灵控制:对象属性内存</a></li>
+<li><a href="#sec-oam-entry">对象属性:OBJ_ATTR</a></li>
+<li><a href="#sec-macro">位域宏(OAM 或其他)</a></li>
+<li><a href="#sec-obj-demo">演示时间</a></li>
+</ul>
+<h2 id="sec-intro"><a class="header" href="#sec-intro">精灵简介</a></h2>
+<div class="cpt_fr" style="width:64px">
+<img src="./img/metr/std.png" id="fig:metr" 
+  alt="a metroid.">
+<b>Fig 8.1</b>. Metroid. Rawr.
+</div>
+<p>根据韦伯词典,精灵(sprite)是“一种假想的生灵或精神,比如仙女、精灵或妖精“。好,很高兴这说清楚了。不过对于游戏而言,当提到精灵时,通常是指“一个[小型]的、可以从背景中自由移动的动画对象“(PERN)。典型的例子是游戏角色,但状态对象如分数和血条通常也是精灵。右侧的 Fig 8.1 显示了一个大家都喜欢的吸血鬼水母——metroid 的精灵。我将在本章末尾的演示中使用这个精灵。</p>
+<p>精灵比位图背景稍难使用一些,但也难不了多少。你只需要多留意自己在做什么。首先,图形必须分组为 8×8 的图块;确保你的图形转换器能做到这一点。除了启用显示控制中的精灵、加载图形和调色板这些明显的动作之外,你还需要在 OAM 中正确设置精灵的属性。漏掉任何一步,你都什么都看不到。这些以及其他内容将在本章介绍。</p>
+<div class="box tip"><p class="box-title">Essential Sprite Steps</p>
+<p>要让精灵显示出来,有 3 件事你必须做对:</p>
+<ul>
+<li>将图形和调色板加载到对象 VRAM 和调色板中。</li>
+<li>在 OAM 中设置属性,以使用相应的图块并设置正确的大小。</li>
+<li>在 <code>REG_DISPCNT</code> 中开启对象,并在那里设置映射模式。</li>
+</ul>
+</div>
+<div class="box tip"><p class="box-title">Sprites aren’t objects</p>
+<p>或者说类似的意思。我知道这听起来奇怪,但我越想越意识到,精灵和对象不应被视为可以互换的。术语“对象“(object)是一个硬件特性,由 OAM 控制。现在我认为“精灵“(sprite)更多是一个概念性的术语,应该保留给演员使用,比如游戏角色、怪物、子弹等。这些实际上可以由多个硬件对象构成,甚至可以使用一个背景。</p>
+<p>你也可以这样想:对象是链接到主机本身的<em>系统</em>实体,而精灵是生活在游戏世界中的<em>游戏</em>实体。区别可能微妙,但却很重要。</p>
+<p>这仅仅是我个人的看法,我无法确定自己在这方面有多正确。Tonc 仍然在这两个词之间来回切换,因为现在想改也太晚了。Mea culpa(我的错)。我很想听听别人对这个问题的看法,所以如果你愿意,尽管畅所欲言。</p>
+</div>
+<h2 id="sec-tiles"><a class="header" href="#sec-tiles">精灵图像数据与映射模式</a></h2>
+<p>正如我在<a href="objbg.html">精灵与背景概述</a>中所说,精灵由若干 8×8 像素的迷你位图组成,称为图块,有两种类型:4bpp(s-图块,长 32 字节)和 8bpp(d-图块,长 64 字节)。可供精灵使用的图块存储在<dfn>对象 VRAM</dfn>(object VRAM),简称 <dfn>OVRAM</dfn> 中。OVRAM 长 32 KiB,由 <code>tile_mem</code> 的最后两个字符块(charblock)映射出来,这两个块也称为低(块 4,起始于 <code>0601:0000h</code>)和高(块 5,<code>0601:4000h</code>)精灵块。计数总是从低精灵块开始,并且<em>总是</em>以 32 字节的偏移进行,这意味着精灵图块 #1 位于 <code>0601:0020h</code>,无论位深度如何(见表 8.1)。每个字符块有 4000h 字节,简单计算可知每个字符块有 512 个图块,总共范围为 1024。然而,由于<a href="bitmaps.html">位图</a>模式延伸到了低精灵块,在模式 3-5 中你只能使用高精灵块(包含图块 512 到 1023)。</p>
+<p>计算这些图块地址可能看起来很烦人,如果要手动计算确实如此。这就是为什么我用名为 <code>tile_mem</code> 的字符块/图块矩阵映射了整个 VRAM,正如在<a href="objbg.html#ssec-img-cbb">概述</a>中讨论的那样。需要 OVRAM 的第 123 号图块?那就是 <code>tile_mem[4][123]</code>。需要它的地址?使用取地址运算符:<code>&amp;tile_mem[4][123]</code>。快捷、简单、安全。</p>
+<p>另外,别忘了精灵有自己的调色板,起始于 <code>0500:0200h</code>(紧跟在背景调色板之后)。如果你确定已经正确加载了图块却什么都没显示,有可能是你填错了调色板。</p>
+<div class="lblock">
+<table id="tbl:obj-tids" class="table-data">
+<caption align="bottom">
+  <b>Table 8.1</b>：精灵的图块计数，
+  以每 32 字节为单位。（8bpp 图块可使用奇数编号，但
+  请务必相应地填满 VRAM。）
+</caption>
+<tr>
+  <th>memory 0601:<th>0000<th>0020 <th>0040<th>0060 <th>0080<th>0100 <th>...
+<tr>
+  <th>4bpp tile <td>0      <td>1  <td>2    <td>3  <td>4    <td>5 <td>&nbsp;
+<tr>
+  <th>8bpp tile <td colspan=2>0   <td colspan=2>2 <td colspan=2>4<td>&nbsp;
+</table>
+</div>
+<div class="box warning"><p class="box-title">位图模式与对象 VRAM</p>
+<p>在模式 3-5 中,只有高精灵块可用于精灵。不过索引仍然从低块开始,因此图块范围是 512-1023。</p>
+</div>
+<h3 id="ssec-map"><a class="header" href="#ssec-map">精灵映射模式</a></h3>
+<p>精灵并不局限于单个图块。实际上,大多数精灵都更大(GBA 精灵可用尺寸的列表见 Table 8.3)。更大的精灵只是简单地使用多个图块,但这可能带来一个问题。对于背景,你通过图块地图显式地选择每个图块。对于精灵,你有两种选择:1D 和 2D 映射。默认是 2D 映射,你可以通过设置 <code>REG_DISPCNT{6}</code> 切换到 1D 映射。</p>
+<p>它们是如何工作的?考虑 fig 8.2a 中的示例精灵,展示了 fig 8.1 的 metroid 被划分成图块。在 2D 映射中,你将精灵字符块解释为一块 256×256 像素的大位图,精灵是从该位图中取出的一个矩形(当然仍然划分成图块)。在这种情况下,精灵的每个图块行偏移 32 个图块。这在 fig 8.2b 中显示。另一方面,你也可以将字符块视为一个大图块数组,每个精灵的图块是连续的。这在 fig 8.2c 中显示。fig 8.2a 中的数字显示了 1D 和 2D 映射之间的区别。假设我们从图块 0 开始,红色和青色数字分别遵循 2D 和 1D 映射。</p>
+<p>从 GBA 编程的角度看,使用 1D 映射更容易,因为在存储精灵时你不必担心每个图块行的偏移。然而,实际<em>创建</em>精灵在 2D 模式下更容易。我的意思是,你<em>真的</em>想逐个图块地编辑位图吗?我也是这么想的。当然,将精灵从 2D 转换为 1D 映射应该是导出工具的工作。你也可以用 <a href="https://www.coranac.com/projects/#usenti" title="" target="_blank">Usenti</a> 来做。</p>
+<div class="lblock">
+<table id="fig:obj-map"
+  cellpadding=4 cellspacing=0>
+<tr valign="top">
+<td>
+  <div class="cpt" style="width:200px">
+  <img src="./img/metr/tile_1d2d.png" alt="a metroid divided into tiles">
+  <b>Fig 8.2a</b>：Fig 8.1 的缩小版本，已划分为图块；
+  彩色数字表示映射模式：2D 为红色，1D 为青色。
+  </div>
+<td>
+  <div class="cpt" style="width:297px">
+  <img src="./img/metr/tile_2d.png" alt="2d mapping">
+  <b>Fig 8.2b</b>: how 
+    fig 8.2a should be stored in memory when 
+    using 2D mapping.
+  </div>
+  <br>
+  <div class="cpt" style="width:296px">
+  <img src="./img/metr/tile_1d.png" alt="1d mapping">
+  <b>Fig 8.2c</b>: how 
+    fig 8.2a should be stored in memory when using 
+	1D mapping.
+  </div>
+</table>
+</div>
+<div class="box note"><p class="box-title">通过命令行转换对象数据</p>
+<p>一些命令行界面可以为对象(以及图块地图)做位图平铺。在某些情况下,它们还可以将带有多个精灵帧的图像转换为 1D 对象映射模式下的一组对象图块。如果 <em>foo.bmp</em> 是一个包含 4 个 16×16 对象的 64×16 位图,下面介绍如何使用 gfx2gba 和 grit 将其转换为 8×8 4bpp 图块(1D 映射的标志在括号中给出)</p>
+<pre><code class="language-sh"># gfx2gba
+# 4x 16x16@4 objects (C array; u8 foo_Bitmap[], u16 master_Palette[]; foo.raw.c, master.pal.c)
+    gfx2gba -fsrc -c16 -t8 [-T32] foo.bmp
+</code></pre>
+<pre><code class="language-sh"># grit
+# 4x 16x16@4 objects (C array; u32 fooTiles[], u16 fooPal[]; foo.c, foo.h)
+    grit foo.bmp -gB4 [-Mw 2 -Mh 2]
+</code></pre>
+<p>关于这里的 1D 映射标志有两点说明。首先,gfx2gba 只能元平铺(meta-tile, -T)正方形对象;对于 16×8 这样的对象,你需要自己做 1D 映射。其次,grit 的元平铺标志(<code>-Mw</code> 和 <code>-Mh</code>)可以是任意值,并且使用图块单位,而不是像素。</p>
+</div>
+<div class="box note"><p class="box-title">Size units: tiles vs pixels</p>
+<p>位图尺寸的默认单位当然是像素,但在平铺图形中有时使用图块作为基本单位更有用,即像素尺寸除以 8。对于背景来说尤其如此。在大多数情况下,上下文足以表明指的是哪一个,但有时我会用 “p” 表示像素或 “t” 表示图块来标注单位。例如,64x64p 的精灵与 8×8t 的精灵相同。</p>
+</div>
+<h2 id="sec-oam"><a class="header" href="#sec-oam">精灵控制:对象属性内存</a></h2>
+<p>这与位图模式大不相同,你不必自己绘制精灵:GBA 有专门的硬件替你完成。这能让精灵比你自己用程序实现更快地出现在屏幕上。不过仍有上限:你能塞进一条扫描线的精灵像素数量是有限的。根据各种论坛的说法,大约是 960。</p>
+<p>所以你不必自己绘制精灵;但是,你<em>确实</em>需要告诉 GBA 你希望它们如何显示。这正是<dfn>对象属性内存</dfn>(Object Attribute Memory,OAM 的简称)的作用。它起始于地址 <code>0700:0000h</code>,长 1024 字节。你可以在 OAM 中找到两种结构:用于常规精灵属性的 <code>OBJ_ATTR</code> 结构,以及包含变换数据的 <code>OBJ_AFFINE</code> 结构。这些结构的定义见下文。注意,名称可能因站点而异。</p>
+<div id="cd-oam-structs">
+<pre><code class="language-c">typedef struct tagOBJ_ATTR
+{
+    u16 attr0;
+    u16 attr1;
+    u16 attr2;
+    s16 fill;
+} ALIGN4 OBJ_ATTR;
+
+typedef struct OBJ_AFFINE
+{
+    u16 fill0[3];
+    s16 pa;
+    u16 fill1[3];
+    s16 pb;
+    u16 fill2[3];
+    s16 pc;
+    u16 fill3[3];
+    s16 pd;
+} ALIGN4 OBJ_AFFINE;
+</code></pre>
+</div>
+<p>关于这些结构有几点有趣的地方。首先,你会看到很多 <code>fill</code>(填充)字段。其次,如果你将 4 个 <code>OBJ_ATTR</code> 结构叠加在 1 个 <code>OBJ_AFFINE</code> 结构上,如 table 8.2 所示,你会看到其中一个的填充字段正好覆盖另一个的数据,反之亦然。这并非巧合:OAM 实际上是 <code>OBJ_ATTR</code> 和 <code>OBJ_AFFINE</code> 的交织(weave)。任天堂为什么使用交织而不是简单地划分一个属性段和一个变换数据段?这是个好问题,值得一个好答案。等我有答案了会告诉你(我猜是数据对齐方面的原因)。另外,注意 <code>OBJ_AFFINE</code> 的元素是<em>有符号</em>短整数。我因为使用 <code>u16</code> 而不是 <code>s16</code>,在 <code>obj_aff</code> 代码上吃尽了苦头。我们有 1024 字节可用,因此可以容纳 128 个 <code>OBJ_ATTR</code> 结构和 32 个 <code>OBJ_AFFINE</code>。本文件的其余部分将解释只使用 <code>OBJ_ATTR</code> 的常规精灵。我想给<a href="affine.html">仿射变换矩阵</a>应有的完整数学处理,并将<a href="affobj.html">仿射精灵</a>留到以后。</p>
+<div class="lblock">
+<table id="tbl:obj-weave"
+  class="reg" border=1 frame=void cellpadding=4 cellspacing=0>
+<caption align= bottom>
+  <b>Table 8.2</b>: 
+  memory interlace of OBJ_ATTR and 
+  OBJ_AFFINE structures.
+ </caption>
+<tr align="left"><th>mem (u16)<th>0<th>3<th>4<th>7<th>8<th>b<th>c<th>f
+<tr><th>OBJ_ATTR
+  <td>0 1 2<td>&nbsp;<td>0 1 2<td>&nbsp;
+  <td>0 1 2<td>&nbsp;<td>0 1 2<td>&nbsp;
+<tr><th>OBJ_AFFINE
+  <td>&nbsp;<td>pa<td>&nbsp;<td>pb
+  <td>&nbsp;<td>pc<td>&nbsp;<td>pd
+</table>
+</div>
+<div class="box tip"><p class="box-title">Force alignment on OBJ_ATTRs</p>
+<p>从 devkitARM r19 起,关于结构对齐有了新规则,这意味着结构可能并不总是字对齐的,而在 <code>OBJ_ATTR</code> 结构(及其他)的情况下,意味着像后面 <code>oam_update()</code> 中的那种 <code>struct</code> 拷贝不仅会很慢,而且实际上可能出错。因此,我会用 <code>ALIGN4</code> 强制对许多结构进行字对齐,它是 <code>__attribute__((aligned(4)))</code> 的宏。更多信息,请参见<a href="bitmaps.html#ssec-data-align">数据对齐</a>一节。</p>
+</div>
+<h2 id="sec-oam-entry"><a class="header" href="#sec-oam-entry">对象属性:OBJ_ATTR</a></h2>
+<p>每个精灵的基本控制是 <code>OBJ_ATTR</code> 结构。它由三个 16 位的属性组成,用于大小、形状、位置、基础图块等品质。下面分别介绍这三个属性。</p>
+<h3 id="ssec-obj-attr0"><a class="header" href="#ssec-obj-attr0">属性 0</a></h3>
+<p>第一个属性控制很多东西,但最重要的部分是<em>y</em>坐标和精灵的形状。同样重要的是精灵是否可变换(仿射精灵),以及图块被认为是 4 位深度(16 色,16 个子调色板)还是 8 位深度(256 色 / 1 个调色板)。</p>
+<div class="reg">
+<table class="table-reg" id="tbl-oe-attr0"
+  border=1 frame=void cellpadding=4 cellspacing=0>
+<caption class="reg">
+  OBJ_ATTR.attr0
+</caption>
+<tr class="bits">
+	<td>F E<td>D<td>C<td>B A<td>9 8 <td>7 6 5 4 3 2 1 0
+<tr class="bf">
+	<td class="rclr1">Sh
+	<td class="rclr2">CM
+	<td class="rclr5">Mos
+	<td class="rclr4">GM
+	<td class="rclr3">OM
+	<td class="rclr0">Y
+</table>
+<table class="table-reg-vert">
+  <col class="bits" width=40>
+  <col class="bf" width="8%">
+  <col class="def" width="12%">
+<tr align="left"><th>bits<th>name<th>define<th>description
+<tbody valign="top">
+<tr class="bg0">	
+  <td>0-7<td class="rclr0">Y
+  <td><i>ATTR0_Y#</i>
+  <td><b>Y coordinate</b>. Marks the top of the sprite.
+<tr class="bg1">	
+  <td>8-9<td class="rclr3">OM
+  <td>ATTR0_REG, ATTR0_AFF, ATTR0_HIDE, ATTR0_AFF_DBL.
+    <i>ATTR0_MODE#</i>
+  <td><b>(Affine) object mode</b>. Use to hide the sprite or govern 
+    affine mode.
+    <ul>
+      <li><b>00</b>. Normal rendering.
+      <li><b>01</b>. Sprite is an affine sprite, using affine matrix
+        specified by <code>attr1{9-D}</code>
+      <li><b>10</b>. Disables rendering (hides the sprite)
+      <li><b>11</b>. Affine sprite using double rendering area. See 
+        <a href="affobj.html">affine sprites</a> for more.
+    </ul>   
+<tr class="bg0">	
+  <td>A-B<td class="rclr4">GM
+  <td>ATTR0_BLEND, ATTR0_WIN. <i>ATTR0_GFX#</i>
+  <td><b>Gfx mode</b>. Flags for special effects.
+    <ul>
+      <li><b>00</b>. Normal rendering.
+      <li><b>01</b>. Enables alpha blending. Covered 
+        <a href="gfx.html#sec-blend">here</a>.
+      <li><b>10</b>. 对象属于对象窗口的一部分。该精灵
+        本身不被渲染，而是作为背景与其他
+        精灵的掩码。（我想是这样，还没用过）
+      <li><b>11</b>. Forbidden.
+    </ul>
+<tr class="bg1">	
+  <td>C<td class="rclr5">Mos
+  <td>ATTR0_MOSAIC
+  <td>Enables mosaic effect. Covered <a href="gfx.html#sec-mos">here</a>. 
+<tr class="bg0">	
+  <td>D<td class="rclr2">CM
+  <td>ATTR0_4BPP, ATTR0_8BPP
+  <td><b>Color mode</b>. 16 colors (4bpp) if cleared; 
+    256 colors (8bpp) if set.    
+<tr class="bg1">	
+  <td>E-F<td class="rclr1">Sh
+  <td>ATTR0_SQUARE, ATTR0_WIDE, ATTR0_TALL. <i>ATTR0_SHAPE#</i>
+  <td><b>Sprite shape</b>. This and the sprite's size 
+    (<code>attr1{E-F}</code>) determines the sprite's real size, see 
+    <a href="#tbl-obj-size">table 8.4</a>.
+</tbody>
+</table>
+</div>
+<p>关于属性 0 有两条额外说明。首先,<code>attr0</code> 包含<em><strong>y</strong></em>坐标;<code>attr1</code> 包含<em><strong>x</strong></em>坐标。出于某种原因,我总是把这两个搞混;如果你的精灵本该向上移动却向左移动了,这可能就是原因。其次,仿射模式和图形模式并不总是这样命名。特别是,<code>attr0{9}</code> 仅仅被称为<em>双尺寸</em>(double-size)标志,尽管它只有第 8 位也置位时才起这个作用。如果不是,那么它隐藏精灵。我认为它实际上被从对象渲染阶段完全移除了,从而为其他对象留出更多时间,但我对此不是 100% 确定。</p>
+<div class="lblock">
+<table id="tbl:obj-size"
+  class="reg" border=1 cellpadding=2 cellspacing=0>
+<caption align="bottom">
+  <b>Table 8.3</b>: GBA sprite sizes
+</caption>
+<tr><td>shape\size <th>00    <th>01    <th>10    <th>11
+<tr><th>00<td>8×8  <td>16×16 <td>32×32 <td>64×64
+<tr><th>01<td>16×8 <td>32×8 <td>32×16 <td>64×32
+<tr><th>10<td>8×16 <td>8×32 <td>16×32 <td>32×64
+</table></div>
+<h3 id="ssec-obj-attr1"><a class="header" href="#ssec-obj-attr1">属性 1</a></h3>
+<p>这个属性主要的部分是<em>x</em>坐标和精灵的大小。位 9 到 13 的作用取决于这是否是仿射精灵(由 <code>attr0{8}</code> 决定)。如果是,这些位指定应使用 32 个 <code>OBJ_AFFINE</code> 中的哪一个。如果不是,它们保存翻转标志。</p>
+<div class="reg">
+<table class="table-reg" id="tbl-oe-attr1">
+<caption class="reg">
+  OBJ_ATTR.attr1
+</caption>
+<tr class="bits">
+	<td>F E<td>D<td>C<td>B A 9<td>8 7 6 5 4 3 2 1 0
+<tr class="bf">
+	<td class="rclr1">Sz
+	<td class="rclr2">VF
+	<td class="rclr2">HF
+	<td>-
+	<td class="rclr0">X
+<tr class="bf">
+    <td>-
+	<td colspan=3 class="rclr3">AID
+    <td>-
+</table>
+<table class="table-reg-vert">
+  <col class="bits" width=40>
+  <col class="bf" width="8%">
+  <col class="def" width="12%">
+<tr align="left"><th>bits<th>name<th>define<th>description
+<tbody valign="top">
+<tr class="bg0">	
+  <td>0-8<td class="rclr0">X
+  <td><i>ATTR1_X#</i>
+  <td><b>X coordinate</b>. Marks left of the sprite.
+<tr class="bg1">	
+  <td>9-D<td class="rclr3">AID
+  <td><i>ATTR1_AFF#</i>
+  <td><b>Affine index</b>. Specifies the <code>OAM_AFF_ENTY</code> this 
+    sprite uses. Valid <i>only</i> if the affine flag 
+    (<code>attr0</code>{8}) is set.
+<tr class="bg0">	
+  <td>C-D<td class="rclr2">HF, VF
+  <td>ATTR1_HFLIP, ATTR1_VFLIP. <i>ATTR1_FLIP#</i>
+  <td><b>Horizontal/vertical flipping</b> flags. Used <i>only</i> if 
+    the affine flag (<code>attr0</code>) is clear; otherwise they're 
+    part of the affine index.
+<tr class="bg1">	
+  <td>E-F<td class="rclr1">Sz
+  <td><i>ATTR1_SIZE#</i>
+  <td><b>Sprite size</b>. Kinda. Together with the shape bits
+    (<code>attr0</code>{E-F}) these determine the sprite's real size, 
+    see table 8.3.
+</tbody>
+</table>
+</div>
+<p>我在这里也要说:<code>attr0</code> 包含 <em>y</em>,<code>attr1</code> 包含 <em>x</em>。注意位 12 和 13 有双重角色,既可以是翻转标志,也可以是仿射索引。如果你想知道是否还能翻转仿射精灵,答案是肯定的:只需在矩阵中使用负的缩放值即可。</p>
+<h3 id="ssec-obj-attr2"><a class="header" href="#ssec-obj-attr2">属性 2</a></h3>
+<p>这个属性告诉 GBA 要显示哪些图块,以及它的背景优先级。如果是 4bpp 精灵,这里也是说明应使用哪个子调色板的地方。</p>
+<div class="reg">
+<table class="table-reg" id="tbl-oe-attr2">
+<caption class="reg">
+  OBJ_ATTR.attr2
+</caption>
+<tr class="bits">
+	<td>F E D C<td>B A<td>9 8 7 6 5 4 3 2 1 0
+<tr class="bf">
+	<td class="rclr1">PB
+	<td class="rclr2">Pr
+	<td class="rclr0">TID
+</table>
+<table class="table-reg-vert">
+  <col class="bits" width=40>
+  <col class="bf" width="8%">
+  <col class="def">
+<tr align="left"><th>bits<th>name<th>&nbsp;<th>description
+<tbody valign="top">
+<tr class="bg0">	
+  <td>0-9<td class="rclr0">TID
+  <td>ATTR2_ID#
+  <td>Base <b>tile index</b> of sprite. Note that in bitmap modes,
+    this must be 512 or higher.
+<tr class="bg1">	
+  <td>A-B<td class="rclr2">Pr
+  <td>ATTR2_PRIO#
+  <td><b>优先级</b>。优先级高的先绘制（因此
+    可能被后绘制的精灵和背景覆盖）。精灵会覆盖
+    同优先级的背景；对于同优先级的精灵，
+    <code>OBJ_ATTR</code> 序号较大的先绘制。
+<tr class="bg0">	
+  <td>C-F<td class="rclr1">PB
+  <td>ATTR2_PALBANK#
+  <td><b>Palette bank</b> to use when in 16-color mode. Has no effect if
+	the color mode flag (<code>attr0</code>{C}) is set.
+</tbody>
+</table>
+</div>
+<h3 id="ssec-obj-attr3"><a class="header" href="#ssec-obj-attr3">属性 3</a></h3>
+<p><em>没有</em>属性 3。尽管 <code>OBJ_ATTR</code> 结构确实<em>有</em>第四个半字,但这只是一个填充。该填充中的内存实际上属于 <code>OBJ_AFFINE</code>。如果任何仿射精灵处于活动状态,谁也不能以任何方式滥用 <code>attr3</code>……</p>
+<h3 id="ssec-oam-buffer"><a class="header" href="#ssec-oam-buffer">OAM 双缓冲</a></h3>
+<p>你<em>可以</em>将所有精灵数据直接写入位于 <code>0700:0000h</code> 的 OAM,但那并不总是最好的做法。如果这在 VDraw(垂直绘制)期间完成,可能会出现撕裂。更糟的是,你可能会在渲染中途改变精灵的图块索引,导致上半部分在一个动画帧,下半部分在另一个。那可不好看。实际上,这无需担心,因为你<em>不能</em>在 VDraw 期间更新 OAM;那时它被锁定了。常见的做法是创建一个独立的 OAM 条目缓冲区(也称为<dfn>对象影子</dfn>,object shadow),可以随时修改,然后在 VBlank 期间将其复制到真正的 OAM。这是我的做法。</p>
+<pre><code class="language-c">OBJ_ATTR obj_buffer[128];
+OBJ_AFFINE *const obj_aff_buffer= (OBJ_AFFINE*)obj_buffer;
+</code></pre>
+<p>我现在用了 128,但我想如果你不使用所有精灵,可以用更小的数字。总之,现在你有了一个用于 <code>OBJ_ATTR</code> 和 <code>OBJ_AFFINE</code> 数据的双缓冲,这在任何时刻都可用。只需确保在恰当的时机将它复制到<em>真正的</em> OAM。</p>
+<h2 id="sec-macro"><a class="header" href="#sec-macro">位域宏(OAM 或其他)</a></h2>
+<p>设置和清除单个位很容易,但有时全部自己来做并不太方便。对于位置和调色板库这样的位域尤其如此,如果要做得漂亮,会涉及带掩码和移位的冗长语句。为了稍微改进这一点,我有一组宏可以缩短实际代码量。这里本质上宏有三类,但在介绍之前,我得先解释一下上面属性列表中带哈希(<em>foo</em>‘#’)的 define 多一点。</p>
+<p>哈希意味着,对于其中的每一个,都会有三个以 <em>foo</em> 为根的 <code>#define</code>:<em>foo</em><code>_MASK</code>、<em>foo</em><code>_SHIFT</code> 和 <em>foo</em><code>(_n)</code>。它们给出相应类型的位掩码、位移和一个位域设置宏。</p>
+<p>例如,附加在图块索引上的 <code>ATTR2_ID#</code>。图块索引字段有 10 位,从位 0 开始。因此相应的 define 是:</p>
+<pre><code class="language-c">// The 'ATTR2_ID#' from the attr2 list means these 3 #defines exist
+#define ATTR2_ID_MASK       0x03FF    
+#define ATTR2_ID_SHIFT           0    
+#define ATTR2_ID(n)        ((n)&lt;&lt;ATTR2_ID_SHIFT)
+</code></pre>
+<p>大多数 GBA 库都有这样的 <code>#define</code>,只是名字不同。实际的宏并不是 100% 安全,因为它不做范围检查,但它简短而精练。就 Tonc 的文本而言,每次你在寄存器的 define 列表中看到哈希,就意味着该名字会带有这三个 <code>#define</code>。</p>
+<p>我还有第二批宏,可用于设置和获取特定字段,它们使用上面解释的掩码和移位名称。我承认这些宏看起来很恐怖,但我向你保证它们有意义,而且能派上用场。</p>
+<div id="cd-bitfield">
+<pre><code class="language-c">// bit field set and get routines
+#define BF_PREP(x, name)         ( ((x)&lt;&lt;name##_SHIFT)&amp; name##_MASK  )
+#define BF_GET(x, name)          ( ((x) &amp; name##_MASK)&gt;&gt; name##_SHIFT )
+#define BF_SET(y, x, name)       (y = ((y)&amp;~name##_MASK) | BF_PREP(x,name) )
+
+#define BF_PREP2(x, name)        ( (x) &amp; name##_MASK )
+#define BF_GET2(y, name)         ( (y) &amp; name##_MASK )
+#define BF_SET2(y, x, name)      (y = ((y)&amp;~name##_MASK) | BF_PREP2(x, name) )
+</code></pre>
+</div>
+<p>好吧,我确实警告过你了。<code>name</code> 参数就是之前的 <em>foo</em>。预处理器连接运算符用来创建完整的掩码和移位名称。再次以图块索引为例,这些宏展开为以下内容:</p>
+<pre><code class="language-c">// Create bitfield:
+attr2 |= BF_PREP(id, ATTR0_SHAPE);
+// becomes:
+attr2 |= (id&lt;&lt;ATTR2_ID_SHIFT) &amp; ATTR2_ID_MASK;
+
+// Retrieve bitfield:
+id= BF_GET(attr2, ATTR2_ID);
+// becomes:
+id= (attr2 &amp; ATTR2_ID_MASK)&gt;&gt;ATTR2_ID_SHIFT;
+
+// Insert bitfield:
+BF_SET(attr2, id, ATTR2_ID);
+// becomes:
+attr2= (attr&amp;~ATTR2_ID_MASK) | ((id&lt;&lt;ATTR2_ID_SHIFT) &amp; ATTR2_ID_MASK);
+</code></pre>
+<p><code>BF_PREP()</code> 可用于准备一个位域以便稍后插入或比较。<code>BF_GET()</code> 从值中获取一个位域,<code>BF_SET()</code> 在变量中设置一个位域,而不干扰其余的位。这基本上就是位域通常的工作方式,只是真正的位域不能与 OR 等组合。</p>
+<p>名字中带“2“的宏工作方式类似,但不做移位。当你已有像 <code>ATTR0_WIDE</code> 这样已经移位过的 <code>#define</code> 时,它们会很有用,此时无法使用其他的宏。</p>
+<pre><code class="language-c">// Insert pre-shifted bitfield:
+// BF_SET2(attr0, ATTR0_WIDE, ATTR0_SHAPE);
+attr0= (attr0&amp;~ATTR0_SHAPE_MASK) | (id &amp; ATTR0_SHAPE_MASK);
+</code></pre>
+<p>注意,这三组宏中没有一个是 GBA 特有的;它们可以用在任何平台上。</p>
+<p>最后,是我所谓的构建宏(build macros)。它们将各种位标志有序地拼成单一数字,类似于 HAM 的工具宏。我还没怎么用过它们,也不强迫你用,但偶尔在初始化附近它们会很有用。</p>
+<div id="cd-oe-build">
+<pre><code class="language-c">// Attribute 0
+#define ATTR0_BUILD(y, shape, bpp, mode, mos, bld, win)             \
+(                                                                   \
+    ((y)&amp;255) | (((mode)&amp;3)&lt;&lt;8) | (((bld)&amp;1)&lt;&lt;10) | (((win)&amp;1)&lt;&lt;11) \
+    | (((mos)&amp;1)&lt;&lt;12) | (((bpp)&amp;8)&lt;&lt;10) | (((shape)&amp;3)&lt;&lt;14)         \
+)
+
+// Attribute 1, regular sprites
+#define ATTR1_BUILD_R(x, size, hflip, vflip)         \
+( ((x)&amp;511) | (((hflip)&amp;1)&lt;&lt;12) | (((vflip)&amp;1)&lt;&lt;13) | (((size)&amp;3)&lt;&lt;14) )
+
+// Attribute 1, affine sprites
+#define ATTR1_BUILD_A(x, size, aff_id)               \
+( ((x)&amp;511) | (((aff_id)&amp;31)&lt;&lt;9) | (((size)&amp;3)&lt;&lt;14) )
+
+// Attribute 2
+#define ATTR2_BUILD(id, pbank, prio)                 \
+( ((id)&amp;0x3FF) | (((pbank)&amp;15)&lt;&lt;12) | (((prio)&amp;3)&lt;&lt;10) )
+</code></pre>
+</div>
+<p>你不必自己用 OR 把位标志组合在一起,可以使用这些宏,也许能省点打字。参数顺序对有些人来说可能难以记住,安全检查的程度可能有点过头(哎呀,你觉着呢?!?),但如果你给它们的数字是常量,操作会在编译时完成,所以没关系,而且有时它们确实很有帮助。或者没帮助 <kbd>:P</kbd>。正如我所说,我不强迫你使用它们;如果你认为它们是糟糕的代码(我承认它们是),并且不想用它们玷污你的程序,那没问题。</p>
+<p>注意,除了 <code>bpp</code> 之外,参数都被宏移位了,这意味着你<em>不应</em>使用列表中的 <code>#define</code> 标志,只应使用像它们是独立变量而非变量中位那样的小值。</p>
+<h2 id="sec-obj-demo"><a class="header" href="#sec-obj-demo">演示时间</a></h2>
+<p>现在,来真正使用这些该死的东西。下面的代码是 <em>obj_demo</em> 的一部分。这是我展示过的最复杂的,但如果你一步一步来,就没问题。本质上,这个演示将一个盒装 metroid 的图块放入分配给对象的 VRAM 中,然后让你摆弄各种 <code>OBJ_ATTR</code> 位,比如位置和翻转标志。控制方式如下:</p>
+<ul>
+<li>方向键<br />
+移动精灵。注意,如果你移动得足够远离开屏幕,它会从另一侧出现。</li>
+<li>A 和 B 键<br />
+分别水平或垂直翻转精灵。</li>
+<li>Select 键<br />
+让它发光。嗯,实际上是让它调色板交换。对受伤闪烁很有用。</li>
+<li>Start 键<br />
+在 1D 和 2D 映射模式之间切换。Fig 8.2b 和 fig 8.2c 应该能解释发生了什么。由于精灵处于 1D 模式,切换到 2D 映射时其实没什么可看的,但我有几个多余的按键,所以我想,为什么不呢。</li>
+<li>L 和 R 键<br />
+分别减少或增加起始图块。同样,我有些多余的键。</li>
+</ul>
+<pre><code class="language-c">// Excerpt from toolbox.h
+
+void oam_init(OBJ_ATTR *obj, uint count);
+void oam_copy(OBJ_ATTR *dst, const OBJ_ATTR *src, uint count);
+
+INLINE OBJ_ATTR *obj_set_attr(OBJ_ATTR *obj, u16 a0, u16 a1, u16 a2);
+INLINE void obj_set_pos(OBJ_ATTR *obj, int x, int y);
+INLINE void obj_hide(OBJ_ATTR *oatr);
+INLINE void obj_unhide(OBJ_ATTR *obj, u16 mode);
+
+// === INLINES ========================================================
+
+//! Set the attributes of an object.
+INLINE OBJ_ATTR *obj_set_attr(OBJ_ATTR *obj, u16 a0, u16 a1, u16 a2)
+{
+    obj-&gt;attr0= a0; obj-&gt;attr1= a1; obj-&gt;attr2= a2;
+    return obj;
+}
+
+//! Set the position of \a obj
+INLINE void obj_set_pos(OBJ_ATTR *obj, int x, int y)
+{
+    BF_SET(obj-&gt;attr0, y, ATTR0_Y);
+    BF_SET(obj-&gt;attr1, x, ATTR1_X);
+}
+
+//! Hide an object.
+INLINE void obj_hide(OBJ_ATTR *obj)
+{   BF_SET2(obj-&gt;attr0, ATTR0_HIDE, ATTR0_MODE);        }
+
+//! Unhide an object.
+INLINE void obj_unhide(OBJ_ATTR *obj, u16 mode)
+{   BF_SET2(obj-&gt;attr0, mode, ATTR0_MODE);          }
+</code></pre>
+<pre><code class="language-c">// toolbox.c
+
+void oam_init(OBJ_ATTR *obj, uint count)
+{
+    u32 nn= count;
+    u32 *dst= (u32*)obj;
+
+    // Hide each object
+    while(nn--)
+    {
+        *dst++= ATTR0_HIDE;
+        *dst++= 0;
+    }
+    // init oam
+    oam_copy(oam_mem, obj, count);
+}
+
+void oam_copy(OBJ_ATTR *dst, const OBJ_ATTR *src, uint count)
+{
+
+// NOTE: while struct-copying is the Right Thing to do here, 
+//   there's a strange bug in DKP that sometimes makes it not work
+//   If you see problems, just use the word-copy version.
+#if 1
+    while(count--)
+        *dst++ = *src++;
+#else
+    u32 *dstw= (u32*)dst, *srcw= (u32*)src;
+    while(count--)
+    {
+        *dstw++ = *srcw++;
+        *dstw++ = *srcw++;
+    }
+#endif
+
+}
+</code></pre>
+<p>这是演示的基本工具代码,包含了你真正需要为其编写函数的大部分内容。注意内联函数很好地利用了前面展示的位域宏;如果我不这么做,代码会更长。</p>
+<p>我需要说明的另一点是,如果我把所有东西都放进 <em>toolbox.h</em>,文件会相当大,大约 700 行左右。而有了未来的演示,它会更长。考虑到这一点,我开始将内容重新分配:<em>types.h</em> 中放所有类型,与内存映射相关的一切放入 <em>memmap.h</em>,所有寄存器 define 放入 <em>memdef.h</em>,输入内联函数和宏可以在 <em>input.h</em> 中找到。其余的仍在 <em>toolbox.h</em> 中,但最终也会被重新分配。</p>
+<p><em>toolbox.c</em> 中的两个函数我想也需要更多说明。在 <code>oam_init()</code> 中,我将对象转换为字指针,并用它来设置内容;同样,这仅仅是因为它快得多。因为它可能用于初始化真 OAM 之外的东西,所以我将初始化后的缓冲区复制到 OAM 以防万一。</p>
+<p>另一点与当前编译器(devkitARM r19b)优化器的一个非常具体的 bug 有关。我希望这在以后的版本中能修复,这里的基本版本<em>应该</em>能工作,但以防万一,如果你看到 OAM 被破坏,就把 <code>#if</code> 表达式设为 0。如果你非要知道,问题似乎是在 <code>for</code> 循环中 <code>OBJ_ATTR</code> 的 <code>struct</code> 拷贝。是的,就是这么具体。尽管 <code>struct</code> 拷贝在它们字对齐时是合法且快速的,但 GCC 似乎在循环中处理 8 字节块时会感到困惑,并且无论如何都为每个结构使用 <code>memcpy()</code>,而这在 OAM 上是行不通的。哦,好吧。</p>
+<div id="cd-obj-demo">
+<pre><code class="language-c">#include &lt;string.h&gt;
+#include "toolbox.h"
+#include "metr.h"
+
+
+OBJ_ATTR obj_buffer[128];
+OBJ_AFFINE *obj_aff_buffer= (OBJ_AFFINE*)obj_buffer;
+
+void obj_test()
+{
+    int x= 96, y= 32;
+    u32 tid= 0, pb= 0;      // (3) tile id, pal-bank
+    OBJ_ATTR *metr= &amp;obj_buffer[0];
+
+    obj_set_attr(metr, 
+        ATTR0_SQUARE,              // Square, regular sprite
+        ATTR1_SIZE_64,              // 64x64p, 
+        ATTR2_PALBANK(pb) | tid);   // palbank 0, tile 0
+
+    // (4) position sprite (redundant here; the _real_ position
+    // is set further down
+    obj_set_pos(metr, x, y);
+
+    while(1)
+    {
+        vid_vsync();
+        key_poll();
+
+        // (5) Do various interesting things
+        // move left/right
+        x += 2*key_tri_horz();
+        // move up/down
+        y += 2*key_tri_vert();
+
+        // increment/decrement starting tile with R/L
+        tid += bit_tribool(key_hit(-1), KI_R, KI_L);
+
+        // flip
+        if(key_hit(KEY_A))  // horizontally
+            metr-&gt;attr1 ^= ATTR1_HFLIP;
+        if(key_hit(KEY_B))  // vertically
+            metr-&gt;attr1 ^= ATTR1_VFLIP;
+
+        // make it glow (via palette swapping)
+        pb= key_is_down(KEY_SELECT) ? 1 : 0;
+
+        // toggle mapping mode
+        if(key_hit(KEY_START))
+            REG_DISPCNT ^= DCNT_OBJ_1D;
+
+        // Hey look, it's one of them build macros!
+        metr-&gt;attr2= ATTR2_BUILD(tid, pb, 0);
+        obj_set_pos(metr, x, y);
+
+        oam_copy(oam_mem, obj_buffer, 1);   // (6) Update OAM (only one now)
+    }
+}
+
+int main()
+{
+    // (1) Places the tiles of a 4bpp boxed metroid sprite 
+    //   into LOW obj memory (cbb == 4)
+    memcpy(&amp;tile_mem[4][0], metr_boxTiles, metr_boxTilesLen);
+    memcpy(pal_obj_mem, metrPal, metrPalLen);
+
+    // (2) Initialize all sprites
+    oam_init(obj_buffer, 128);
+    REG_DISPCNT= DCNT_OBJ | DCNT_OBJ_1D;
+
+    obj_test();
+
+    while(1);
+
+    return 0;
+}
+</code></pre>
+</div>
+<h3 id="ssec-demo-init"><a class="header" href="#ssec-demo-init">设置精灵</a></h3>
+<p>在任何精灵显示出来之前,有三件事你必须做,尽管顺序不一定如此。它们是:将精灵图形复制到 VRAM,设置 OAM 以使用这些图形,以及在显示控制 <code>REG_DISPCNT</code> 中启用精灵。</p>
+<h4 id="显示控制"><a class="header" href="#显示控制">显示控制</a></h4>
+<p>从最后一个开始,通过设置 <code>REG_DISPCNT</code> 的第 12 位来启用精灵。通常你还想使用 1D 映射,所以也设置第 6 位。这在代码的<strong>标号 (2)</strong> 处完成。</p>
+<h4 id="隐藏所有精灵"><a class="header" href="#隐藏所有精灵">隐藏所有精灵</a></h4>
+<p>这里执行的另一步是对 <code>oam_init()</code> 的调用。这并非严格必要,但无论如何是个好主意。<code>oam_init()</code> 的作用是隐藏所有精灵。为什么这是个好主意?因为如果 OAM 全为零,并<em>不</em>意味着精灵不可见。如果你检查属性,你会看到这意味着它们都是 8×8 像素的精灵,使用图块 0 作为图形,位于 (0,0)。如果第一个图块不是空的,你会从屏幕左上角开始看到 128 个该图块的副本,看起来相当奇怪。所以,确保它们先全部不可见。演示还附带了 <code>obj_hide()</code> 和 <code>obj_unhide()</code> 函数,尽管这里没有用到。</p>
+<h4 id="加载精灵图形"><a class="header" href="#加载精灵图形">加载精灵图形</a></h4>
+<p>要做的第一件事(<strong>标号 (1)</strong>)是将精灵图形存入对象 VRAM。正如我已经说过好几次,这些图形应存储为 8×8 像素的图块,而不是扁平的位图。例如,我的精灵这里是 64×64p 大小,所以要存储它,我必须先将其转换为 8×8 的独立图块。如果你<em>不</em>这样做,你的精灵看起来会非常奇怪。</p>
+<p>你把这些图块放在哪里其实并不那么重要(除了显而易见的因素,比如映射模式和图块对齐,当然)。对象 VRAM 就像一个纹理池,与屏幕没有直接关系。你存储想要可用的图块,而系统是通过操纵 OAM 属性才知道你想使用哪些图块以及把它们放在哪里。精灵 0 没有理由不能从图块 42 开始,也没有理由多个精灵不能使用相同的图块。这也是为什么有时用于对象 VRAM 的 <code>OAMData</code> 如此名不副实:对象 VRAM 与 OAM 毫无关系。<em>毫无关系</em>!如果你的头文件用这个名字表示 <kbd>0601:0000</kbd>,甚至 <kbd>0601:4000</kbd>,请改掉它。拜托。并且在位图模式中要注意放置位置,因为你不能使用那里的图块 0-511。</p>
+<p>正如我所说,精灵的加载发生在代码的<strong>标号 (1)</strong>。如果你留意过<a href="objbg.html#ssec-img-cbb">概述</a>,你会记得 <code>tile_mem[][]</code> 是一个二维数组,映射字符块和 4 位图块。你也会记得对象 VRAM 是字符块 4 和 5,所以 <code>&amp;tile_mem[4][0]</code> 指向对象 VRAM 中的第一个图块。所以我将盒装 metroid 加载到对象 VRAM 的前 64 个图块中。</p>
+<p>我还将它的调色板加载到精灵调色板。那是<em>精灵</em>调色板(<kbd>0500:0200</kbd>),不是背景调色板。加载到错误的地方你就什么也看不到。</p>
+<div class="box tip"><p class="box-title">Finding tile addresses</p>
+<p>使用 <code>tile_mem</code> 或宏来查找要复制图块的地址,这比手动计算它们更具可读性和可维护性。你的代码中永远不应该有任何硬编码的 VRAM 地址。</p>
+</div>
+<div class="box danger"><p class="box-title">OAMData</p>
+<p>其他站点的头文件有时将 <code>#define OAMData</code> 定义为 VRAM 的一部分。它不是。请重命名它。</p>
+</div>
+<h4 id="设置属性"><a class="header" href="#设置属性">设置属性</a></h4>
+<p>最后,我将设置一个 <code>OBJ_ATTR</code>,使它真正使用 metroid 图块。这在使用 <code>obj_set_attr()</code> 内联函数的<strong>标号 (3)</strong> 处完成。顺便说一句,它所做的只是对第一个参数的属性做三次赋值,没有什么了不起。这样做只是比三条独立语句省打字。通过这一次调用,我告诉这个精灵它是一个 64×64 像素(8×8 图块)的精灵,其起始图块是 <code>tid</code>,即 0。这意味着它将使用从图块 0 开始的 64 个图块。</p>
+<p>注意我设置的精灵实际上是 OAM 缓冲区的一部分,而不是真正的 OAM。这意味着即使我在那里设置了属性,也还没有发生任何事。要完成精灵,我需要更新<em>真正的</em> OAM,这是通过调用 <code>oam_copy()</code>(<strong>标号 (6)</strong>)完成的。它带两个参数:一个索引和一个表示要更新多少精灵以及从哪个精灵开始的计数。我还有 <code>obj_copy()</code>,它只复制属性 0、1 和 2,但<em>不</em>复制 3!当你开始使用仿射精灵时这是必要的,否则它们可能会被错误复制。</p>
+<p>前面的步骤足以让 metroid 精灵显示在屏幕上。当然,故事并未到此结束。这里有几件你可以用精灵做的事。</p>
+<h3 id="ssec-demo-pos"><a class="header" href="#ssec-demo-pos">精灵定位</a></h3>
+<p>最优先的事通常是把它放在屏幕上的某个位置,甚至屏幕外。为此,你必须分别更新属性 0 和 1 中的 <em>y</em> 和 <em>x</em> 位置位。我经常犯的一个错误是把 <em>x</em> 填入 attr0、把 <em>y</em> 填入 attr1,而应该是反过来。如果你的精灵移动得很奇怪,这可能就是原因。</p>
+<p>注意这些坐标标记的是精灵的<strong>左上角</strong>。另外,坐标的位数意味着我们有 512 个可能的 <em>x</em> 值和 256 个 <em>y</em> 值。坐标范围会回绕,所以你也可以说它们是有符号整数,范围为 <em>x</em> ∈ [-256, 255] 和 <em>y</em> ∈ [-128, 127]。是的,这会使最高的 <em>y</em> 值小于屏幕高度,但多亏了回绕,一切都正常。总之,多亏了整数的 2 的补码特性,只需分别用 <code>0x01FF</code> 和 <code>0x00FF</code> 对 <em>x</em> 和 <em>y</em> 值进行掩码,就能得到正确的 9 位和 8 位有符号值。你可以手动做,或者使用<strong>标号 (4)</strong> 处用到的 <code>obj_set_pos()</code> 函数。</p>
+<p>你可能会看到清除属性低位然后直接将 <em>x</em> 和 <em>y</em> OR 进去的代码。这不是个好主意,因为负值实际上是由数据类型范围的上半部分表示的。例如 −1 是所有位都置位(0xFFFFFFFF)。如果不屏蔽掉高位,负值会覆盖属性的其余位,那会很糟。</p>
+<div class="box warning"><p class="box-title">Mask your coordinates</p>
+<p>如果你在编写精灵定位函数或使用别人的<strong>请务必</strong>在将 <em>x</em> 和 <em>y</em> 插入属性之前屏蔽掉这些位。否则,负值会覆盖整个属性。</p>
+<p>这样不好:</p>
+<pre><code class="language-c">obj-&gt;attr0= (obj-&gt;attr0 &amp;~ 0x00FF) | (y);
+</code></pre>
+<p>这样好:</p>
+<pre><code class="language-c">obj-&gt;attr0= (obj-&gt;attr0 &amp;~ 0x00FF) | (y &amp; 0x00FF);
+</code></pre>
+</div>
+<h4 id="位置变量与三态键tribool的使用"><a class="header" href="#位置变量与三态键tribool的使用">位置变量与三态键(tribool)的使用</a></h4>
+<p>与其使用 <code>OBJ_ATTR</code> 来存储精灵的位置,不如将它们保存在独立的变量中,这里是 <code>x</code> 和 <code>y</code>。这避免了总是要掩码坐标字段,但更重要的是,位置可以延伸到屏幕大小之外。由于大多数游戏世界并不局限于单个屏幕,这一点很重要。然后,在恰当时机,将这些值传给 <code>oam_set_pos()</code> 来更新精灵。</p>
+<p>另外,注意我使用<a href="keys.html#ssec-adv-tri">三态键函数</a>来更新位置。输入处理通常遵循这样的模式:“按下键 X:递增;按下相反方向的键 Y:递减”。三态键函数把这类代码从四行缩减为一行,这让代码更易读(一旦你跨过了最初的门槛)。例如,<code>key_tri_horz()</code> 在按下“右“时返回 +1,按下“左“时返回 −1,都没有按下或都按下时返回 0。<code>key_tri_vert()</code> 对垂直移动做类似的事情,而带有 <code>bit_tribool()</code> 的那行则使用 <code>key_hit()</code> 以及 R 和 L 来递增或递减图块索引。</p>
+<h3 id="ssec-demo-attr"><a class="header" href="#ssec-demo-attr">其他属性</a></h3>
+<p>精灵坐标只是可以通过特定 OAM 位控制的众多精灵属性中的两个,即使精灵已经激活。一些明显的例子是翻转或镜像,这里可以用 A 和 B 来做。或者,如果你使用的是 4bpp 精灵,你可以交换调色板,使所有颜色改变。在演示中按下 Select 会从调色板库 0 切换到 1,后者恰好有一个从灰到白的渐变。在这两个调色板库之间快速切换可以让精灵闪烁。你也可以改变精灵渲染的优先级,或切换 alpha 混合,尽管我在这里没有做这些。</p>
+<p>现在,这些东西并不会真正改变精灵的整体图像。但你应该意识到,<em>确实</em>可以那样做。正如我之前指出的,VRAM 的内容<em>就是</em>精灵这种说法并不正确,更准确地说,精灵<em>使用</em> VRAM 的某些部分在屏幕上显示某物,任何东西。例如,你可以改变精灵使用的起始图块 <code>tid</code>,在这里可以用 L 和 R 实现。这不仅合法,而且是动画的标准做法(尽管你也可以为此覆盖 VRAM——重置图块索引只是更快)。理解这一点是从用户视角转向开发者视角的关键点之一:用户只看到表面;而编码者看透表面,看到真正发生了什么。</p>
+<p>常规精灵就讲到这里。使用多个精灵并没有太大不同——见一个,就见过全部了。基本动画也不应该有什么问题,直到你用完存放它们的 VRAM。还有一些区域未被触及,比如混合和马赛克,但我会在<a href="gfx.html">以后</a>处理它们。</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="objbg.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="regbg.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="objbg.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="regbg.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

@@ -1,0 +1,769 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>仿射图块背景 - Tonc - GBA Programming in rot13</title>
+
+
+        <!-- Custom HTML head -->
+        <!-- Matomo tracking code -->
+        <script>
+          var _paq = window._paq = window._paq || [];
+          /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+          _paq.push(['trackPageView']);
+          _paq.push(['enableLinkTracking']);
+          (function() {
+            var u="//stats.gbdev.io/";
+            _paq.push(['setTrackerUrl', u+'matomo.php']);
+            _paq.push(['setSiteId', '3']);
+            var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+            g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+          })();
+        </script>
+        <!-- End Matomo Code -->
+
+        <meta name="description" content="GBA Programming tutorial">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="theme/css/tonc.css">
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="foreword.html">前言</a></li><li class="chapter-item expanded affix "><a href="intro.html">引言</a></li><li class="chapter-item expanded affix "><li class="part-title">GBA 基础</li><li class="chapter-item expanded "><a href="hardware.html"><strong aria-hidden="true">1.</strong> GBA 硬件</a></li><li class="chapter-item expanded "><a href="setup.html"><strong aria-hidden="true">2.</strong> 搭建开发环境</a></li><li class="chapter-item expanded "><a href="first.html"><strong aria-hidden="true">3.</strong> 我的第一个 GBA 演示程序</a></li><li class="chapter-item expanded "><a href="video.html"><strong aria-hidden="true">4.</strong> 视频显示入门</a></li><li class="chapter-item expanded "><a href="bitmaps.html"><strong aria-hidden="true">5.</strong> 位图模式</a></li><li class="chapter-item expanded "><a href="keys.html"><strong aria-hidden="true">6.</strong> GBA 按键</a></li><li class="chapter-item expanded "><a href="objbg.html"><strong aria-hidden="true">7.</strong> 精灵与图块背景概述</a></li><li class="chapter-item expanded "><a href="regobj.html"><strong aria-hidden="true">8.</strong> 常规精灵</a></li><li class="chapter-item expanded "><a href="regbg.html"><strong aria-hidden="true">9.</strong> 常规图块背景</a></li><li class="chapter-item expanded affix "><li class="part-title">GBA 进阶</li><li class="chapter-item expanded "><a href="affine.html"><strong aria-hidden="true">10.</strong> 仿射变换矩阵</a></li><li class="chapter-item expanded "><a href="affobj.html"><strong aria-hidden="true">11.</strong> 仿射精灵</a></li><li class="chapter-item expanded "><a href="affbg.html"><strong aria-hidden="true">12.</strong> 仿射图块背景</a></li><li class="chapter-item expanded "><a href="gfx.html"><strong aria-hidden="true">13.</strong> 图形特效</a></li><li class="chapter-item expanded "><a href="dma.html"><strong aria-hidden="true">14.</strong> 直接内存访问（DMA）</a></li><li class="chapter-item expanded "><a href="timers.html"><strong aria-hidden="true">15.</strong> 定时器</a></li><li class="chapter-item expanded "><a href="interrupts.html"><strong aria-hidden="true">16.</strong> 硬件中断</a></li><li class="chapter-item expanded "><a href="swi.html"><strong aria-hidden="true">17.</strong> BIOS 调用（SWI）</a></li><li class="chapter-item expanded "><a href="sndsqr.html"><strong aria-hidden="true">18.</strong> 哔！GBA 声音入门</a></li><li class="chapter-item expanded affix "><li class="part-title">进阶 / 应用</li><li class="chapter-item expanded "><a href="text.html"><strong aria-hidden="true">19.</strong> 文本系统</a></li><li class="chapter-item expanded "><a href="mode7.html"><strong aria-hidden="true">20.</strong> Mode 7</a></li><li class="chapter-item expanded "><a href="mode7ex.html"><strong aria-hidden="true">21.</strong> 更多 Mode 7 技巧</a></li><li class="chapter-item expanded "><a href="tte.html"><strong aria-hidden="true">22.</strong> Tonc 文本引擎</a></li><li class="chapter-item expanded "><a href="asm.html"><strong aria-hidden="true">23.</strong> ARM 汇编速成</a></li><li class="chapter-item expanded "><a href="lab.html"><strong aria-hidden="true">24.</strong> 实验室</a></li><li class="chapter-item expanded affix "><li class="spacer"></li><li class="chapter-item expanded affix "><a href="numbers.html">附录 A - 数字、比特与位运算</a></li><li class="chapter-item expanded affix "><a href="fixed.html">附录 B - 定点数与查找表（LUT）</a></li><li class="chapter-item expanded affix "><a href="matrix.html">附录 C - 向量与矩阵数学</a></li><li class="chapter-item expanded affix "><a href="makefile.html">附录 D - 更多关于 makefile 与编译器选项</a></li><li class="chapter-item expanded affix "><a href="edmake.html">附录 E - 通过编辑器进行 Make</a></li><li class="chapter-item expanded affix "><a href="refs.html">附录 F - 参考文献</a></li><li class="chapter-item expanded affix "><a href="log.html">附录 G - 更新日志</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <!--<div class="sidebar-resize-indicator"></div>-->
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <!--<li role="none"><button role="menuitem" class="theme" id="tonc_dark">Tonc Dark</button></li>-->
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="tonc">Tonc Classic</button></li>
+                            <!--<li role="none"><button role="menuitem" class="theme" id="tonc-dark">Tonc Dark</button></li>-->
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Tonc - GBA Programming in rot13</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/gbadev-org/tonc" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                        <a href="https://github.com/gbadev-org/tonc/edit/master/content/affbg.md" title="Suggest an edit" aria-label="Suggest an edit">
+                            <i id="git-edit-button" class="fa fa-edit"></i>
+                        </a>
+                        <a id="en-version-link" href="#" title="English version" aria-label="English version" target="_blank" rel="noopener">
+                            <i id="en-version-button" class="fa fa-language"></i>
+                        </a>
+                        <script>
+                            (function () {
+                                var EN_BASE = "https://gbadev.net/tonc/";
+                                var seg = (window.location.pathname || "").split("/").pop();
+                                var enHref = EN_BASE + (seg && seg !== "index.html" ? seg : "");
+                                var el = document.getElementById("en-version-link");
+                                if (el) { el.href = enHref; }
+                            })();
+                        </script>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="12-仿射背景"><a class="header" href="#12-仿射背景">12. 仿射背景</a></h1>
+<ul>
+<li><a href="#sec-intro">简介</a></li>
+<li><a href="#sec-regs">仿射背景寄存器</a></li>
+<li><a href="#sec-aff-ofs">仿射背景的定位与变换</a></li>
+<li><a href="#sec-map">映射格式</a></li>
+<li><a href="#sec-demo">sbb_aff 演示程序</a></li>
+</ul>
+<h2 id="sec-intro"><a class="header" href="#sec-intro">简介</a></h2>
+<p>本节讲解<dfn>仿射背景</dfn>：也就是你可以通过 <strong>P</strong> 矩阵施加仿射变换的那些背景。而它也就仅此而已。如果你还没读——并且理解！——<a href="objbg.html">精灵/背景概述</a>以及关于<a href="regbg.html">常规背景</a>和<a href="affine.html">仿射变换矩阵</a>的章节，请先去读那些再继续。</p>
+<p>如果你知道如何构建常规背景，并且理解了仿射矩阵背后的概念，那么这里你应该没什么问题。仿射背景在理论层面与常规背景相同，但在若干非常关键的实践要点上会有所不同。举例来说，你使用的是不同的定位寄存器，而且它们的地图布局及其格式也各不相同。</p>
+<p>GBA 拥有的四个背景中，只有最后两个能用作仿射背景，并且仅限于特定的视频模式（见 table 12.1）。仿射背景的尺寸也与常规背景不同。你可以在 table 12.2 中找到尺寸列表。</p>
+<div class="cblock">
+  <table>
+    <tr>
+      <td>
+        <table id="tbl:bg-types" border=1 cellpadding=2 cellspacing=0 width=128 class="table-data">
+          <caption align="bottom"><b>Table 12.1</b>: 视频模式与背景类型</caption>
+          <tbody align="center">
+            <tr>
+              <th>mode</th>
+              <th>0</th>
+              <th>1</th>
+              <th>2</th>
+            </tr>
+            <tr>
+              <th>bg0</th>
+              <td>reg</td>
+              <td>reg</td>
+              <td>-</td>
+            </tr>
+            <tr>
+              <th>bg1</th>
+              <td>reg</td>
+              <td>reg</td>
+              <td>-</td>
+            </tr>
+            <tr>
+              <th>bg2</th>
+              <td>reg</td>
+              <td>aff</td>
+              <td>aff</td>
+            </tr>
+            <tr>
+              <th>bg3</th>
+              <td>reg</td>
+              <td>-</td>
+              <td>aff</td>
+            </tr>
+          </tbody>
+        </table>
+      </td>
+      <td width="10%"></td>
+      <td style="vertical-align: top;">
+        <table id="tbl:bga-size" border=1 cellpadding=2 cellspacing=0 width=144 class="table-data">
+          <caption align="bottom"><b>Table 12.2</b>: 仿射背景尺寸</caption>
+          <col>
+          <col class="def">
+          <tbody align="center">
+            <tr>
+              <th>Sz</th>
+              <th>define</th>
+              <th>(tiles)</th>
+              <th>(pixels)</th>
+            </tr>
+            <tr>
+              <td>00</td>
+              <td>BG_AFF_16x16</td>
+              <td>16x16</td>
+              <td>128x128</td>
+            </tr>
+            <tr>
+              <td>01</td>
+              <td>BG_AFF_32x32</td>
+              <td>32x32</td>
+              <td>256x256</td>
+            </tr>
+            <tr>
+              <td>10</td>
+              <td>BG_AFF_64x64</td>
+              <td>64x64</td>
+              <td>512x512</td>
+            </tr>
+            <tr>
+              <td>11</td>
+              <td>BG_AFF_128x128</td>
+              <td>128x128</td>
+              <td>1024x1024</td>
+            </tr>
+          </tbody>
+        </table>
+      </td>
+    </tr>
+  </table>
+</div>
+<h2 id="sec-regs"><a class="header" href="#sec-regs">仿射背景寄存器</a></h2>
+<p>与常规背景一样，仿射背景的主要控制寄存器是 <code>REG_BGxCNT</code>。如果你忘了它的作用，可以读<a href="regbg.html#tbl-reg-bgxcnt">这里的描述</a>。与常规背景的差异在于尺寸，以及 <code>BG_WRAP</code> 现在真正起作用了。其它重要的寄存器是<dfn>位移向量</dfn> <strong>dx</strong>（<code>REG_BGxX</code> 和 <code>REG_BGxY</code>），以及<dfn>仿射矩阵</dfn> <strong>P</strong>（<code>REG_BGxPA</code>–<code>REG_BGxPD</code>）。你可以在 table 12.3 中找到它们的地址。</p>
+<div class="lblock">
+  <table id="tbl:aff-regs" class="table-data">
+    <caption align="bottom"><b>Table 12.3</b>: 仿射背景寄存器地址。注意 <i>x</i> 只能是 2 或 3！</caption>
+    <col span=2 align="right">
+    <tr>
+      <th>Register</th>
+      <th>length</th>
+      <th>address</th>
+    </tr>
+    <tr>
+      <th>REG_BGxCNT</th>
+      <td>2</td>
+      <td>0400:0008h + 2·x</td>
+    </tr>
+    <tr>
+      <th>REG_BGxPA-PD</th>
+      <td>2</td>
+      <td>0400:0020h + 10h·(x-2)</td>
+    </tr>
+    <tr>
+      <th>REG_BGxX</th>
+      <td>4</td>
+      <td>0400:0028h + 10h·(x-2)</td>
+    </tr>
+    <tr>
+      <th>REG_BGxY</th>
+      <td>4</td>
+      <td>0400:002ch + 10h·(x-2)</td>
+    </tr>
+  </table>
+</div>
+<p>在处理仿射背景的位移和变换时，有几点需要留意。首先，位移 <em>dx</em> 使用的是与常规背景不同的寄存器：<code>REG_BGxX</code> 和 <code>REG_BGxY</code>，而不是 <code>REG_BGxHOFS</code> 和 <code>REG_BGxVOFS</code>。第二点是，它们是 24.8 格式的定点数，而非像素偏移量。（实际上它们是 20.8 定点数，不过眼下这不重要。）</p>
+<p>我通常通过 BG_AFFINE 结构体来使用仿射参数，而非 <code>REG_BGxPA</code> 等。<em>tonc_memmap.h</em> 中的内存映射为此提供了一个 <code>REG_BG_AFFINE</code>。以这种方式设置寄存器有时更有优势，因为你通常已经准备好了一个 BG_AFFINE 结构体，然后只需一次赋值就能把它复制到寄存器。下面给出一个例子。</p>
+<p>仿射变换矩阵 <strong>P</strong> 的元素，其工作方式与仿射精灵完全相同：它们是 8.8 格式的定点数，描述从屏幕空间到纹理空间的变换。不过对于仿射背景，它们是连续存放的（偏移 2 字节），而精灵的那些则是以 8 字节为偏移。你可以使用 <em>tonc_bg_affine.c</em> 中的 <code>bg_aff_foo</code> 函数来把它们设为你想要的变换。</p>
+<div id="cd-bga-types">
+<pre><code class="language-c">typedef struct tagBG_AFFINE
+{
+    s16 pa, pb;
+    s16 pc, pd;
+    s32 dx, dy
+} ALIGN4 BG_AFFINE;
+
+//! BG affine params array
+#define REG_BG_AFFINE   ((BG_AFFINE*)(REG_BASE+0x0000))
+</code></pre>
+</div>
+<pre><code class="language-c">// Default BG_AFFINE data (tonc_core.c)
+const BG_AFFINE bg_aff_default= { 256, 0, 0, 256, 0, 0 };
+
+// Initialize affine registers for bg 2
+REG_BG_AFFINE[2] = bg_aff_default;
+</code></pre>
+<div class="box warning"><p class="box-title">常规 vs 仿射图块地图的滚动</p>
+<p>仿射图块地图使用的是<strong>不同的</strong>滚动寄存器！它们用的是 REG_BG<em>x</em>X 和 REG_BG<em>x</em>Y，而不是 REG_BG<em>x</em>HOFS 和 REG_BG<em>x</em>VOFS。而且，这些是 32 位的定点数，而非半字。</p>
+</div>
+<h2 id="sec-aff-ofs"><a class="header" href="#sec-aff-ofs">仿射背景的定位与变换</a></h2>
+<p>既然我们知道了位移和变换寄存器是什么，现在就来看看它们的作用。这实际上比你可能以为的要棘手得多，所以请集中注意力。警告：接下来又要进入数学了。</p>
+<p>位移向量 <strong>dx</strong> 的作用与常规背景相同：<strong>dx</strong> 包含被映射到屏幕原点的那些背景坐标。（而<strong>不是</strong>相反！）不过这一次 <strong>dx</strong> 是以定点数记法表示的。同样地，仿射变换矩阵 <strong>P</strong> 的作用也与仿射精灵相同：<strong>P</strong> 描述从屏幕空间到纹理空间的变换。用数学语言表达，如果我们定义</p>
+<table id="eq:defs">
+  <tr>
+    <td class="eqnrcell">(12.1a)</td>
+    <td class="eqcell">
+      <i>T</i>(<b>dx</b>)<b>p</b> <b>:=</b> <b>p</b> + <b>dx</b><br>
+      <i>T</i><sup>&minus;1</sup>(<b>dx</b>) = <i>T</i>(&minus;<b>dx</b>)
+    </td>
+  </tr>
+  <tr>
+    <td class="eqnrcell">(12.1b)</td>
+    <td class="eqcell"><b>P = A</b><sup>&minus;1</sup></td>
+  </tr>
+</table>
+<p>那么</p>
+<table id="eq:aff-defs">
+  <tr>
+    <td class="eqnrcell">(12.2a)</td>
+    <td class="eqcell"><i>T</i>(<b>dx</b>)<b>q</b> = <b>p</b></td>
+  </tr>
+  <tr>
+    <td class="eqnrcell">(12.2b)</td>
+    <td class="eqcell"><b>P &middot; q</b> = <b>p</b></td>
+  </tr>
+</table>
+<p>其中</p>
+<table cellpadding=1 cellspacing=0>
+  <tr>
+    <th>p</th>
+    <td>是纹理空间中的一个点，</td>
+  </tr>
+  <tr>
+    <th>q</th>
+    <td>是屏幕空间中的一个点，</td>
+  </tr>
+  <tr>
+    <th>dx</th>
+    <td>是位移向量（<code>REG_BGxX</code> 和 <code>REG_BGxY</code>）。</td>
+  </tr>
+  <tr>
+    <th>A</th>
+    <td>是从纹理空间到屏幕空间的变换，</td>
+  </tr>
+  <tr>
+    <th>P</th>
+    <td>是从屏幕空间到纹理空间的变换（<code>REG_BGxPA</code>–<code>REG_BGxPD</code>）。</td>
+  </tr>
+</table>
+<br>
+<p>eq 12.2 的问题在于，它们只描述了当你单独使用位移或变换时会发生什么。那么如果你两者都要用呢？这是一个重要的问题，因为变换的顺序是有影响的（就像我们在<a href="affobj.html#sec-demo">仿射精灵演示</a>中看到的那样），而变换与位移的先后顺序同样如此。事实证明，平移是先做的：</p>
+<table id="eq:ofs">
+  <tr>
+    <td class="eqnrcell">(12.3)</td>
+    <td class="eqcell">
+      <table class="eqtbl" cellpadding=2 cellspacing=0>
+        <col align="right">
+        <col align="center">
+        <col align="left">
+        <tr>
+          <td><b>q</b></td>
+          <td>=</td>
+          <td><b>A</b> &middot; T(&minus;<b>dx</b>) <b>p</b></td>
+        </tr>
+        <tr>
+          <td>T(<b>dx</b>) <b>P</b> &middot; <b>q</b></td>
+          <td>=</td>
+          <td><b>p</b></td>
+        </tr>
+        <tr>
+          <td><b>dx</b> + <b>P</b> &middot; <b>q</b></td>
+          <td>=</td>
+          <td><b>p</b></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<p>换一种说法：变换始终以屏幕的左上角作为自己的原点，而位移则告诉你哪个背景像素被放到那里。当然，这种安排在你想要围绕屏幕上某个其它点旋转时没什么帮助。要做到这一点，你得玩几个小花招。为了一次性把它们都涵盖，我们把 eq 12.3 与一般的坐标准换等式合并起来：</p>
+<table id="eq:aff-ofs">
+  <tr>
+    <td class="eqnrcell">(12.4)</td>
+    <td class="eqcell">
+      <table class="eqtbl" cellpadding=2 cellspacing=0>
+        <col align="right">
+        <col align="center">
+        <col align="left">
+        <tr>
+          <td><b>dx + P &middot; q</b></td>
+          <td>=</td>
+          <td><b>p</b></td>
+        </tr>
+        <tr>
+          <td class="bdrB"><b>P</b> &middot; (<b>q &minus; q</b><sub>0</sub>)</td>
+          <td class="bdrB">=</td>
+          <td class="bdrB"><b>p &minus; p</b><sub>0</sub></td>
+          <td class="bdrB">&minus;</td>
+        </tr>
+        <tr>
+          <td><b>dx + P &middot; q</b><sub>0</sub></td>
+          <td>=</td>
+          <td><b>p</b><sub>0</sub></td>
+        </tr>
+        <tr>
+          <td><b>dx</b></td>
+          <td>=</td>
+          <td><b>p</b><sub>0</sub> &minus; <b>P &middot; q</b><sub>0</sub></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<p>那么，这玩意儿到底是什么意思？它的意思是：如果你把这个 <strong>dx</strong> 用作位移向量，你就是围绕纹理点 <strong>p</strong><sub>0</sub> 进行变换，而该点最终会出现在屏幕点 <strong>q</strong><sub>0</sub> 上；其中的 <strong>P</strong>·<strong>q</strong><sub>0</sub> 项，是你在纹理空间中必须施加的修正量，目的是让旋转中心落在 <strong>q</strong><sub>0</sub> 而非 (0,0)。所以——这玩意儿到底是什么意思？它的意思是：在你打算使用这些东西之前，应该先想清楚你实际想要达成的是什么效果，并且你要面对的是<strong>两套</strong>坐标系，而不是一套。想清楚之后，eq 12.4 的含义就会变得显而易见。无论如何，我所使用的函数是 <code>bg_rotscale_ex()</code>，它大体上长这样：</p>
+<pre><code class="language-c">typedef struct tagAFF_SRC_EX
+{
+    s32 tex_x, tex_y;   // 向量 p0：纹理空间中的原点（24.8f）
+    s16 scr_x, scr_y;   // 向量 q0：屏幕空间中的原点（16.0f）
+    s16 sx, sy;         // 缩放量（8.8f）
+    u16 alpha;          // 逆时针角度（[0,0xFFFF] 内的整数）
+} ALIGN4 AFF_SRC_EX;
+
+void bg_rotscale_ex(BG_AFFINE *bgaff, const AFF_SRC_EX *asx)
+{
+    int sx= asx-&gt;sx, sy= asx-&gt;sy;
+    int sina= lu_sin(asx-&gt;alpha), cosa= lu_cos(asx-&gt;alpha);
+
+    FIXED pa, pb, pc, pd;
+    pa=  sx*cosa&gt;&gt;12;   pb=-sx*sina&gt;&gt;12;    // .8f
+    pc=  sy*sina&gt;&gt;12;   pd= sy*cosa&gt;&gt;12;    // .8f
+
+    bgaff-&gt;pa= pa;  bgaff-&gt;pb= pb;
+    bgaff-&gt;pc= pc;  bgaff-&gt;pd= pd;
+
+    bgaff-&gt;dx= asx-&gt;tex_x - (pa*asx-&gt;scr_x + pb*asx-&gt;scr_y);
+    bgaff-&gt;dy= asx-&gt;tex_y - (pc*asx-&gt;scr_x + pd*asx-&gt;scr_y);
+}
+</code></pre>
+<p>这与<a href="affobj.html#sec-combo">偏心对象变换</a>一节中讲到的 <code>obj_rotscale_ex()</code> 函数非常相似。数学是一样的，只是各项被稍微重新排布了一下。背景版本实际上更简单，因为仿射偏移修正可以在纹理空间中完成，而不必在屏幕空间中，这意味着无需去折腾 <strong>P</strong> 的逆矩阵。也无需处理精灵尺寸修正（多亏了 IPU）。作为记录，是的，你可以直接把这个函数用到 <code>REG_BG_AFFINE</code> 上。</p>
+<h3 id="ssec-bga-refpts"><a class="header" href="#ssec-bga-refpts">内部参考点寄存器</a></h3>
+<p>关于位移和变换寄存器，还有一件重要的事要提。下面直接引用 <a href="https://problemkaputt.de/gbatek.htm#lcdiobgrotationscaling" title="" target="_blank">GBATEK</a>（方括号里的部分除外）：</p>
+<blockquote>
+<p>上述参考点［即位移寄存器］会在每次 VBlank 期间被自动复制到内部寄存器，指定了第一条扫描线的原点。随后，这些内部寄存器会在每条扫描线之后，由 dmx［<code>REG_BGxPB</code>］和 dmy［<code>REG_BGxPD</code>］递增。</p>
+</blockquote>
+<blockquote>
+<p>注意：在 VBlank 期间之外，由软件写入某个参考点寄存器，会立即把新值复制到相应的内部寄存器，也就是说：在当前这一帧中，新值指定的是<em>当前</em>扫描线的原点（而非最顶上的那条扫描线）。</p>
+</blockquote>
+<p>通常这不会对你造成影响，但如果你试图在 HBlank 期间写入 <code>REG_BGxY</code>，事情可能就不会如你所愿。这是我在尝试让我的 Mode 7 代码跑起来时，付出了代价才学到的。不过这只影响仿射背景；常规背景使用的是其它寄存器。</p>
+<h2 id="sec-map"><a class="header" href="#sec-map">映射格式</a></h2>
+<p>仿射背景的地图布局与屏幕项，都与常规背景大不相同。讽刺的是，它们其实也要简单得多。常规背景会把整张地图切分为四个象限（每个使用一个完整的屏幕块），而仿射背景使用的是扁平（flat）地图，这意味着用于取得屏幕项编号 <em>n</em> 的常规等式仍然成立，从而让事情简单了一大截。</p>
+<table id="eq:aff-sid">
+  <tr>
+    <td class="eqnrcell">(12.5)</td>
+    <td class="eqcell"><i>n</i> = <i>tx</i> + <i>ty</i>·<i>tw</i></td>
+  </tr>
+</table>
+<p>屏幕项本身也与常规背景的不同。在仿射地图中，它们是<strong>1 字节长</strong>，并且只包含要使用的图块索引。此外，你<strong>只能</strong>使用 256 色图块。这让你能访问基础字符块（charblock）里的所有图块，却访问不到它后面的那些。</p>
+<p>大致上也就这些了。不，等等还有一件事：在填充或更改地图时要小心，因为 <strong>VRAM 每次只能以 16 或 32 位的方式访问</strong>。所以，如果你的地图存放在一个字节数组中，你得先把它转换成 <code>u16</code> 或 <code>u32</code>。或者使用 <a href="dma.html">DMA</a>。好，我讲完了。</p>
+<div class="box warning"><p class="box-title">常规 vs 仿射图块地图的映射差异</p>
+<p>常规地图与仿射地图的格式有两个重要区别。首先，仿射屏幕项仅仅是一个单字节的图块索引。其次，仿射地图使用的是线性布局，而非更大的常规地图所采用的、被切分为 32×32t 地图的那种布局。</p>
+</div>
+<h2 id="sec-demo"><a class="header" href="#sec-demo"><em>sbb_aff</em> 演示程序</a></h2>
+<div class="cpt_fr" style="width:240px">
+  <img id="fig:sbb-aff" src="./img/demo/sbb_aff.png" alt="sbb_aff demo">
+  <b>Fig 12.1</b>: <i>sbb_aff</i> 演示程序。
+</div>
+<p><em>sbb_aff</em> 之于仿射背景，就如同 <em>sbb_reg</em> 之于常规背景，只是多了一些额外内容。这个演示程序使用一张 64×64 图块的仿射背景，如 fig 12.1 所示。它被分成 16 个各 256 字节的部分，每一部分都用一种颜色的图块填满，并标有该部分的编号。现在，如果仿射背景的地图布局和常规背景相同，那么每个部分会形成一块 16×16t 的正方形。如果它是扁平的内存布局，那么每个部分就是一条 64×16t 的条带。正如你在 fig 12.1 中看到的那样，是后者。你还可以看到，与常规背景不同，这张地图在边缘处并不会自动环绕。</p>
+<p>这个演示程序最有趣的地方，是那些小小的黑白十字准星。白色十字准星指示的是旋转点（锚点）。正如我之前所说，你不能简单地挑一个地图点 <strong>p</strong><sub>0</sub> 然后说它就是“那个”旋转点。嗯，你可以这么做，但它不会给出想要的效果。仅仅使用一个地图点，会给你一个围绕该点旋转地图的效果，但在屏幕上它永远会待在左上角。要把地图锚点移动到屏幕上的特定位置，你还需要在那里放一个锚点。这就是 <strong>q</strong><sub>0</sub>。把两者都代入 eq 12.4，就能求出你需要的位移向量：<strong>dx</strong> = <strong>p</strong><sub>0</sub>−<strong>P·q</strong><sub>0</sub>。这个 <strong>dx</strong> 会与 <strong>p</strong><sub>0</sub> 和 <strong>q</strong><sub>0</sub> 都大不相同。它的路径由黑色十字准星标出。</p>
+<p>这个演示程序让你可以同时控制 <strong>p</strong><sub>0</sub> 和 <strong>q</strong><sub>0</sub>。当然还有旋转和缩放。完整的控制列表如下。</p>
+<div class="lblock">
+  <table cellpadding=1 cellspacing=0>
+    <tr>
+      <th>D-pad</th>
+      <td>移动地图旋转点，<b>p</b><sub>0</sub></td>
+    </tr>
+    <tr>
+      <th>D-pad + A</th>
+      <td>移动屏幕旋转点，<b>q</b><sub>0</sub></td>
+    </tr>
+    <tr>
+      <th>L,R</th>
+      <td>旋转背景。</td>
+    </tr>
+    <tr>
+      <th>B(+Se)</th>
+      <td>放大和缩小。</td>
+    </tr>
+    <tr>
+      <th>St</th>
+      <td>切换环绕标志。</td>
+    </tr>
+    <tr>
+      <th>St+Se</th>
+      <td>重置锚点和 <b>P</b></td>
+    </tr>
+  </table>
+</div>
+<div id="cd=sbb-aff">
+<pre><code class="language-c">#include &lt;stdio.h&gt;
+#include &lt;tonc.h&gt;
+#include "nums.h"
+
+#define MAP_AFF_SIZE 0x0100
+
+// --------------------------------------------------------------------
+// GLOBALS
+// --------------------------------------------------------------------
+
+OBJ_ATTR *obj_cross= &amp;oam_mem[0];
+OBJ_ATTR *obj_disp= &amp;oam_mem[1];
+
+BG_AFFINE bgaff;
+
+// --------------------------------------------------------------------
+// FUNCTIONS
+// --------------------------------------------------------------------
+
+void win_textbox(int bgnr, int left, int top, int right, int bottom, int bldy)
+{
+    REG_WIN0H= left&lt;&lt;8 | right;
+    REG_WIN0V=  top&lt;&lt;8 | bottom;
+    REG_WIN0CNT= WIN_ALL | WIN_BLD;
+    REG_WINOUTCNT= WIN_ALL;
+
+    REG_BLDCNT= (BLD_ALL&amp;~BIT(bgnr)) | BLD_BLACK;
+    REG_BLDY= bldy;
+
+    REG_DISPCNT |= DCNT_WIN0;
+
+    tte_set_margins(left, top, right, bottom);
+}
+
+void init_cross()
+{
+    TILE cross=
+    {{
+        0x00011100, 0x00100010, 0x01022201, 0x01021201,
+        0x01022201, 0x00100010, 0x00011100, 0x00000000,
+    }};
+    tile_mem[4][1]= cross;
+
+    pal_obj_mem[0x01]= pal_obj_mem[0x12]= CLR_WHITE;
+    pal_obj_mem[0x02]= pal_obj_mem[0x11]= CLR_BLACK;
+
+    obj_cross-&gt;attr2= 0x0001;
+    obj_disp-&gt;attr2= 0x1001;
+}
+
+void init_map()
+{
+    int ii;
+
+    memcpy32(&amp;tile8_mem[0][1], nums8Tiles, nums8TilesLen/4);
+    memcpy32(pal_bg_mem, numsPal, numsPalLen/4);
+
+    REG_BG2CNT= BG_CBB(0) | BG_SBB(8) | BG_AFF_64x64;
+    bgaff= bg_aff_default;
+
+    // fill per 256 screen entries (=32x4 bands)
+    u32 *pse= (u32*)se_mem[8];
+    u32 ses= 0x01010101;
+    for(ii=0; ii&lt;16; ii++)
+    {
+        memset32(pse, ses, MAP_AFF_SIZE/4);
+        pse += MAP_AFF_SIZE/4;
+        ses += 0x01010101;
+    }
+}
+
+void sbb_aff()
+{
+    AFF_SRC_EX asx=
+    {
+        32&lt;&lt;8, 64&lt;&lt;8,           // Map coords.
+        120, 80,                // Screen coords.
+        0x0100, 0x0100, 0       // Scales and angle.
+    };
+
+    const int DX=256;
+    FIXED ss= 0x0100;
+
+    while(1)
+    {
+        vid_vsync();
+        key_poll();
+
+        // dir + A : move map in screen coords
+        if(key_is_down(KEY_A))
+        {
+            asx.scr_x += key_tri_horz();
+            asx.scr_y += key_tri_vert();
+        }
+        else    // dir : move map in map coords
+        {
+            asx.tex_x -= DX*key_tri_horz();
+            asx.tex_y -= DX*key_tri_vert();
+        }
+        // rotate
+        asx.alpha -= 128*key_tri_shoulder();
+
+        // B: scale up ; B+Se : scale down
+        if(key_is_down(KEY_B))
+            ss += (key_is_down(KEY_SELECT) ? -1 : 1);
+
+        // St+Se : reset
+        // St : toggle wrapping flag.
+        if(key_hit(KEY_START))
+        {
+            if(key_is_down(KEY_SELECT))
+            {
+                asx.tex_x= asx.tex_y= 0;
+                asx.scr_x= asx.scr_y= 0;
+                asx.alpha= 0;
+                ss= 1&lt;&lt;8;
+            }
+            else
+                REG_BG2CNT ^= BG_WRAP;
+        }
+
+        asx.sx= asx.sy= (1&lt;&lt;16)/ss;
+
+        bg_rotscale_ex(&amp;bgaff, &amp;asx);
+        REG_BG_AFFINE[2]= bgaff;
+
+        // the cross indicates the rotation point
+        // (== p in map-space; q in screen-space)
+        obj_set_pos(obj_cross, asx.scr_x-3, (asx.scr_y-3));
+        obj_set_pos(obj_disp, (bgaff.dx&gt;&gt;8)-3, (bgaff.dy&gt;&gt;8)-3);
+
+        tte_printf("#{es;P}p0\t: (%d, %d)\nq0\t: (%d, %d)\ndx\t: (%d, %d)",
+            asx.tex_x&gt;&gt;8, asx.tex_y&gt;&gt;8, asx.scr_x, asx.scr_y,
+            bgaff.dx&gt;&gt;8, bgaff.dy&gt;&gt;8);
+    }
+}
+
+int main()
+{
+    init_map();
+    init_cross();
+
+    REG_DISPCNT= DCNT_MODE1 | DCNT_BG0 | DCNT_BG2 | DCNT_OBJ;
+
+    tte_init_chr4_b4_default(0, BG_CBB(2)|BG_SBB(28));
+    tte_init_con();
+    win_textbox(0, 8, 120, 232, 156, 8);
+
+    sbb_aff();
+
+    return 0;
+}
+</code></pre>
+</div>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="affobj.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="gfx.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="affobj.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="gfx.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

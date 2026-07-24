@@ -1,0 +1,502 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>视频显示入门 - Tonc - GBA Programming in rot13</title>
+
+
+        <!-- Custom HTML head -->
+        <!-- Matomo tracking code -->
+        <script>
+          var _paq = window._paq = window._paq || [];
+          /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+          _paq.push(['trackPageView']);
+          _paq.push(['enableLinkTracking']);
+          (function() {
+            var u="//stats.gbdev.io/";
+            _paq.push(['setTrackerUrl', u+'matomo.php']);
+            _paq.push(['setSiteId', '3']);
+            var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+            g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+          })();
+        </script>
+        <!-- End Matomo Code -->
+
+        <meta name="description" content="GBA Programming tutorial">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="theme/css/tonc.css">
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="foreword.html">前言</a></li><li class="chapter-item expanded affix "><a href="intro.html">引言</a></li><li class="chapter-item expanded affix "><li class="part-title">GBA 基础</li><li class="chapter-item expanded "><a href="hardware.html"><strong aria-hidden="true">1.</strong> GBA 硬件</a></li><li class="chapter-item expanded "><a href="setup.html"><strong aria-hidden="true">2.</strong> 搭建开发环境</a></li><li class="chapter-item expanded "><a href="first.html"><strong aria-hidden="true">3.</strong> 我的第一个 GBA 演示程序</a></li><li class="chapter-item expanded "><a href="video.html"><strong aria-hidden="true">4.</strong> 视频显示入门</a></li><li class="chapter-item expanded "><a href="bitmaps.html"><strong aria-hidden="true">5.</strong> 位图模式</a></li><li class="chapter-item expanded "><a href="keys.html"><strong aria-hidden="true">6.</strong> GBA 按键</a></li><li class="chapter-item expanded "><a href="objbg.html"><strong aria-hidden="true">7.</strong> 精灵与图块背景概述</a></li><li class="chapter-item expanded "><a href="regobj.html"><strong aria-hidden="true">8.</strong> 常规精灵</a></li><li class="chapter-item expanded "><a href="regbg.html"><strong aria-hidden="true">9.</strong> 常规图块背景</a></li><li class="chapter-item expanded affix "><li class="part-title">GBA 进阶</li><li class="chapter-item expanded "><a href="affine.html"><strong aria-hidden="true">10.</strong> 仿射变换矩阵</a></li><li class="chapter-item expanded "><a href="affobj.html"><strong aria-hidden="true">11.</strong> 仿射精灵</a></li><li class="chapter-item expanded "><a href="affbg.html"><strong aria-hidden="true">12.</strong> 仿射图块背景</a></li><li class="chapter-item expanded "><a href="gfx.html"><strong aria-hidden="true">13.</strong> 图形特效</a></li><li class="chapter-item expanded "><a href="dma.html"><strong aria-hidden="true">14.</strong> 直接内存访问（DMA）</a></li><li class="chapter-item expanded "><a href="timers.html"><strong aria-hidden="true">15.</strong> 定时器</a></li><li class="chapter-item expanded "><a href="interrupts.html"><strong aria-hidden="true">16.</strong> 硬件中断</a></li><li class="chapter-item expanded "><a href="swi.html"><strong aria-hidden="true">17.</strong> BIOS 调用（SWI）</a></li><li class="chapter-item expanded "><a href="sndsqr.html"><strong aria-hidden="true">18.</strong> 哔！GBA 声音入门</a></li><li class="chapter-item expanded affix "><li class="part-title">进阶 / 应用</li><li class="chapter-item expanded "><a href="text.html"><strong aria-hidden="true">19.</strong> 文本系统</a></li><li class="chapter-item expanded "><a href="mode7.html"><strong aria-hidden="true">20.</strong> Mode 7</a></li><li class="chapter-item expanded "><a href="mode7ex.html"><strong aria-hidden="true">21.</strong> 更多 Mode 7 技巧</a></li><li class="chapter-item expanded "><a href="tte.html"><strong aria-hidden="true">22.</strong> Tonc 文本引擎</a></li><li class="chapter-item expanded "><a href="asm.html"><strong aria-hidden="true">23.</strong> ARM 汇编速成</a></li><li class="chapter-item expanded "><a href="lab.html"><strong aria-hidden="true">24.</strong> 实验室</a></li><li class="chapter-item expanded affix "><li class="spacer"></li><li class="chapter-item expanded affix "><a href="numbers.html">附录 A - 数字、比特与位运算</a></li><li class="chapter-item expanded affix "><a href="fixed.html">附录 B - 定点数与查找表（LUT）</a></li><li class="chapter-item expanded affix "><a href="matrix.html">附录 C - 向量与矩阵数学</a></li><li class="chapter-item expanded affix "><a href="makefile.html">附录 D - 更多关于 makefile 与编译器选项</a></li><li class="chapter-item expanded affix "><a href="edmake.html">附录 E - 通过编辑器进行 Make</a></li><li class="chapter-item expanded affix "><a href="refs.html">附录 F - 参考文献</a></li><li class="chapter-item expanded affix "><a href="log.html">附录 G - 更新日志</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <!--<div class="sidebar-resize-indicator"></div>-->
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <!--<li role="none"><button role="menuitem" class="theme" id="tonc_dark">Tonc Dark</button></li>-->
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="tonc">Tonc Classic</button></li>
+                            <!--<li role="none"><button role="menuitem" class="theme" id="tonc-dark">Tonc Dark</button></li>-->
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Tonc - GBA Programming in rot13</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/gbadev-org/tonc" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                        <a href="https://github.com/gbadev-org/tonc/edit/master/content/video.md" title="Suggest an edit" aria-label="Suggest an edit">
+                            <i id="git-edit-button" class="fa fa-edit"></i>
+                        </a>
+                        <a id="en-version-link" href="#" title="English version" aria-label="English version" target="_blank" rel="noopener">
+                            <i id="en-version-button" class="fa fa-language"></i>
+                        </a>
+                        <script>
+                            (function () {
+                                var EN_BASE = "https://gbadev.net/tonc/";
+                                var seg = (window.location.pathname || "").split("/").pop();
+                                var enHref = EN_BASE + (seg && seg !== "index.html" ? seg : "");
+                                var el = document.getElementById("en-version-link");
+                                if (el) { el.href = enHref; }
+                            })();
+                        </script>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="4-gba-图形入门"><a class="header" href="#4-gba-图形入门">4. GBA 图形入门</a></h1>
+<ul>
+<li><a href="#sec-intro">总体介绍</a></li>
+<li><a href="#sec-blanks">绘制与消隐周期</a></li>
+<li><a href="#sec-colors">颜色与调色板</a></li>
+<li><a href="#sec-vid-types">位图、背景与精灵</a></li>
+<li><a href="#sec-vid-regs">显示寄存器：REG_DISPCNT、REG_DISPSTAT 与 REG_VCOUNT</a></li>
+<li><a href="#sec-vsync1">垂直同步 第一部分：忙等待循环</a></li>
+</ul>
+<h2 id="sec-intro"><a class="header" href="#sec-intro">总体介绍</a></h2>
+<p>GBA 拥有一块 240 像素宽、160 像素高的 LCD 屏幕，能够显示 32768（15 位）种颜色。刷新率略低于每秒 60 帧（59.73 Hz）。GBA 有 5 个可以包含图形的独立图层：4 个<dfn>背景</dfn>层和 1 个<dfn>精灵</dfn>层，并且能够实现一些特殊效果，包括混合两个图层、马赛克，当然还有旋转和缩放。</p>
+<p>声音和按键功能只能将就着用为数不多的几个寒酸寄存器，而视频系统则拥有一大笔可供支配的内存（相对而言）。除了 I/O 内存中的大量寄存器外，还有 96kb 显存（从 <code>0600:0000h</code> 开始）、调色板内存（<code>0500:0000h</code>）和 OAM 内存（<code>0700:0000h</code>）。</p>
+<h2 id="sec-blanks"><a class="header" href="#sec-blanks">绘制与消隐周期</a></h2>
+<p>如前所述，整个 GBA 屏幕每 1/60 秒刷新一次，但事情不止于此。一条扫描线绘制完（HDraw 周期，240 像素）后，在开始绘制下一条扫描线之前，会有一个停顿（HBlank，68 像素）。同样，在 160 条扫描线（VDraw）之后，有 68 条扫描线的消隐（VBlank），然后才重新开始。为避免画面撕裂，位置数据通常在 VBlank 更新。这就是为什么大多数游戏以 60 或 30 fps 运行。（顺带一提，在 VBlank 同步也正是我们 PAL 国家游戏常常更慢的原因：PAL 电视以 50Hz 运行（过去是），因此只有 50 fps 而非 60，如果没人费心去处理，游戏就会慢 17%。很少有公司这么做过 <kbd>:(</kbd> 。）</p>
+<p><a href="http://www.cs.rit.edu/~tjh8300/CowBite/CowBiteSpec.htm#Graphics%20Hardware%20Overview" title="" target="_blank">CowBite Spec</a> 和 <a href="https://problemkaputt.de/gbatek.htm#lcddimensionsandtimings" title="" target="_blank">GBATEK</a> 都给出了关于显示时序的一些有趣细节。一次完整的屏幕刷新恰好需要 280896 个周期，除以时钟速度得到 59.73 的帧率。从上面给出的绘制/消隐周期可以看出，每个像素有 4 个周期，每条扫描线有 1232 个周期。你可以在表 4.1 中找到时序细节的摘要。</p>
+<br>  
+<table width=80%>
+<tr align="center">
+  <td>
+  <div class="cpt" style="width:192px;">
+  <img src="./img/gba_draw.png" id="fig:gba-draw" alt=""><br>
+  <b>Fig 4.1</b>: vdraw、vblank 与 hblank 周期。
+  </div>
+<td>
+	<table id="tbl:disp-timing" class="table-data">
+	<caption align="bottom">
+	  <b>Table 4.1</b>: 显示时序细节
+	</caption>
+	<col>
+	<col span=2 align="right">
+	<tr align="center">
+	  <th>项目	<th>长度		<th>周期
+	<tr>
+	  <td>像素		<td>     1		<td>     4
+	<tr>
+	  <td>HDraw		<td>   240px	<td>   960
+	<tr>
+	  <td>HBlank	<td>    68px	<td>   272
+	<tr>
+	  <td>扫描线	<td>Hdraw+Hbl	<td>  1232
+	<tr>
+	  <td>VDraw 	<td>160*扫描线<td>197120
+	<tr>
+	  <td>VBlank	<td>68*扫描线	<td> 83776
+	<tr>
+	  <td>刷新	<td>VDraw+Vbl	<td>280896
+	</table>
+</table>
+<h2 id="sec-colors"><a class="header" href="#sec-colors">颜色与调色板</a></h2>
+<p>GBA 能够显示 5.5.5 格式的 16 位颜色。这意味着红色 5 位、绿色 5 位、蓝色 5 位；多出来的那一位未使用。基本上，位模式看起来像这样：“<code>x<font color=blue>bbbbb</font><font color= green>ggggg</font><font color= red>rrrrr</font></code>”。在 <code>color.h</code> 中有一些 define 和宏能让处理颜色更容易。
+<br></p>
+<p>现在，关于调色板……</p>
+<p><code>&lt;rant&gt;</code><br />
+<em>伙计们，这里的词是 <strong>“palette”</strong>！一个 ‘l’，两个 ‘t’，末尾一个 ‘e’。它不是 <strong>“pallet”</strong>，后者是“一种低矮、可移动的台子，通常是双面的，用来堆放材料以便仓储或运输，比如在仓库里“；也不是 <strong>“pallette”</strong>，意思是“一副盔甲中保护腋窝的护板“。其最常见变体 <strong>“pallete”</strong> 甚至不在词典里，因此根本不值得考虑。是“palette”，各位，是“palette”。</em><br />
+<code>&lt;/rant&gt;</code></p>
+<p>总之，GBA 有两个调色板，一个用于精灵（对象），一个用于背景。两个调色板都包含 256 个 16 位颜色项（各 512 字节）。背景调色板从 <code>0500:0000h</code> 开始，紧跟着是 <code>0500:0200h</code> 处的精灵调色板。精灵和背景可以用两种方式使用这些调色板：作为包含 256 种颜色（每像素 8 位）的单一调色板；或作为 16 个包含 16 种颜色（每像素 4 位）的子调色板或<dfn>调色板组</dfn>。</p>
+<p>关于调色板最后一件事：索引 0 是<dfn>透明索引</dfn>。在调色板模式中，值为 0 的像素将是透明的。</p>
+<h2 id="sec-vid-types"><a class="header" href="#sec-vid-types">位图、背景与精灵</a></h2>
+<p>总而言之，GBA 知道 3 种图形表示：<dfn>位图</dfn>、<dfn>图块背景</dfn>和<dfn>精灵</dfn>。位图和图块背景（也简称为背景）类型影响整个屏幕的构建方式，因此无法同时被激活。<br />
+在位图模式中，显存的工作方式就像一个 <em>w</em>×<em>h</em> 的位图。要在位置 (<em>x,y</em>) 处画一个像素，就走到 <em>y*w+x</em> 的位置并填入颜色。注意，你无法在 GBA 上每帧都构建一整屏单独的像素，它们的数量实在太多了。</p>
+<p>图块背景的工作方式完全不同。首先，你把 8x8 像素的<dfn>图块</dfn>存放在显存的某一部分。然后，在另一部分，你构建一个图块地图，其中包含索引，告诉 GBA 哪些图块进入你在屏幕上看到的图像。要构建一屏，你只需要一个 30x20 的数字地图，硬件就会负责绘制这些数字所指向的图块。这样一来，你<em>可以</em>每帧更新整个屏幕。极少有游戏不依赖这种图形类型。</p>
+<p>最后，我们有精灵。精灵是小型（8x8 到 64x64 像素）的图形对象，可以彼此独立地变换，并可与位图或图块地图背景类型配合使用。</p>
+<div class="box tip"><p class="box-title">优先使用图块模式而非位图模式</p>
+<p>在几乎所有类型的游戏中，图块模式都更合适。大多数其他教程聚焦于位图模式，但那仅仅是因为它们对新手更友好，而非因为它们对游戏有实际价值。绝大多数商业游戏都使用图块模式；这应该能说明些什么。</p>
+</div>
+<p>这就是三种基本图形类型，尽管也能想到其他分类方式。例如，位图和图块背景类型，由于它们互斥且使用整个屏幕，构成了<dfn>背景</dfn>类型。此外，碰巧图块背景的图块与精灵有着相同的内存布局（即，以 8x8 像素图块为一组）。这使图块背景和精灵成为图块类型。</p>
+<h2 id="sec-vid-regs"><a class="header" href="#sec-vid-regs">显示寄存器：REG_DISPCNT、REG_DISPSTAT 与 REG_VCOUNT</a></h2>
+<p>在做任何图形相关的事时，你会遇到三个 I/O 寄存器：显示控制 <code>REG_DISPCNT (0400:0000h)</code>、显示状态 <code>REG_DISPSTAT (0400:0004h)</code> 和扫描线计数器 <code>REG_VCOUNT (0400:0006h)</code>。这些名字只是到内存位置的 define，原则上可以随意选择。然而，我们将使用它们在 <a href="http://www.drunkencoders.com" title="" target="_blank">Pern Project</a> 中出现的名字，因为它们最常见。</p>
+<p>REG_DISPCNT 寄存器是屏幕的主要控制。该寄存器的位布局及其含义可以在下表中找到。这是我用于寄存器或类寄存器区域的一般格式。该格式的细节已经在<a href="intro.html#ssec-note-reg">前言</a>中解释过了。</p>
+<div class="reg">
+<table class="table-reg" id="tbl:reg-dispcnt">
+<caption class="reg">
+  REG_DISPCNT @ 0400:0000h
+</caption>
+<tr class="bits">
+	<td>F<td>E<td>D<td>C<td>B<td>A<td>9<td>8
+	<td>7<td>6<td>5<td>4<td class="rof">3<td>2 1 0
+<tr class="bf">
+	<td class="rclr4">OW
+	<td class="rclr4">W1
+	<td class="rclr4">W0
+	<td class="rclr1">Obj
+	<td class="rclr1">BG3
+	<td class="rclr1">BG2
+	<td class="rclr1">BG1
+	<td class="rclr1">BG0
+	<td class="rclr6">FB
+	<td class="rclr2">OM
+	<td class="rclr5">HB
+	<td class="rclr3">PS
+	<td class="rclr7">GB
+	<td class="rclr0">Mode
+</table>
+<table class="table-reg-vert">
+  <col class="bits" width=40>
+  <col class="bf" width="8%">
+  <col class="def" width="12%">
+<tr align="left"><th>bits<th>name<th>define<th>description
+<tbody valign="top">
+<tr class="bg0">
+  <td>0-2 <td class="rclr0">Mode
+  <td>DCNT_MODEx. <i>DCNT_MODE#</i>
+  <td>设置视频模式。0、1、2 是图块模式；3、4、5 是位图模式。
+<tr class="bg1">
+  <td class="rof">3   <td class="rclr7">GB
+  <td>DCNT_GB
+  <td>如果卡带是 GBC 游戏则置位。只读。
+<tr class="bg0">
+  <td>4   <td class="rclr3">PS
+  <td>DCNT_PAGE
+  <td>页选择。模式 4 和 5 可以使用页翻转来实现更流畅的动画。该位选择显示的页（并允许在另一页上绘制而不产生瑕疵）。
+<tr class="bg1">
+  <td>5   <td class="rclr5">HB
+  <td>DCNT_OAM_HBL
+  <td>允许在 HBlank 中访问 OAM。OAM 在 VDraw 中通常锁定。会减少每行渲染的精灵像素数。
+<tr class="bg0">
+  <td>6   <td class="rclr2">OM
+  <td>DCNT_OBJ_1D
+  <td>对象映射模式。图块内存可以看作一个 32x32 的图块矩阵。当精灵由多个图块竖向组成时，该位告诉下一个图块行是位于前一个下方（符合矩阵结构，2D 映射，<code>OM</code>=0），还是紧挨着它（使内存排列为精灵数组，1D 映射 <code>OM</code>=1）。更多内容见[精灵](regobj.html)章。
+<tr class="bg1">
+  <td>7   <td class="rclr6">FB
+  <td>DCNT_BLANK
+  <td>强制屏幕消隐。
+<tr class="bg0">
+  <td>8-C  <td class="rclr1">BG0-BG3, Obj
+  <td>DCNT_BGx, DCNT_OBJ. <i>DCNT_LAYER#</i>
+  <td>启用相应背景和精灵的渲染。
+<tr class="bg1">
+  <td>D-F <td class="rclr4">W0-OW
+  <td>DCNT_WINx, DCNT_WINOBJ
+  <td>分别启用窗口 0、1 和对象窗口的使用。窗口可用于遮罩某些区域（就像《塞尔达：众神的三角力量》里那盏灯做的那样）。
+</tbody>
+</table>
+</div>
+<p>设置显示控制大概是你最先会做的事。对于简单的演示程序，你可以只设置一次就保持不动，尽管在视频模式之间切换能产生一些有趣的效果。
+<br></p>
+<p>现在说我提到的另外两个寄存器，<code>REG_DISPSTAT</code> 和 <code>REG_VCOUNT</code>。后者告诉你当前正在处理的扫描线。注意这个计数器会一直进入到 VBlank，所以它会数到 227 才重新从 0 开始。前者给你关于绘制/消隐状态的信息，并用于设置显示<a href="interrupts.html">中断</a>。你也可以用这里能启用的中断做一些很酷的事。比如，HBlank 中断就用于创建 <a href="mode7.html">Mode 7</a> 图形，而你肯定想知道它是怎么工作的，不是吗？</p>
+<div class="reg">
+<table class="table-reg" id="tbl:reg-dispstat">
+<caption class="reg">
+  REG_DISPSTAT @ 0400:0004h
+</caption>
+<tr class="bits">
+  <td>F E D C B A 9 8
+  <td>7 6<td>5<td>4<td>3<td class="rof">2<td class="rof">1<td class="rof">0
+<tr class="bf">
+  <td class="rclr3">VcT
+  <td>-
+  <td class="rclr2">VcI
+  <td class="rclr1">HbI
+  <td class="rclr0">VbI
+  <td class="rclr2">VcS
+  <td class="rclr1">HbS
+  <td class="rclr0">VbS
+</table>
+<table class="table-reg-vert">
+  <col class="bits" width=40>
+  <col class="bf" width="8%">
+  <col class="def" width="15%">
+<tr align="left"><th>bits<th>name<th>define<th>description
+<tbody valign="top">
+<tr class="bg0">
+  <td>0<td class="rclr0">VbS
+  <td>DSTAT_IN_VBL
+  <td>VBlank 状态，只读。会在 VBlank 内置位，在 VDraw 内清除。
+<tr class="bg1">
+  <td>1 <td class="rclr1">HbS
+  <td>DSTAT_IN_HBL
+  <td>HBlank 状态，只读。会在 HBlank 内置位。
+<tr class="bg0">
+  <td>2 <td class="rclr2">VcS
+  <td>DSTAT_IN_VCT
+  <td>VCount 触发状态。如果当前扫描线与扫描线触发器匹配则置位（<code>REG_VCOUNT</code> == 
+    <code>REG_DISPSTAT</code>{8-F}）
+<tr class="bg1">
+  <td>3 <td class="rclr0">VbI
+  <td>DSTAT_VBL_IRQ
+  <td>VBlank 中断请求。如果置位，将在 VBlank 触发中断。
+<tr class="bg0">
+  <td>4 <td class="rclr1">HbI
+  <td>DSTAT_HBL_IRQ
+  <td>HBlank 中断请求。
+<tr class="bg1">
+  <td>5 <td class="rclr2">VcI
+  <td>DSTAT_VCT_IRQ
+  <td>VCount 中断请求。如果当前扫描线匹配触发值则触发中断。
+<tr class="bg0">
+  <td>8-F <td class="rclr3">VcT
+  <td><i>DSTAT_VCT#</i>
+  <td>VCount 触发值。如果当前扫描线处于此值，第 2 位置位，并在被请求时触发中断。
+</tbody>
+</table>
+</div><br>
+<div class="reg">
+<table class="table-reg" id="tbl:reg-vcount" width="320">
+<caption class="reg">
+  REG_VCOUNT @ 0400:0006h (read-only)
+</caption>
+<tr class="bits">
+	<td>F E D C B A 9 8
+	<td class="rof">7 6 5 4 3 2 1 0
+<tr class="bf">
+  <td>-
+  <td class="rclr0">Vc
+</table>
+<table class="table-reg-vert">
+  <col class="bits" width=40>
+  <col class="bf" width="8%">
+<tr align="left"><th>bits<th>name<th>description
+<tbody valign="top">
+<tr class="bg0">
+  <td>0-7 <td class="rclr0">Vc
+  <td>垂直计数。范围是 [0,227]
+</tbody>
+</table>
+</div>
+<h2 id="sec-vsync1"><a class="header" href="#sec-vsync1">垂直同步 第一部分：忙等待循环</a></h2>
+<p>如前所述，把 VBlank 用作计时机制并更新游戏数据。这被称为 <dfn>vsync</dfn>（<strong>v</strong>ertical <strong>sync</strong>hronisation，垂直同步）。有若干种 vsync 的方法。两种最常用的方法使用 while 循环并检查 <code>REG_VCOUNT</code> 或 <code>REG_DISPSTAT</code>。例如，由于 VBlank 从扫描线 160 开始，你可以观察 <code>REG_VCOUNT</code> 何时超过这个值。</p>
+<pre><code class="language-c">#define REG_VCOUNT *(u16*)0x04000006
+
+void vid_vsync()
+{    while(REG_VCOUNT &lt; 160);   }
+</code></pre>
+<p>不幸的是，这段代码有几个问题。</p>
+<p>首先，如果你只是做一个空的 <code>while</code> 循环来等待 160，编译器可能会自作聪明，注意到循环不会改变 <code>REG_VCOUNT</code>，于是把它的值放进寄存器以便快速引用。由于这个值很可能在某个时刻低于 160，你就得到了一个漂亮的小无限循环。为防止这一点，请使用关键字 <em><code>volatile</code></em>（见 <code>tonc_memmap.h</code> 和 <code>tonc_types.h</code>）。</p>
+<p>其次，在小演示程序里，仅仅等待 VBlank 还不够；当你再次调用 <code>vid_sync()</code> 时，你可能仍处在那个 VBlank 内，它会立即通过。这并不能同步到 60 fps。为此，你必须先等到<em>下一个</em> VDraw。这使我们的 <code>vid_sync</code> 看起来像这样：</p>
+<pre><code class="language-c">#define REG_VCOUNT *(vu16*)0x04000006
+
+void vid_vsync()
+{
+    while(REG_VCOUNT &gt;= 160);   // wait till VDraw
+    while(REG_VCOUNT &lt; 160);    // wait till VBlank
+}
+</code></pre>
+<p>这总会等到下一次 VBlank 开始。而 <code>REG_VCOUNT</code> 现在是 <em><code>volatile</code></em>（“vu16” 被 <u>v</u>olatile <u>u</u>nsigned（<u>16</u>位）short typedef 而来。我会大量使用这类简写，所以习惯它吧）。这是一种做法。另一种是检查显示状态寄存器 <code>REG_DISPSTAT</code>{0} 中的最后一位。
+<br></p>
+<p>所以我们搞定了，对吧？呃……不，不完全是。虽然你现在有一个简单的 vsync 方法，但它也是一种非常糟糕的方法。当你在 while 循环里时，你仍在消耗 CPU 周期。这当然耗电。而且由于你在这个 while 循环里啥也不干，你不只是用了它，你实际上是在浪费电量。此外，由于你一开始大概只会做小游戏，你将浪费<em>大量</em>的电量。推荐的 vsync 方法是：在事情做完后让 CPU 进入低功耗模式，然后用中断把它唤醒。你可以在<a href="swi.html#sec-vsync2">这里</a>读到这个过程，但既然你必须知道如何使用<a href="interrupts.html">中断</a>和 <a href="swi.html">BIOS 调用</a>，你或许想等一会儿。</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="first.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="bitmaps.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="first.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="bitmaps.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>
