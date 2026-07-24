@@ -12,10 +12,10 @@ gen_sitemap.py - 为 mdBook 构建产物生成 sitemap.xml（后处理脚本）
 
 说明:
     - 扫描 output/ 下所有 .html，拼成绝对 URL 写入 output/sitemap.xml
-    - 路径前缀自动取自 book.toml 的 [output.html] site-url（本例为 /tonc/）
+    - 路径前缀自动取自 book.toml 的 [output.html] site-url（本例为 /）
     - 仅域名需要占位/替换；路径前缀随 book.toml 自动同步
     - 跳过 print.html 与 404.html（非公开页面）
-    - index.html 映射为站点根目录（/tonc/ 而非 /tonc/index.html）
+    - index.html 映射为站点根目录（/ 而非 /index.html）
     - 每个 <url> 附带 lastmod（取文件修改时间）
 
 依赖: 仅 Python 标准库（3.11+ 用 tomllib；低版本回退到正则解析）
@@ -43,8 +43,8 @@ SKIP_FILES = {"print.html", "404.html"}
 # ---- 读取 book.toml 的 site-url -----------------------------------------
 
 def get_site_url() -> str:
-    """读取 [output.html] 下的 site-url，默认 /tonc/"""
-    default = "/tonc/"
+    """读取 [output.html] 下的 site-url，默认 /"""
+    default = "/"
     if not BOOK_TOML.exists():
         return default
     try:
