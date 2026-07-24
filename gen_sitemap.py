@@ -4,7 +4,7 @@
 gen_sitemap.py - 为 mdBook 构建产物生成 sitemap.xml（后处理脚本）
 
 用法:
-    # 部署前用占位域名先生成（默认 https://example.com，路径前缀读 book.toml 的 site-url）
+    # 部署前用占位域名先生成（默认 https://tonc-zh.ssshooter.com，路径前缀读 book.toml 的 site-url）
     python3 gen_sitemap.py
 
     # 部署时指定正式域名（推荐用环境变量，避免硬编码）
@@ -35,7 +35,7 @@ OUTPUT_DIR = ROOT / "output"
 BOOK_TOML = ROOT / "book.toml"
 
 # 占位域名：部署时通过环境变量 SITEMAP_DOMAIN 覆盖
-DOMAIN = os.environ.get("SITEMAP_DOMAIN", "https://example.com").rstrip("/")
+DOMAIN = os.environ.get("SITEMAP_DOMAIN", "https://tonc-zh.ssshooter.com").rstrip("/")
 
 # 跳过这些页面（非公开/打印版）
 SKIP_FILES = {"print.html", "404.html"}
