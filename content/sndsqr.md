@@ -1,27 +1,27 @@
-# 18. Beep! GBA sound introduction
+# 18. 哔！GBA 声音入门
 
 <!-- toc -->
 
-## Introduction to GBA sound {#sec-intro}
+## GBA 声音简介 {#sec-intro}
 
-Apart from graphics and interaction, there is one other sense important to games: audio. While graphics may set the scene, sound sets the mood, which can be even more important that the graphics. Try playing *Resident Evil* with, say, "Weird Al" Yankovic playing: it simply doesn't work, the atmosphere is lost.
+除了图形和交互之外，游戏还有另一种重要的感官体验：音频。虽然画面可以布置场景，但声音能营造氛围，有时它甚至比画面更重要。试着在玩《生化危机》时配上 "Weird Al" Yankovic 的音乐：根本行不通，气氛全无。
 
-The GBA has six sound channels. The first four are roughly the same as the original Game Boy had: two square wave generators (channels 1 and 2), a sample player (channel 3) and a noise generator (channel 4). Those are also referred to as the DMG channels after the Game Boy's code name "Dot Matrix Game." New are two Direct Sound channels A and B (not to be confused with Microsoft's DirectSound, the DirectX component). These are 8-bit digital pulse code modulation (PCM) channels.
+GBA 共有六个声音通道。前四个与初代 Game Boy 基本相同：两个方波发生器（通道 1 和 2）、一个采样播放器（通道 3）和一个噪声发生器（通道 4）。它们也常被称为 DMG 通道，得名于 Game Boy 的代号 "Dot Matrix Game（点阵游戏机）"。新增的是两个 Direct Sound 通道 A 和 B（不要和微软的 DirectSound 这个 DirectX 组件混淆）。它们是 8 位的数字脉冲编码调制（PCM）通道。
 
-I should point out that I really know very little about sound programming, mostly because I'm not able to actually put together a piece of music (it's kinda hard to do that when you already have music playing). If you want to really learn about sound programming, you should look at [Belogic.com](http://www.belogic.com), where almost everybody got their information from, and [deku.gbadev.org](https://stuij.github.io/deku-sound-tutorial/), which shows you how to build a sound mixer. Both of these sites are excellent.
+我得先说明，我其实对声音编程知之甚少，主要是因为我没法真正自己拼凑出一段音乐（当你身边已经在放音乐时，这事儿可不好办）。如果你真的想学声音编程，应该去 [Belogic.com](http://www.belogic.com)（几乎所有人都是从那里获取信息的）以及 [deku.gbadev.org](https://stuij.github.io/deku-sound-tutorial/)，后者会教你如何构建一个声音混音器。这两个网站都非常棒。
 <!-- as of 2023-09, belogic.com uses a self-signed certificate -->
 
-I may not know much about sound creation/programming, but at its core sound is a wave in matter; waves are mathematical critters, and I *do* know a thing or two about math, and that's kind of what I'll do here for the square wave generators.
+我也许不懂太多声音创作/编程，但本质上声音是物质中的一种波；波是数学生物，而我*确实*懂一点数学，所以接下来关于方波发生器，我就来讲讲这部分。
 
-## Sound and Waves {#sec-sndwav}
+## 声音与波 {#sec-sndwav}
 
-Consider if you will, a massive sea of particles, all connected to their neighbours with little springs. Now give one of them a little push. In the direction of the push, the spring compresses and relaxes, pushing the original particle back to its normal position and passing on the push to the neighbour; this compresses the next spring and relays the push to *its* neighbour, and so on and so on.
+设想有一片由粒子组成的汪洋，每个粒子都用小弹簧与邻居相连。现在推其中一个粒子一下。在推力方向上，弹簧被压缩后又弹回，把原来的粒子推回原位，同时把推力传给了邻居；这又压缩了下一根弹簧，把推力传给*它*的邻居，如此这般，循环往复。
 
-This is a prime example of wave behaviour. Giving a precise definition of a wave that covers all cases is tricky, but in essence, a <dfn>wave</dfn> is a <dfn>transferred disturbance</dfn>. There are many kinds of waves; two major classes are <dfn>longitudinal</dfn> waves, which oscillate in the direction of travel, and <dfn>transverse</dfn> waves, which are perpendicular to it. Some waves are periodic (repeating patterns over time or space), some aren't. Some travel, some don't.
+这是波动行为的一个典型例子。要给涵盖所有情况的波下一个精确的定义并不容易，但本质上，<dfn>波</dfn>就是一种<dfn>被传递的扰动</dfn>。波有许多种类；两大类分别是<dfn>纵波</dfn>和<dfn>横波</dfn>，纵波的振动方向与传播方向一致，横波则与之垂直。有些波是周期性的（在时间或空间上重复出现某种图案），有些不是。有些会传播，有些则不会。
 
-### Waves {#ssec-harmonic}
+### 波 {#ssec-harmonic}
 
-The canonical wave is the <dfn>harmonic wave</dfn>. This is any function ψ(*x*) that's a solution to {@eq:wave}. The name of the variable doesn't really matter, but usually it's either spatial (*x*, *y*, *z*) or temporal (*t*), or all of these at the same time. The general solution can be found in {@eq:wave-sols}. Or perhaps I should say solution**s**, as there are many ways of writing them down. They're all equivalent though, and you can go from one to the other with some trickery that does not concern us at this moment.
+最典型的波是<dfn>谐波</dfn>。这是任何满足 {@eq:wave} 的解的函数 ψ(*x*)。变量的名字其实无关紧要，但通常它要么是空间量（*x*、*y*、*z*），要么是时间量（*t*），或者同时是这些量。通解可以在 {@eq:wave-sols} 中找到。或许我应该说"解**s**"，因为可以写成很多种形式。不过它们都是等价的，你可以用一些眼下我们不必关心的技巧在它们之间互相转换。
 
 <!--
 \dv[2]{x}\psi(x) + k^2\psi(x) = 0
@@ -82,7 +82,7 @@ The canonical wave is the <dfn>harmonic wave</dfn>. This is any function ψ(*x*)
 </tbody>
 </table>
 
-General solution(s):
+通解（们）：
 
 <!--
 \begin{matrix}
@@ -197,42 +197,41 @@ General solution(s):
 </table>
 
 <div class="cpt_fr" style="width:212px;">
-<img src="./img/wave.png" id="fig:wave" alt="it's a sine wave">
+<img src="./img/wave.png" id="fig:wave" alt="这是一条正弦波">
 
-**{*@fig:wave}**: a harmonic wave
+**{*@fig:wave}**: 一条谐波
 </div>
 
-A full wave can be described by three things. First, there's the <dfn>amplitude</dfn> *A*, which gives half-distance between the minimum and maximum. Second, the <dfn>wavelength</dfn> λ, which is the length after which the wave repeats itself (this is tied to wave-number *k*= 2π/λ). Then there's <dfn>phase constant</dfn> φ<sub>0</sub>, which defines the stating point. If the wave is in time, instead of a wavelength you have <dfn>period</dfn> *T*, <dfn>frequency</dfn> *f*=1/*T* (and angular frequency ω= 2π*f*= 2π/*T*). You can see what each of these parameters is in {@fig:wave}.
+一个完整的波可以用三个要素来描述。首先是<dfn>振幅</dfn> *A*，它表示最小值与最大值之间距离的一半。其次是<dfn>波长</dfn> λ，即波重复自身所需的长度（它与波数 *k*= 2π/λ 相关）。然后是<dfn>相位常数</dfn> φ<sub>0</sub>，它定义了起始点。如果波是随时间变化的，那么取代波长的是<dfn>周期</dfn> *T*、<dfn>频率</dfn> *f*=1/*T*（以及角频率 ω= 2π*f*= 2π/*T*）。你可以在 {@fig:wave} 中看到这些参数各自的含义。
 
-One of the interesting things about the wave equation is that it is a linear operation on ψ. What that means is that any combination of solutions is also a solution; this is the <dfn>superposition principle</dfn>. For example, if you have two waves ψ<sub>1</sub> and ψ<sub>2</sub>, then Ψ = *a*ψ<sub>1</sub> + *b*ψ<sub>2</sub> is also a wave. This may sound like a trivial thing but I assure you it's not. The fact that non-linear equations (and they exist too) tend to make scientists cringe a little should tell you something about the value of linear equations.
+波动方程一个有趣的特性是，它对 ψ 是一个线性运算。这意味着解的任意线性组合仍然是解；这就是<dfn>叠加原理</dfn>。例如，如果你有两条波 ψ<sub>1</sub> 和 ψ<sub>2</sub>，那么 Ψ = *a*ψ<sub>1</sub> + *b*ψ<sub>2</sub> 也是一条波。这听起来像是 trivial 的事，但我向你保证并非如此。非线性方程（它们也确实存在）往往让科学家们有点头疼，这一事实足以说明线性方程的价值。
 
-### Sound waves {#ssec-wave-sound}
+### 声波 {#ssec-wave-sound}
 
-Sound is also a wave. In fact, it is a longitudinal pressure wave in matter and pretty much works as the system of particles on springs mentioned earlier with whole sets of molecules moving back and forth. In principle, it has both spatial and temporal structure, and things can get hideously complex if you want to deal with everything. But I'll keep it easy and only consider two parts: amplitude *A* and period and frequency *T* and *f*. As you probably know, the tone of a sound is related to the frequency. Human hearing has a range between 20 Hz and 20 kHz, and the higher the frequency (that is, the more compressed the wave), the higher the tone. Most sounds are actually a conglomeration of different waves, with different amplitudes and frequencies – the superposition principle at work. The funny thing about this is that if you added all those components up to one single function and plot it, it wouldn't look like a sine wave at all anymore. What's even funnier is that you can also reverse the process and take a function –*any* function– and break it up into a superposition of sine and cosine waves, and so see what kind of frequencies your sound has. This is called Fourier Transformation, and we'll get to that in a minute.
+声音也是一种波。事实上，它是物质中的一种纵性压力波，本质上就和前面提到的弹簧粒子系统一样，是一整批分子在前后运动。原则上，它既有空间结构也有时间结构，如果你想把一切都纳入考虑，事情会变得极其复杂。不过我会把它简化，只考虑两个部分：振幅 *A*，以及周期和频率 *T* 和 *f*。你可能知道，声音的音调与频率相关。人类听觉的范围在 20 Hz 到 20 kHz 之间，频率越高（也就是说波被压缩得越厉害），音调就越高。大多数声音实际上是不同波的混合体，拥有不同的振幅和频率——这正是叠加原理在起作用。有趣的是，如果你把所有这些分量加总成一个函数并画出来，它看起来就完全不再像正弦波了。更有趣的是，你还可以反过来看：取任意一个函数，把它拆解成正弦波和余弦波的叠加，从而看出你的声音含有哪些频率。这叫做傅里叶变换，我们马上就会讲到。
 
-### Musical scale {#ssec-notes}
+### 音阶 {#ssec-notes}
 
-While the full range between 20 Hz and 20 kHz is audible, only a discrete set of frequencies are used for music, which brings us to the notion of the <dfn>musical scale</dfn>. Central to these are <dfn>octaves</dfn>, representing a frequency doubling. Each octave is divided into a number of different notes; 12 in Western systems, ranging from A to G, although octave numbering starts at C for some reason. Octave 0 starts at the <dfn>central C</dfn>, which has a frequency of about 262 Hz (see also {@tbl:oct0}. And yes, I know there are only 7 letters between A and G, the other notes are flats and sharps that lie between these notes. The ‘12’ refers to the number of half-notes in an octave. The musical scale is **logarithmic**; each half-note being 2<sup>1/12</sup> apart. Well, almost anyway: for some reason, some notes don't *quite* fit in exactly.
+虽然 20 Hz 到 20 kHz 的整个范围都能被人耳听到，但音乐中只使用其中一组离散的频率，这就引出了<dfn>音阶</dfn>的概念。音阶的核心是<dfn>八度</dfn>，代表频率翻倍。每个八度被划分为若干不同的音符；西方体系中是 12 个，从 A 到 G，尽管八度的编号不知为何是从 C 开始的。第 0 八度从<dfn>中央 C</dfn>开始，其频率约为 262 Hz（另见 {@tbl:oct0}）。是的，我知道 A 到 G 之间只有 7 个字母，其余的音符是介于这些音符之间的降号和升号。这里的"12"指的是一个八度中半音的数量。音阶是**对数**的；每个半音之间相差 2<sup>1/12</sup>。嗯，差不多是这样：出于某些原因，有些音符并不完全*精确*地落在位置上。
 
 <div class="cblock">
 <table id="tbl:oct0" class="table-data">
 <caption align="bottom">
-  <b>{*@tbl:oct0}</b>: notes &amp; frequencies of 
-  octave 0
+  <b>{*@tbl:oct0}</b>: 第 0 八度的音符与频率
 </caption>
 <tbody align="center">
 <tr>
-  <th> half-note
+  <th> 半音
   <th> 0 <th> 1 <th> 2 <th> 3 <th> 4 <th> 5
   <th> 6 <th> 7 <th> 8 <th> 9 <th>10 <th>11 
   <th> (12) 
 <tr>
-  <th> name
+  <th> 名称
   <td> C <td> C# <td> D <td> D# <td> E <td> F 
   <td> F# <td> G <td> G# <td> A <td> A# <td> B 
   <td> (C)
 <tr>
-  <th> freq (Hz)
+  <th> 频率 (Hz)
   <td> 261.7 <td> 277.2 <td> 293.7 <td> 311.2 <td> 329.7 <td> 349.3 
   <td> 370.0 <td> 392.0 <td> 415.3 <td> 440.0 <td> 466.2 <td> 493.9
   <td> (523.3)
@@ -240,9 +239,9 @@ While the full range between 20 Hz and 20 kHz is audible, only a discrete set of
 </table>
 </div>
 
-### Fourier transforms and the square wave {#ssec-fourier}
+### 傅里叶变换与方波 {#ssec-fourier}
 
-Fourier transformations are a way of describing a function in the time domain as a distribution of frequencies called a <dfn>spectrum</dfn>. They're also one of the many ways that professors can scare the bejebus out of young, natural-science students. Don't worry, I'm sure you'll get through this section unscathed <kbd>\>:)</kbd>. For well - to reasonably - behaved functions, you can rewrite them as series of *very* well-behaved functions such as polynomials, exponentials and also waves. For example, as a Fourier series, a function may look like {@eq:fser}.
+傅里叶变换是一种把时域函数描述为频率分布（称为<dfn>频谱</dfn>）的方法。它也是教授们把年轻的自然科学学生吓个半死的众多手段之一。别担心，我相信你能毫发无损地读完这一节 <kbd>\>:)</kbd>。对于表现良好——或者说相当良好——的函数，你可以把它们重写为*非常*规整的函数（比如多项式、指数函数，以及波）的级数形式。例如，作为傅里叶级数，一个函数可以写成像 {@eq:fser} 那样。
 
 <!--
 f(x) = \frac{1}{2}A_0 + \sum_{n>0}A_m\cos(m{\omega}t) + \sum_{n>0}B_m\sin(m{\omega}t)
@@ -326,7 +325,7 @@ f(x) = \frac{1}{2}A_0 + \sum_{n>0}A_m\cos(m{\omega}t) + \sum_{n>0}B_m\sin(m{\ome
 </math>
 </table>
 
-Of course, the whole thing relies on being able to find the coefficients *A*<sub>m</sub> and *B*<sub>m</sub>. While it is fairly straightforward to derive the equations for them, I'll leave that as an exercise for the reader and just present the results in the form of {@eq:ftrans}. I should mention that there are actually a few ways of defining Fourier transforms. For example, there are versions that don't integrate over \[0,*T*\], but over \[−½*T*, ½*T*\]; or use the complex exponential instead of sines and cosines, but in the end they're all doing the same thing.
+当然，整件事的关键在于能否求出系数 *A*<sub>m</sub> 和 *B*<sub>m</sub>。虽然推导它们对应的方程相当直接，但我把它留作读者的练习，这里只以 {@eq:ftrans} 的形式给出结果。我应该说明，傅里叶变换实际上有几种定义方式。例如，有些版本不是在 \[0,*T*\] 上积分，而是在 \[−½*T*, ½*T*\] 上；或者使用复指数而不是正弦和余弦，但归根结底它们做的都是同一件事。
 
 <!--
 \begin{matrix}
@@ -443,12 +442,12 @@ B_m & = & \frac{2}{T}\int_{0}^{T} f(t)\sin(m{\omega}t) dt
 </table>
 
 <div class="cpt_fr" style="width:212px;">
-<img src="./img/sqrwave.png" id="fig:sqrwave" alt="sharp transitions between flat crest and flat trough"><br>
+<img src="./img/sqrwave.png" id="fig:sqrwave" alt="平顶与平底之间有陡峭的跳变"><br>
 
-**{*@fig:sqrwave}**: a square wave
+**{*@fig:sqrwave}**: 一个方波
 </div>
 
-As an example, let's take a look at the square wave shown in {@fig:sqrwave}. A square wave is on (1) for a certain time (parameter *h*), then off (0) for the rest of the cycle. It's still a periodic wave, so it doesn't really matter where we place the thing along the *t*-axis. I centered it on the peak for convenience: doing so makes it a symmetrical wave which has the nice properly of removing *all* the anti-symmetrical sine waves. *A*<sub>0</sub>=*h*/*T* because it's the average of the function and the rest of the *A*<sub>m</sub>'s follow from {@eq:ftrans}.
+作为例子，我们来看看 {@fig:sqrwave} 中所示的方波。方波在一段时间（参数 *h*）内为高（1），然后在剩下的周期里为低（0）。它仍然是一条周期波，所以我们把它沿 *t* 轴放在哪里其实无关紧要。为了方便，我把它以峰值居中：这样它就成了一条对称波，能很好地消去*所有*反对称的正弦波。*A*<sub>0</sub>=*h*/*T*，因为它是函数的平均值，其余的 *A*<sub>m</sub> 则由 {@eq:ftrans} 得出。
 
 <!--
 A_m = \frac{2}{\pi} \cdot \frac{\sin({\pi}mh/T)}{m} = \frac{2T}{h} \cdot \frac{\sin({\pi}h/T \cdot m)}{{\pi}h/T \cdot m}
@@ -544,24 +543,24 @@ A_m = \frac{2}{\pi} \cdot \frac{\sin({\pi}mh/T)}{m} = \frac{2T}{h} \cdot \frac{\
   </table>
 </table>
 
-*A*<sub>m</sub> is a <dfn>sinc</dfn> function: sin(*x*)/*x*. For high *m* it approaches zero (as it should, since higher terms should be relatively less important), but also interesting is that of the higher terms some will also *vanish* because of the sine. This will happen whenever *m* is a multiple of *T/h*.
+*A*<sub>m</sub> 是一个<dfn>辛格（sinc）</dfn>函数：sin(*x*)/*x*。对于较大的 *m*，它趋近于零（理应如此，因为高阶项应该相对不那么重要）；但同样有趣的是，由于正弦的存在，某些高阶项也会*消失*。每当 *m* 是 *T/h* 的整数倍时，就会发生这种情况。
 
-## GBA sound {#sec-gbasnd}
+## GBA 声音 {#sec-gbasnd}
 
-### Sound registers {#ssec-snd-regs}
+### 声音寄存器 {#ssec-snd-regs}
 
-For graphics, you only had to deal with two registers (`REG_DISPCNT` and `REG_BGxCNT`) to get a result; for sound, you have to cover a lot of registers before you get *anything*. The DMG channels each have 2 or 3 registers – some with similar functionality, some not. Apart from that, there are four overall control registers.
+做图形时，你只需处理两个寄存器（`REG_DISPCNT` 和 `REG_BGxCNT`）就能得到结果；而做声音时，在听到*任何*声音之前，你得先配置一大堆寄存器。每个 DMG 通道各有 2 到 3 个寄存器——有些功能相似，有些则不同。除此之外，还有四个总体控制寄存器。
 
-The register nomenclature seems particularly vexed when it comes to sound. There are basically two sets of names that you can find: one consisting of `REG_SOUNDxCNT` followed by `_L`, `_H` and `_X` in a rather haphazard manner; the other one uses a `REG_SGxy` and `REG_SGCNTy` structure (*x*=1, 2, 3 or 4 and *y*=0 or 1). I think the former is the newer version, which is funny because the older is more consistent. Oh well. In any case, I find neither of them very descriptive and keep forgetting which of the L/H/X or 0/1 versions does what, so I use a *third* set of names based on the ones found in [tepples'](https://pineight.com/gba/) pin8gba.h, which IMHO makes more sense than the other two.
+说到声音，寄存器的命名方式似乎特别让人头疼。你基本能找到两套名字：一套由 `REG_SOUNDxCNT` 加上 `_L`、`_H` 和 `_X` 以一种相当随意的方式构成；另一套使用 `REG_SGxy` 和 `REG_SGCNTy` 的结构（*x*=1、2、3 或 4，*y*=0 或 1）。我觉得前者是较新的版本，这很讽刺，因为更旧的那套反而更一致。唉，算了。无论如何，我觉得这两套都不够直观，总是记不住 L/H/X 或 0/1 版本各自对应什么，所以我用了*第三*套名字，它们基于 [tepples'](https://pineight.com/gba/) 的 pin8gba.h，依我看比前两套更讲得通。
 
 <div class="cblock">
 <table id="tbl:snd-names" class="table-data">
 <caption align="bottom">
-  <b>{*@tbl:snd-names}</b>: Sound register nomenclature.
+  <b>{*@tbl:snd-names}</b>: 声音寄存器命名对照。
 </caption>
 <tr align="center">
-  <th> offset	<th> function 
-  <th> old		<th> new			<th> tonc
+  <th> 偏移	<th> 功能 
+  <th> 旧名		<th> 新名			<th> tonc
 <tr>
   <th> 60h	<td> channel 1 (sqr) sweep
   <td rowspan=2> REG_SG10	<td> SOUND1CNT_L	<td> REG_SND1SWEEP	
@@ -607,13 +606,13 @@ The register nomenclature seems particularly vexed when it comes to sound. There
 </table>
 </div>
 
-“Oh great. This is going to be one of ‘tegel’ things isn't it? Where *you* think you've got something nice but different going, then later you revert to the standard terminology to conform with the rest of the world. Right?”
+"哦太好了。这又要变成那些'tegel'式的事情之一了对吧？就是*你*自以为搞出了什么又好又不一样的东西，结果后来为了和全世界保持一致又退回标准术语。是吧？"
 
-No, I'll stick to these names. Probably. Hopefully. … To be honest, I really don't know <kbd>:P</kbd>. This is not really a big deal, though: you can easily switch between names with a few defines or search & replaces. Anyway, `REG_SNDxFREQ` contains frequency information and `REG_SNDxCNT` things like volume and envelope settings; in some cases, the bit layouts are even exactly the same. Apart from the sweep function of channel 1, it is exactly the same as channel 2.
+不，我会坚持用这些名字。大概吧。希望如此。……说实话，我真不太确定 <kbd>:P</kbd>。不过这倒也不是什么大事：你只要用几个 define 或者查找替换就能在名字之间切换。总之，`REG_SNDxFREQ` 存放频率信息，`REG_SNDxCNT` 存放音量和包络之类的设置；在某些情况下，它们的位布局甚至完全一样。除了通道 1 的扫频功能外，它和通道 2 完全相同。
 
-### Master sound registers {#ssec-snd-mstr}
+### 主声音寄存器 {#ssec-snd-mstr}
 
-`REG_SNDDMGCNT`, `REG_SNDDSCNT` and `REG_SNDSTAT` are the master sound controls; you have to set at least some bits on each of these to get anything to work.
+`REG_SNDDMGCNT`、`REG_SNDDSCNT` 和 `REG_SNDSTAT` 是主声音控制寄存器；要让任何声音工作起来，你至少得在这几个寄存器上各自设置一些位。
 
 <div class="reg">
 <table class="table-reg">
@@ -642,29 +641,29 @@ No, I'll stick to these names. Probably. Hopefully. … To be honest, I really d
   <col class="bits" width=40>
   <col class="bf" width="8%">
   <col class="def" width=128>
-<tr align="left"><th>bits<th>name<th>define<th>description
+<tr align="left"><th>位<th>名称<th>宏定义<th>描述
 <tbody valign="top">
 <tr class="bg0">	
   <td>0-2<td class="rclr2">LV
   <td> &nbsp;
-  <td> Left volume
+  <td> 左声道音量
 <tr class="bg1">	
   <td>4-6<td class="rclr3">RV
   <td> &nbsp;
-  <td> Right volume
+  <td> 右声道音量
 <tr class="bg0">	
   <td>8-B<td class="rclr0">L1-L4
   <td>SDMG_LSQR1, SDMG_LSQR2, SDMG_LWAVE, SDMG_LNOISE
-  <td>Channels 1-4 on left
+  <td>通道 1-4 接左声道
 <tr class="bg1">	
   <td>C-F<td class="rclr1">R1-R4
   <td>SDMG_RSQR1, SDMG_RSQR2, SDMG_RWAVE, SDMG_RNOISE
-  <td>Channels 1-4 on right
+  <td>通道 1-4 接右声道
 </tbody>
 </table>
 </div>
 
-`REG_SNDDMGCNT` controls the main volume of the DMG channels and which ones are enabled. These controls are separate for the left and right speakers. Below are two macros that make manipulating the register easier. Note that they *don't* actually set the register, just combine the flags.
+`REG_SNDDMGCNT` 控制 DMG 通道的主音量，以及哪些通道被启用。这些控制对左、右扬声器是分开的。下面是两个让寄存器操作更方便的宏。注意它们*并不*真正去设置寄存器，只是把各个标志位组合起来。
 
 ```c
 #define SDMG_SQR1    0x01
@@ -705,40 +704,40 @@ No, I'll stick to these names. Probably. Hopefully. … To be honest, I really d
   <col class="bits" width=40>
   <col class="bf" width="8%">
   <col class="def" width=128>
-<tr align="left"><th>bits<th>name<th>define<th>description
+<tr align="left"><th>位<th>名称<th>宏定义<th>描述
 <tbody valign="top">
 <tr class="bg0">	
   <td>0-1<td class="rclr0">DMGV
   <td>SDS_DMG25, SDS_DMG50, SDS_DMG100
-  <td>DMG Volume ratio. 
+  <td>DMG 音量比例。
     <ul>
       <li><b>00</b>: 25%
       <li><b>01</b>: 50%
       <li><b>10</b>: 100%
-      <li><b>11</b>: forbidden
+      <li><b>11</b>: 禁止
     </ul>
 <tr class="bg1">	
   <td> 2 <td class="rclr1">AV
   <td>SDS_A50, SDS_A100
-  <td>DSound A volume ratio. 50% if clear; 100% of set
+  <td>DSound A 音量比例。清零时为 50%；置位时为 100%
 <tr class="bg0">	
   <td> 3 <td class="rclr1">BV
   <td>SDS_B50, SDS_B100
-  <td>DSound B volume ratio. 50% if clear; 100% of set
+  <td>DSound B 音量比例。清零时为 50%；置位时为 100%
 <tr class="bg1">	
   <td>8-9<td class="rclr2">AR, AL
   <td>SDS_AR, SDS_AL
-  <td><B>DSound A enable</b> Enable DS A on right and left speakers
+  <td><B>DSound A 启用</b> 在左右扬声器上启用 DS A
 <tr class="bg0">	
   <td> A <td class="rclr3">AT
   <td>SDS_ATMR0, SDS_ATMR1
-  <td><b>Dsound A timer</B>. Use timer 0 (if clear)  or 1 (if set) 
-    for DS A
+  <td><b>Dsound A 定时器</B>。使用定时器 0（清零时）或 1（置位时）
+    用于 DS A
 <tr class="bg1">	
   <td> B <td class="rclr4">AF
   <td>SDS_ARESET
-  <td><b>FIFO reset for Dsound A</b>. When using DMA for Direct sound, 
-    this will cause DMA to reset the FIFO buffer after it's used.
+  <td><b>Dsound A 的 FIFO 复位</b>。当使用 DMA 进行 Direct Sound 时，
+    这会使 DMA 在使用后复位 FIFO 缓冲区。
 <tr class="bg0">	
   <td>C-F
   <td>
@@ -746,12 +745,12 @@ No, I'll stick to these names. Probably. Hopefully. … To be honest, I really d
     <span class="rclr3">BT</span>, 
     <span class="rclr4">BF</span>
   <td>SDS_BR, SDS_BL, SDS_BTMR0, SDS_BTMR1, SDS_BRESET
-  <td>As bits 8-B, but for DSound B
+  <td>同 8-B 位，但用于 DSound B
 </tbody>
 </table>
 </div>
 
-Don't know too much about `REG_SNDDSCNT`, apart from that it governs PCM sound, but also has some DMG sound bits for some reason. `REG_SNDSTAT` shows the status of the DMG channels *and* enables all sound. If you want to have any sound at all, you need to set bit 7 there.
+关于 `REG_SNDDSCNT` 我了解不多，只知道它管理 PCM 声音，但出于某些原因也带有一些 DMG 声音的位。`REG_SNDSTAT` 显示 DMG 通道的状态*并且*启用所有声音。如果你想让任何声音响起来，就需要把那里的第 7 位置位。
 
 <div class="reg">
 <table class="table-reg">
@@ -776,36 +775,33 @@ Don't know too much about `REG_SNDDSCNT`, apart from that it governs PCM sound, 
   <col class="bits" width=40>
   <col class="bf" width="8%">
   <col class="def" width=128>
-<tr align="left"><th>bits<th>name<th>define<th>description
+<tr align="left"><th>位<th>名称<th>宏定义<th>描述
 <tbody valign="top">
 <tr class="bg0">	
   <td class="rof">0-3<td class="rclr1">1A-4A
   <td>SSTAT_SQR1, SSTAT_SQR2, SSTAT_WAVE, SSTAT_NOISE
-  <td><b>Active channels</b>. Indicates which DMG channels are 
-    currently playing. They do <i>not</i> enable the channels; 
-    that's what <code>REG_SNDDMGCNT</code> is for.
+  <td><b>活动通道</b>。指示当前正在播放的 DMG 通道。它们<i>不</i>会启用通道；
+    那才是 <code>REG_SNDDMGCNT</code> 的职责。
 <tr class="bg1">	
   <td> 7 <td class="rclr0">MSE
   <td>SSTAT_DISABLE, SSTAT_ENABLE
-  <td><b>Master Sound Enable</b>. Must be set if any sound is to 
-    be heard at all. Set this <b>before</b> you do anything else: 
-    the other registers can't be accessed otherwise, see GBATEK 
-    for details. 
+  <td><b>主声音启用</b>。如果要听到任何声音，必须置位。在干别的事<b>之前</b>
+    先设置它：否则其他寄存器无法被访问，详见 GBATEK。
 </tbody>
 </table>
 </div>
 
-:::warning Sound register access
+:::warning 声音寄存器访问
 
-Emulators may allow access to sound registers even if sound is disabled (`REG_SNDSTAT`\{7\} is clear), but hardware doesn't. Always enable sound before use.
+模拟器可能允许访问声音寄存器，即使声音被禁用（`REG_SNDSTAT`\{7\} 为 0）；但硬件不行。使用前务必先启用声音。
 
 :::
 
-### GBA Square wave generators {#ssec-snd-sqr}
+### GBA 方波发生器 {#ssec-snd-sqr}
 
-The GBA has two square sound generators, channels 1 and 2. The only difference between them is channel 1's <dfn>frequency sweep</dfn>, which can make the frequency rise or drop exponentially as it's played. That's all done with `REG_SND1SWEEP`. `REG_SNDxCNT` controls the wave's length, envelope and duty cycle. Length should be obvious. The <dfn>envelope</dfn> is basically the amplitude as function of time: you can make it fade in (<dfn>attack</dfn>), remain at the same level (<dfn>sustain</dfn>) and fade out again (<dfn>decay</dfn>). The envelope has 16 volume levels and you can control the starting volume, direction of the envelope and the time till the next change. Volumes are linear: 12 produces twice the amplitude of 6. The <dfn>duty</dfn> refers to the ratio of the ‘on’ time and the period, in other words *D* = *h/T*.
+GBA 有两个方波声音发生器，即通道 1 和 2。它们之间唯一的区别是通道 1 的<dfn>频率扫频</dfn>，它可以让频率在播放时按指数方式上升或下降。这全部由 `REG_SND1SWEEP` 完成。`REG_SNDxCNT` 控制波的时长、包络和占空比。时长应当很好理解。<dfn>包络</dfn>本质上就是振幅随时间变化的函数：你可以让它淡入（<dfn>起音</dfn>）、保持在相同水平（<dfn>持续</dfn>），然后再淡出（<dfn>衰减</dfn>）。包络有 16 个音量等级，你可以控制起始音量、包络的方向，以及到下一次变化的时间。音量是线性的：12 产生的振幅是 6 的两倍。<dfn>占空比</dfn>指的是"高"电平时间与周期的比值，换句话说就是 *D* = *h/T*。
 
-Of course, you can control the frequency as well, namely with `REG_SNDxFREQ`. However, it isn't the frequency that you enter in this field. It's not exactly the period either; it's something I'll refer to as the <dfn>rate</dfn> *R*. The three quantities are related, but different in subtle ways and chaos ensues when they're confused – and they often *are* in documentation, so be careful. The relation between frequency *f* and rate *R* is described by {@eq:fvsr}; if the rate goes up, so does the frequency. Since *R* ∈ \[0, 2047\], the range of frequencies is \[64 Hz, 131 kHz\]. While this spans ten octaves, the highest ones aren't of much use because the frequency steps become too large (the denominator in eq {@eq:fvsr} approaches 0).
+当然，你也可以控制频率，用的是 `REG_SNDxFREQ`。不过，你在这个字段里填的并不是频率，也不完全是周期；而是一种我称之为<dfn>速率</dfn> *R* 的量。这三个量彼此相关，却又微妙地不同，一旦混淆就会一团糟——而文档里*经常*会混淆它们，所以要小心。频率 *f* 与速率 *R* 的关系由 {@eq:fvsr} 描述；速率升高，频率也随之升高。由于 *R* ∈ \[0, 2047\]，频率范围是 \[64 Hz, 131 kHz\]。虽然这跨越了十个八度，但最高的那些用处不大，因为频率步进变得太大（公式 {@eq:fvsr} 中的分母趋近于 0）。
 
 <!--
 f(R) = \frac{2^{17}}{2048-R}
@@ -878,9 +874,9 @@ R(f) = 2048 - \frac{2^{17}}{f}
 </math>
 </table>
 
-### Square sound registers {#ssec-snd-sqrreg}
+### 方波声音寄存器 {#ssec-snd-sqrreg}
 
-Both square-wave generators have registers `REG_SNDxCNT` for envelope/length/duty control and `REG_SNDxFREQ` for frequency control. Sound 1 also has sweep control in the form of `REG_SND1SWEEP`. Look in {@tbl:snd-names} for the traditional names; note that in traditional nomenclature the suffixes for control and frequency are *different* for channels 1 and 2, even though they have exactly the same function.
+两个方波发生器都有用于包络/长度/占空比控制的寄存器 `REG_SNDxCNT`，以及用于频率控制的 `REG_SNDxFREQ`。声音 1 还额外以 `REG_SND1SWEEP` 的形式拥有扫频控制。传统名称可查阅 {@tbl:snd-names}；注意，在传统命名法中，控制和频率的后缀对通道 1 和 2 是*不同*的，尽管它们的功能完全一样。
 
 <div class="reg">
 <table class="table-reg" id="tbl-reg-snd1cnt" width=420>
@@ -905,51 +901,41 @@ Both square-wave generators have registers `REG_SNDxCNT` for envelope/length/dut
   <col class="bits" width=40>
   <col class="bf" width="8%">
   <col class="def" width="12%">
-<tr align="left"><th>bits<th>name<th>define<th>description
+<tr align="left"><th>位<th>名称<th>宏定义<th>描述
 <tbody valign="top">
 <tr class="bg0">	
   <td class="wof">0-5<td class="rclr4">L
   <td>SSQR_LEN#
-  <td>Sound <b>Length</b>. This is a <i>write-only</i> field and only 
-    works if the channel is timed (<code>REG_SNDxFREQ{E}</code>). The 
-    length itself is actually (64&minus;<i>L</i>)/256 seconds for a 
-    [3.9, 250] ms range.
+  <td>声音<b>长度</b>。这是一个<i>只写</i>字段，仅当通道为定时模式（<code>REG_SNDxFREQ{E}</code>）时才生效。其长度实际为 (64&minus;<i>L</i>)/256 秒，范围对应 [3.9, 250] ms。
 <tr class="bg1">	
   <td>6-7<td class="rclr3">D
   <td>SSQR_DUTY1_8, SSQR_DUTY1_4, SSQR_DUTY1_2, SSQR_DUTY3_4, 
     SSQR_DUTY#
-  <td>Wave <b>duty cycle</b>. Ratio between on and of times of the 
-    square wave. Looking back at eq&nbsp;18.2, 
-	this comes down to <i>D=h/T</i>. The available cycles are 
-	12.5%, 25%, 50%, and 75% (one eighth, quarter, half and three 
-	quarters).
+  <td>波形<b>占空比</b>。方波高、低电平时间之比。回顾公式&nbsp;18.2，
+	这等价于 <i>D=h/T</i>。可选周期为
+	12.5%、25%、50% 和 75%（即八分之一、四分之一、二分之一和四分之三）。
 <tr class="bg0">	
   <td>8-A<td class="rclr2">EST
   <td>SSQR_TIME#
-  <td>Envelope <b>step-time</b>. Time between envelope changes: 
-    &Delta;t = <i>EST</i>/64 s.
+  <td>包络<b>步进时间</b>。相邻两次包络变化之间的时间：
+    &Delta;t = <i>EST</i>/64 s。
 <tr class="bg1">	
   <td> B <td class="rclr1">ED
   <td>SSQR_DEC, SSQR_INC
-  <td>Envelope <b>direction</b>. Indicates if the envelope 
-    decreases (default) or increases with each step. 
+  <td>包络<b>方向</b>。指示包络每一步是减小（默认）还是增大。
 <tr class="bg0">	
   <td>C-F<td class="rclr0">EIV
   <td>SSQR_IVOL#
-  <td>Envelope <b>initial value</b>. Can be considered a <b>volume</b> 
-    setting of sorts: 0 is silent and 15 is full volume. Combined 
-    with the direction, you can have fade-in and fade-outs; to have a 
-    sustaining sound, set initial volume to 15 and an increasing 
-    direction. To vary the <i>real</i> volume, remember 
-    <code>REG_SNDDMGCNT</code>.
+  <td>包络<b>初始值</b>。可视为某种<b>音量</b>设置：0 为静音，15 为最大音量。结合方向，你可以实现淡入和淡出；若要持续发声，可将初始音量设为 15 并取增大的方向。要改变<i>实际</i>音量，请记住
+    <code>REG_SNDDMGCNT</code>。
 </tbody>
 </table>
 </div>
 
 <div class="cpt_fr" style="width:312px;">
-<img src="./img/sqrfour.png" alt="Fourier transform of square wave" id="fig:sqrf"><br>
-<b>{*@fig:sqrf}</b>: Square wave spectrum. 
-  (integer <i>m</i> only)
+<img src="./img/sqrfour.png" alt="方波的傅里叶变换" id="fig:sqrf"><br>
+<b>{*@fig:sqrf}</b>: 方波频谱。
+  （仅整数 <i>m</i>）
 </div>
 
 <!--
@@ -998,7 +984,7 @@ A_m = \frac{2}{\pi} \cdot \frac{sin({\pi}Dm)}{m}
 </math>
 </table>
 
-Some more on the duty cycle. Remember we've done a Fourier analysis of the square wave so we could determine the frequencies in it. Apart from the **base frequency**, there are also **overtones** of frequencies *m·f*. The spectrum (see {@fig:sqrf}) gives the amplitudes of all these frequencies. Note that even though the figure has lines, only integral values of *m* are allowed. The base frequency at *m*=1 has the highest significance and the rest falls off with 1/*m*. The interesting part is when the sine comes into play: whenever *m·D* is an integer, that component vanishes! With a fractional duty number –like the ones we have– this happens every time *m* is equal to the denominator. For the 50% duty, every second overtone disappears, leaving a fairly smooth tone; for 12.5%, only every eighth vanishes and the result is indeed a noisier sound. Note that for *both* ¼ and ¾ duties every fourth vanishes so that they should be indistinguishable. I was a little surprised about this result, but sure enough, when I checked they really did sound the same to me.
+再多说一点占空比。记得我们对方波做过傅里叶分析，从而能确定其中包含的频率。除了**基频**之外，还有频率为 *m·f* 的**泛音**。频谱（见 {@fig:sqrf}）给出了所有这些频率的振幅。注意，虽然图中画出了连续的线，但 *m* 只允许取整数值。*m*=1 时的基频最重要，其余的按 1/*m* 衰减。有趣的地方在于正弦开始起作用时：每当 *m·D* 为整数，对应的分量就消失了！对于我们这种分数占空比的情况——每次 *m* 等于分母时就会发生。对于 50% 占空比，每隔一个泛音消失，于是声音相当平滑；对于 12.5%，只有每八个才消失，结果确实更"吵"。注意，对于 ¼ 和 ¾ 占空比，都是每四个消失一个，所以它们听起来应该没有区别。这个结果让我有点意外，但当我实际去听时，它们确实听起来一样。
 
 <div class="reg">
 <table class="table-reg" id="tbl-reg-snd1freq" width=420>
@@ -1023,32 +1009,29 @@ Some more on the duty cycle. Remember we've done a Fourier analysis of the squar
   <col class="bits" width=40>
   <col class="bf" width="8%">
   <col class="def" width="12%">
-<tr align="left"><th>bits<th>name<th>define<th>description
+<tr align="left"><th>位<th>名称<th>宏定义<th>描述
 <tbody valign="top">
 <tr class="bg0">	
   <td class="wof">0-A<td class="rclr0">R
   <td>SFREQ_RATE#
-  <td>Sound <b>rate</b>. Well, initial rate. That's <i>rate</i>, not 
-    frequency. Nor period. The relation between rate and frequency is 
-    <span class="nobr"><i>f</i> = 
-    2<sup>17</sup><big>/</big>(2048-<i>R</i>)</span>. Write-only 
-    field.
+  <td>声音<b>速率</b>。准确地说，是初始速率。注意是<i>速率</i>，不是
+    频率，也不是周期。速率与频率的关系是
+    <span class="nobr"><i>f</i> =
+    2<sup>17</sup><big>/</big>(2048-<i>R</i>)</span>。只写
+    字段。
 <tr class="bg1">	
   <td> E <td class="rclr2">T
   <td>SFREQ_HOLD, SFREQ_TIMED
-  <td><b>Timed</b> flag. If set, the sound plays for as long as 
-    the length field (<code>REG_SNDxCNT</code>{0-5}) indicates. 
-    If clear, the sound plays forever. Note that even if a decaying 
-    envelope has reached 0, the sound itself would still be considered 
-    on, even if it's silent.
+  <td><b>定时</b>标志。若置位，声音按长度字段（<code>REG_SNDxCNT</code>{0-5}）指定的时长播放。
+    若清零，声音将永远播放。注意，即使衰减包络已降到 0，声音本身仍被视为
+    "开启"，即便它已经听不见。
 <tr class="bg0">	
   <td class="wof"> F <td class="rclr1">Re
   <td>SFREQ_RESET
-  <td>Sound <b>reset</b>. Resets the sound to the initial volume (and 
-    sweep) settings. Remember that the rate field is in this register 
-    as well and due to its write-only nature a simple 
-    &lsquo;<code>|= SFREQ_RESET</code>&rsquo; will <i>not</i> suffice
-    (even though it might on emulators).
+  <td>声音<b>复位</b>。将声音重置为初始音量（及扫频）设置。注意速率字段也在这个寄存器里，
+    而且由于它是只写的，简单的
+    &lsquo;<code>|= SFREQ_RESET</code>&rsquo; <i>并不</i>够用
+    （尽管在模拟器上也许可以）。
 </tbody>
 </table>
 </div><br>
@@ -1071,29 +1054,27 @@ Some more on the duty cycle. Remember we've done a Fourier analysis of the squar
   <col class="bits" width=40>
   <col class="bf" width="8%">
   <col class="def" width="12%">
-<tr align="left"><th>bits<th>name<th>define<th>description
+<tr align="left"><th>位<th>名称<th>宏定义<th>描述
 <tbody valign="top">
 <tr class="bg0">	
   <td>0-2<td class="rclr0">N
   <td>SSW_SHIFT#
-  <td>Sweep <b>number</b>. <i>Not</i> the number of sweeps; see the 
-    discussion below.
+  <td>扫频<b>次数</b>。<i>不是</i>扫频的步数；详见下文讨论。
 <tr class="bg1">	
   <td> 3 <td class="rclr1">M
   <td>SSW_INC, SSW_DEC
-  <td>Sweep <b>mode</b>. The sweep can take the rate either up 
-    (default) or down (if set).
+  <td>扫频<b>模式</b>。扫频可以让速率上升（默认）或下降（若置位）。
 <tr class="bg0">	
   <td>4-6<td class="rclr2">T
   <td>SSW_TIME#
-  <td>Sweep <b>step-time</b>. The time between sweeps is measured in 
-    128 Hz (not kHz!): &Delta;t = <i>T</i>/128 ms &asymp; 7.8<i>T</i> 
-    ms; if <i>T</i>=0, the sweep is disabled. 
+  <td>扫频<b>步进时间</b>。相邻两次扫频之间的时间以
+    128 Hz（不是 kHz！）计量：&Delta;t = <i>T</i>/128 ms &asymp; 7.8<i>T</i>
+    ms；若 <i>T</i>=0，则禁用扫频。
 </tbody>
 </table>
 </div>
 
-I'm reasonably confident that the *exact* workings of shifts are explained without due care in most documents, so here are a few more things about it. Sure enough, the sweep *does* make the pitch go up or down which is controlled by bit 3, and the step-time *does* change the pitch after that time, but exactly what the sweep-shift does is ambiguous at best. The information is in there, but only if you know what to look for. The usual formula given is something like:
+我有相当的把握，大多数文档对移位具体如何工作都语焉不详，所以这里再补充几点。毫无疑问，扫频*确实*会让音高上升或下降（由第 3 位控制），步进时间*也确实*会在经过该时间后改变音高，但扫频移位到底做了什么，说得最好也只能算含糊其辞。相关信息是写在那里的，但前提是你得知道该去哪里找。通常给出的公式类似这样：
 
 <!--
 T = T \pm T\cdot2^{-n}
@@ -1129,11 +1110,11 @@ T = T \pm T\cdot2^{-n}
 </math>
 </table>
 
-That's what belogic gives and if you know what the terms are you'll be fine. Contrary to what you may read, the sweep does *not* apply to the frequency (*f*). It does *not* apply to the period (*T*, see above). It applies to the **rate** (*R*). If you look in emulators, you can actually *see* the rate-value change.
+这是 belogic 给出的公式，只要你明白各项的含义就没问题。与你可能读到的相反，扫频*并不*作用于频率（*f*），也*不*作用于周期（*T*，见上文），它作用的是**速率**（*R*）。如果你在模拟器里观察，会真正*看到*速率值在变化。
 
-Second, the *n* in the exponent is *not* the current sweep index that runs up to the number of sweep shifts. It is in fact simply the **sweep shift number**, and the sweeps continue until the rate reaches 0 or the maximum of 2047.
+其次，指数里的 *n* *并不是*一直累加到扫频移位次数的当前扫频索引。它实际上就是**扫频移位次数**，而扫频会一直进行，直到速率达到 0 或最大值 2047。
 
-The formulas you may see do say that, but it's easy to misread them. I did. {*@eq:sweep} holds a number of correct relations. *R* is the rate, *n* is the sweep shift ({!@eq:sweep}c explains why it's called a *shift* (singular, not plural)), and *j* is the current sweep index. You can view them in a number of ways, but they all boil down to exponential functions, that's what ‘d*y*(*x*) = *a·y*(*x*)d*x*’ means, after all. For example, if *n*=1, then you get 1½<sup>j</sup> and ½<sup>j</sup> behaviour for increasing and decreasing sweeps, respectively; with *n*=2 it's 1¼<sup>j</sup> and ¾<sup>j</sup>, etc. The higher the shift, the slower the sweep.
+你看到的公式确实说明了这一点，但它们很容易被误读。我就误读过。{*@eq:sweep} 给出了一组正确的关系。*R* 是速率，*n* 是扫频移位（{!@eq:sweep}c 解释了为什么它叫"移位"（单数，不是复数）），*j* 是当前扫频索引。你可以用多种方式来看待它们，但归根结底都是指数函数，毕竟 'd*y*(*x*) = *a·y*(*x*)d*x*' 表达的就是这个意思。例如，若 *n*=1，则递增和递减扫频分别呈现 1½<sup>j</sup> 和 ½<sup>j</sup> 的行为；若 *n*=2，则是 1¼<sup>j</sup> 和 ¾<sup>j</sup>，依此类推。移位次数越大，扫频越慢。
 
 <!--
 {\Delta}R = 2^{-n} \cdot R
@@ -1297,13 +1278,13 @@ R_j & = & R_{j-1} \pm R_{j-1} \cdot 2^{-n} \\
     <code>R += R &gt;&gt; n;</code>
 </table>
 
-### Playing notes {#ssec-snd-notes}
+### 演奏音符 {#ssec-snd-notes}
 
-Even though the rates are equal, some may be considered more equal than others. I've already given a table with the frequencies for the standard notes ({@tbl:oct0}) of octave 0. You can of course convert those to rates via {@eq:fvsr}b and use them as such. However, it might pay to figure out how to play the notes of *all* octaves.
+尽管各个速率是平等的，但有些可能比另一些更"平等"。我已经给出了一张表，列出了第 0 八度标准音符的频率（{@tbl:oct0}）。你当然可以通过 {@eq:fvsr}b 把它们换算成速率并直接使用。不过，弄清楚如何演奏*所有*八度的音符也许更划算。
 
-To do this, we'll use some facts I mentioned in section 18.2.3. about the make-up of the musical scale. While I *could* make use of the logarithmic relation between successive notes (Δ*f*=2<sup>1/12</sup>·*f*), I'll restrict myself to the fact that notes between octaves differ by a factor of two. We'll also need the rate-frequency relation (obviously). That's the basic information you need, I'll explain more once we get through all the math. Yes, it's more math, but it'll be the last of this page, I promise.
+为此，我们会用到我在 18.2.3 节提到的关于音阶构成的若干事实。虽然我*可以*利用相邻音符之间的对数关系（Δ*f*=2<sup>1/12</sup>·*f*），但我只采用一点：不同八度之间的音符相差两倍的频率。我们还需要速率-频率关系（这显而易见）。这就是你需要的基本信息，等我们把数学推完再作更多解释。没错，还有更多数学，但我保证这是本页最后一部分了。
 
-The equations we'll start with are the general frequency equation and the rate-frequency relation. In these we have rate *R*, frequency *f* and octave *c*. We also have a base octave *C* and frequency *F* in that base octave.
+我们要从通用频率方程和速率-频率关系开始。其中涉及速率 *R*、频率 *f* 和八度 *c*。我们还有一个基准八度 *C*，以及该基准八度中的频率 *F*。
 
 <!--
 \begin{matrix}
@@ -1395,7 +1376,7 @@ R(F, c) & = & 2^{11} - \frac{2^{17}}{f(F, c)}
   </table>
 </table>
 
-And now for the magic. And you *are* expected to understand this.
+接下来是神奇的部分。而且你*被期望*能理解这个。
 
 <!--
 \begin{matrix}
@@ -1603,9 +1584,9 @@ R(F, c) & = & 2^{11} - \frac{2^{17}}{f(F, c)} \\
 </math>
 </table>
 
-Right, and now for *why* this thing's useful. Remember that the GBA has no hardware division or floating-point support, so we're left with integers and (if possible) shifts. That's why the last term in the last step of {@eq:noterate} was separated. The term with *F* gives a rate offset for the base octave, which we need to divide (read: shift) by the octave offset term for the different octaves. Remember that integer division truncates, so we need a big numerator for the most accuracy. This can be done with a large *C* and by adding an extra term *m*. Basically, this makes it an *m*f fixed point division. The workable octave range is −2 to 5, so we take *C*=5. The value for *m* is *almost* arbitrary, but needs to be higher than two because of the minimum octave is −2, and a shift can never be negative. *m*=4 will suffice.
+好，现在说*为什么*这东西有用。记住 GBA 没有硬件除法或浮点支持，所以我们只能使用整数以及（尽可能）移位。这正是 {@eq:noterate} 最后一步中最后一项被单独分出来的原因。含有 *F* 的项给出基准八度的速率偏移，我们需要把它除以（读作：移位）不同八度的八度偏移项。记住整数除法会截断，所以为了最高精度，我们需要一个很大的分子。这可以用一个较大的 *C* 再加上一个额外的项 *m* 来实现。本质上，这使它成为一个 *m*f 的定点数除法。可用的八度范围是 −2 到 5，因此我们取 *C*=5。*m* 的取值*几乎*任意，但必须高于 2，因为最小八度是 −2，而移位永远不能为负。*m*=4 就足够了。
 
-Note that there is *still* a division in there. Fortunately, there are only twelve values available for *F*, so might just as well store the whole term in a look-up table. The final result is listing 18.1 below.
+注意里面*仍然*有一个除法。所幸 *F* 只有十二种取值，所以不妨把整个项存进一个查找表里。最终结果就是下面的代码清单 18.1。
 
 <div id="cd-snd-rate">
 
@@ -1634,17 +1615,17 @@ const u32 __snd_rates[12]=
 ```
 </div>
 
-Here you have a couple of constants for the note-indices, the LUT with rate-offsets `__snd_rates` and a simple macro that gives you what you want. While `__snd_rates` is constant here, you may consider a non-const version to allow tuning. Not that a square wave is anything worth tuning, but I'm just saying … y'know.
+这里有几组用于音符索引的常量、存放速率偏移的查找表 `__snd_rates`，以及一个能直接给出所需结果的简单宏。虽然这里的 `__snd_rates` 是常量，你也可以考虑用一个非常量版本来允许调音。倒不是方波有什么值得调音的，但我只是说……你懂的。
 
-One possible annoyance is that you have to splice the note into a note and octave part and to do that dynamically you'd need division and modulo by 12. Or do you? If you knew a few things about [division by a constant is multiplication by its reciprocal](fixed.html#sec-rmdiv), you'd know what to do. (<span class="small">Hint: *c*=(*N*\*43\>\>9)−2, where *N* is the total note index between 0 and 95 (octave −2 to +5).</span>)
+一个可能的麻烦是，你得把音符拆分成音符部分和八度部分，而要动态完成这件事，你需要除以 12 并取模。或者，真的需要吗？如果你了解一些[除以常数等于乘以其倒数](fixed.html#sec-rmdiv)的知识，就会知道该怎么做。（<span class="small">提示：*c*=(*N*\*43\>\>9)−2，其中 *N* 是 0 到 95 之间的总音符索引（八度 −2 到 +5）。</span>）
 
-## Demo time {#sec-demo}
+## 演示时间 {#sec-demo}
 
-I think I've done about enough theory for today; don't you, dear reader?
+我觉得今天的理讲到这儿也差不多了；你说呢，亲爱的读者？
 
 “ \@\_@ ”
 
-I'll take that as a yes. The demo in question demonstrates the use of the various macros of this chapter, most notably `SND_RATE`. It also shows how you can play a little song – and I use the term lightly – with the square wave generator. I hope you can recognize which one.
+我就当你说是了。这个演示程序展示了本章各种宏的用法，尤其是 `SND_RATE`。它也演示了如何用一个方波发生器演奏一小段曲子——我用"曲子"这个词是很谦虚的。希望你能听出是哪一首。
 
 <pre><code class="language-c hljs">#include &lt;stdio.h&gt;
 #include &lt;tonc.h&gt;
@@ -1760,34 +1741,33 @@ int main()
 }
 </code></pre>
 
-The bolded code in `main()` initializes the sound register; nothing fancy, but it has to be done before you hear anything at all. It is important to start with `REG_SNDSTAT` bit 7 (`SSTAT_ENABLE`), i.e., the master sound enable. Without it, you cannot even access the other registers. Setting volume to something non-zero is a good idea too, of course. Then we turn off the sweep function and set sound 1 to use a fading envelope with a 50% duty. And that's where the fun starts.
+`main()` 中加粗的代码初始化了声音寄存器；没什么花哨的，但在听到任何声音之前必须这么做。重要的是要先设置 `REG_SNDSTAT` 的第 7 位（`SSTAT_ENABLE`），也就是主声音使能。没有它，你连其他寄存器都无法访问。当然，把音量设成非零也是个好主意。接着我们关闭扫频功能，并把声音 1 设为使用带淡出包络、50% 占空比。乐趣由此开始。
 
-I'll explain what `sos()` is in a little while; but first, something about the controls of the demo. You can play notes with the D-pad and A (hmm, there's something familiar about that arrangement). The octave *c* you're working in can be changed with L and R; the background color changes with it. B plays `sos()` again.
+我稍后会解释 `sos()` 是什么；但先说说这个演示程序的操作方式。你可以用方向键和 A 键演奏音符（嗯，这个组合有点眼熟）。你所在的八度 *c* 可以用 L 和 R 来改变；背景颜色也会随之变化。B 键会再次播放 `sos()`。
 
 <div class="lblock">
   <table>
     <tbody valign="top">
       <tr>
-        <th>A / D-pad <td>Play a note
-          <tr><td><td>&uarr; : D (next octave)
-          <tr><td><td>&larr; : B 
-          <tr><td><td>&rarr; : A 
-          <tr><td><td>&darr; : F 
-          <tr><td><td> A     : D 
+        <th>A / 方向键 <td>演奏一个音符
+          <tr><td><td>&uarr; : D（高八度）
+          <tr><td><td>&larr; : B
+          <tr><td><td>&rarr; : A
+          <tr><td><td>&darr; : F
+          <tr><td><td> A     : D
       <tr>
-        <th>L / R <td> Decrease / Increase current octave ([-2, 5], 
-        wraps around)
+        <th>L / R <td> 减小 / 增大当前八度（[-2, 5]，循环）
       <tr>
-        <th> B    <td>Play a little tune.
+        <th> B    <td>演奏一小段曲子。
     </tbody>
   </table>
 </div>
 
-The D-pad and A select a note to play, which is handled by `note_play()`. The bolded line there plays the actual note, the rest is extra stuff that writes the note just played to the screen and scrolls along so you can see the history of what's been played. The code for this is kinda ugly, but is not exactly central to the story so that's fine.
+方向键和 A 键用于选择要演奏的音符，由 `note_play()` 处理。其中加粗的那一行才真正演奏音符，其余的都是额外内容，把刚演奏的音符写到屏幕上并随之滚动，好让你看到已经演奏过的历史。这部分代码有点丑，但它并不是故事的核心，所以没关系。
 
-### Playing a little ditty {#ssec-demo-ditty}
+### 演奏一小段曲子 {#ssec-demo-ditty}
 
-So what is `sos()` all about then? Let's take another look.
+那么 `sos()` 到底是怎么回事呢？我们再来看一看。
 
 ```c
 void sos()
@@ -1803,8 +1783,8 @@ void sos()
 }
 ```
 
-There are two arrays here, `notes` and `lens`, and a loop over all elements. We take a byte from `notes` and use the nybbles for octave and note information, play the note, then wait a while –the length is indicated by the `lens` array– before the next note is played. Basically, we're playing music. Hey, if the likes of *Schnappi* and *Crazy Frog* can make it into the top 10, I think I'm allowed to call *this* music too, alright? Alright.
+这里有两个数组，`notes` 和 `lens`，以及一个遍历所有元素的循环。我们从 `notes` 中取出一个字节，用它的两个半字节分别表示八度和音符信息，演奏该音符，然后等待一会儿——时长由 `lens` 数组指定——再演奏下一个音符。本质上，我们就是在演奏音乐。嘿，既然 *Schnappi* 和 *Crazy Frog* 之流都能进排行榜前十，我觉得我也有资格把*这*称为音乐，行吧？行吧。
 
-The point I'm trying to make is that it's very well possible to play a tune with just the tone generators. Technically you don't need digitized music and all that stuff to play something. Of course, it'll sound better if you do, but if you just need a little jingle the tone generators may be all you need. Twelve years of Game Boy games using only tone generators prove this. Just define some notes (the nybble format for octaves and notes will do) and some lengths and you have the basics already. You could even use more than one channel for different effects.
+我想说明的是，仅靠音发生器就完全有可能演奏出一段旋律。从技术上讲，你并不需要数字化音乐以及那些花里胡哨的东西才能发声。当然，用了数字化音乐会更好听，但如果你只是需要一段小小的提示音，音发生器也许就足够了。十二年的 Game Boy 游戏只用音发生器就证明了这一点。只要定义一些音符（用半字节格式表示八度和音符即可）和若干时长，你就已经掌握了基础。你甚至可以使用多个通道来实现不同的效果。
 
-If you understood that, then get this: the note+length+channel idea is pretty much what tracked music (mod, it, xm, etc) does, only that they use a more sophisticated wave than a square wave. But the principle is the same. Getting it to work takes a little more effort, but that's what Deku's [sound mix tutorial](https://stuij.github.io/deku-sound-tutorial/) is for.
+如果你理解了这一点，那么请记住：音符+长度+通道的思路，基本上就是追踪音乐（mod、it、xm 等）在做的事，只是它们使用的波形比方波更复杂。但原理是相同的。要让它真正跑起来需要多花一点功夫，而这正是 Deku 的[声音混音教程](https://stuij.github.io/deku-sound-tutorial/)所要讲的内容。

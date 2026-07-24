@@ -1,8 +1,8 @@
-# 8. Regular sprites
+# 8. 常规精灵
 
 <!-- toc -->
 
-## Sprite introduction {#sec-intro}
+## 精灵简介 {#sec-intro}
 
 <div class="cpt_fr" style="width:64px">
 <img src="./img/metr/std.png" id="fig:metr" 
@@ -10,45 +10,44 @@
 <b>{*@fig:metr}</b>. Metroid. Rawr.
 </div>
 
-According to Webster's, a sprite is “an imaginary being or spirit, as a fairy, elf, or goblin”. Right, glad that's cleared up. For games, though, when referring to a sprite one is usually talking about “a \[small\] animated object that can move freely from the background” (PERN). Primary examples are game characters, but status objects like scores and life bars are often sprites as well. {*@fig:metr} on the right shows a sprite of everybody's favorite vampire jellyfish, the metroid. I will use this sprite in the demo at the end of this chapter.
+根据韦伯词典,精灵(sprite)是"一种假想的生灵或精神,比如仙女、精灵或妖精"。好,很高兴这说清楚了。不过对于游戏而言,当提到精灵时,通常是指"一个[小型]的、可以从背景中自由移动的动画对象"(PERN)。典型的例子是游戏角色,但状态对象如分数和血条通常也是精灵。右侧的 {*@fig:metr} 显示了一个大家都喜欢的吸血鬼水母——metroid 的精灵。我将在本章末尾的演示中使用这个精灵。
 
-Sprites are a little trickier to use than a bitmap background, but not by much. You just have to pay a little more attention to what you're doing. For starters, the graphics have to be grouped into 8×8 tiles; make sure your graphics converter can do that. Aside from the obvious actions such as enabling sprites in the display control and loading up the graphics and palette, you also have to set-up the attributes of the sprites correctly in OAM. Miss any of these steps and you'll see nothing. These things and more will be covered in this chapter.
+精灵比位图背景稍难使用一些,但也难不了多少。你只需要多留意自己在做什么。首先,图形必须分组为 8×8 的图块;确保你的图形转换器能做到这一点。除了启用显示控制中的精灵、加载图形和调色板这些明显的动作之外,你还需要在 OAM 中正确设置精灵的属性。漏掉任何一步,你都什么都看不到。这些以及其他内容将在本章介绍。
 
 :::tip Essential Sprite Steps
 
+要让精灵显示出来,有 3 件事你必须做对:
 
-There are 3 things that you have to do right to get sprites to show up:
-
--   Load the graphics and palette into object VRAM and palette.
--   Set attributes in OAM to use the appropriate tiles and set the right size.
--   Switch on objects in `REG_DISPCNT`, and set the mapping mode there too.
+-   将图形和调色板加载到对象 VRAM 和调色板中。
+-   在 OAM 中设置属性,以使用相应的图块并设置正确的大小。
+-   在 `REG_DISPCNT` 中开启对象,并在那里设置映射模式。
 
 :::
 
 :::tip Sprites aren't objects
 
-Or something like that. I know it sounds weird, but the more I think about it, the more I realize that sprites and objects shouldn't be considered interchangeable. The term ‘object’, is a hardware feature, controlled in OAM. Right now, I think that ‘sprite’ is more of a conceptual term, and should be reserved for actors, like playing characters, monsters, bullets, etc. These can in fact be built up of multiple hardware objects, or even use a background.
+或者说类似的意思。我知道这听起来奇怪,但我越想越意识到,精灵和对象不应被视为可以互换的。术语"对象"(object)是一个硬件特性,由 OAM 控制。现在我认为"精灵"(sprite)更多是一个概念性的术语,应该保留给演员使用,比如游戏角色、怪物、子弹等。这些实际上可以由多个硬件对象构成,甚至可以使用一个背景。
 
-You could also thing of it in this way: objects are *system* entities linked to the console itself, and sprites are *game* entities, living in the game world. The difference may be subtle, but an important one.
+你也可以这样想:对象是链接到主机本身的*系统*实体,而精灵是生活在游戏世界中的*游戏*实体。区别可能微妙,但却很重要。
 
-This is merely my opinion, and I can't say how right I am in this. Tonc still switches back and forth between the two words because it's too late to do anything about it now. Mea culpa. I'd love to hear the opinion of others on the subject, so feel free to speak your mind if you want.
+这仅仅是我个人的看法,我无法确定自己在这方面有多正确。Tonc 仍然在这两个词之间来回切换,因为现在想改也太晚了。Mea culpa(我的错)。我很想听听别人对这个问题的看法,所以如果你愿意,尽管畅所欲言。
 
 :::
 
-## Sprite image data and mapping mode {#sec-tiles}
+## 精灵图像数据与映射模式 {#sec-tiles}
 
-Like I said in the [sprite and background overview](objbg.html), sprites are composed of a number of 8×8-pixel mini-bitmaps called tiles, which come in two types: 4bpp (s-tiles, 32 bytes long) and 8bpp (d-tiles, 64 bytes long). The tiles available for sprites are stored in <dfn>object VRAM</dfn>, or <dfn>OVRAM</dfn> for short. OVRAM is 32 KiB long and is mapped out by the last two charblocks of `tile_mem`, which are also known as the lower (block 4, starting at `0601:0000h`) and higher (block 5, `0601:4000h`) sprite blocks. Counting always starts at the lower sprite-block and is *always* done in 32 byte offsets, meaning that sprite-tile #1 is at `0601:0020h`, no matter what the bit depth is (see table 8.1). With 4000h bytes per charblock, a quick calculation will show you that there are 512 tiles in each charblock, giving a total range of 1024. However, since the [bitmap](bitmaps.html) modes extend into the lower sprite block, you can only use the higher sprite block (containing tiles 512 to 1023) in modes 3-5.
+正如我在[精灵与背景概述](objbg.html)中所说,精灵由若干 8×8 像素的迷你位图组成,称为图块,有两种类型:4bpp(s-图块,长 32 字节)和 8bpp(d-图块,长 64 字节)。可供精灵使用的图块存储在<dfn>对象 VRAM</dfn>(object VRAM),简称 <dfn>OVRAM</dfn> 中。OVRAM 长 32 KiB,由 `tile_mem` 的最后两个字符块(charblock)映射出来,这两个块也称为低(块 4,起始于 `0601:0000h`)和高(块 5,`0601:4000h`)精灵块。计数总是从低精灵块开始,并且*总是*以 32 字节的偏移进行,这意味着精灵图块 #1 位于 `0601:0020h`,无论位深度如何(见表 8.1)。每个字符块有 4000h 字节,简单计算可知每个字符块有 512 个图块,总共范围为 1024。然而,由于[位图](bitmaps.html)模式延伸到了低精灵块,在模式 3-5 中你只能使用高精灵块(包含图块 512 到 1023)。
 
-It may seem that calculating those tile addresses can be annoying, and it would be if you had to do it manually. That's why I have mapped the whole of VRAM with a charblock/tile matrix called `tile_mem`, as discussed in the [overview](objbg.html#ssec-img-cbb). Need tile #123 of OVRAM? That'd be `tile_mem[4][123]`. Need its address? Use the address operator: `&tile_mem[4][123]`. Quick, easy, safe.
+计算这些图块地址可能看起来很烦人,如果要手动计算确实如此。这就是为什么我用名为 `tile_mem` 的字符块/图块矩阵映射了整个 VRAM,正如在[概述](objbg.html#ssec-img-cbb)中讨论的那样。需要 OVRAM 的第 123 号图块?那就是 `tile_mem[4][123]`。需要它的地址?使用取地址运算符:`&tile_mem[4][123]`。快捷、简单、安全。
 
-Also, don't forget that the sprites have their own palette which starts at `0500:0200h` (right after the background palette). If you are certain you've loaded your tiles correctly but nothing shows up, it's possible you filled the wrong palette.
+另外,别忘了精灵有自己的调色板,起始于 `0500:0200h`(紧跟在背景调色板之后)。如果你确定已经正确加载了图块却什么都没显示,有可能是你填错了调色板。
 
 <div class="lblock">
 <table id="tbl:obj-tids" class="table-data">
 <caption align="bottom">
-  <b>{*@tbl:obj-tids}</b>: tile counting for sprites, 
-  always per 32 bytes. (You can use odd numbers for 8bpp tiles, but 
-  be sure you fill the VRAM accordingly.)
+  <b>{*@tbl:obj-tids}</b>：精灵的图块计数，
+  以每 32 字节为单位。（8bpp 图块可使用奇数编号，但
+  请务必相应地填满 VRAM。）
 </caption>
 <tr>
   <th>memory 0601:<th>0000<th>0020 <th>0040<th>0060 <th>0080<th>0100 <th>...
@@ -59,19 +58,19 @@ Also, don't forget that the sprites have their own palette which starts at `0500
 </table>
 </div>
 
-:::warning Bitmap modes and Object VRAM
+:::warning 位图模式与对象 VRAM
 
-Only the higher sprite block is available for sprites in modes 3-5. Indexing still starts at the lower block, though, so the tile range is 512-1023.
+在模式 3-5 中,只有高精灵块可用于精灵。不过索引仍然从低块开始,因此图块范围是 512-1023。
 
 :::
 
-### The sprite mapping mode {#ssec-map}
+### 精灵映射模式 {#ssec-map}
 
-Sprites aren't limited to a single tile. In fact, most sprites are larger (see {*@tbl:obj-size} for a list of the available sizes for GBA sprites). Larger sprites simply use multiple tiles, but this may present a problem. For backgrounds, you choose each tile explicitly with the tile-map. In the case of sprites, you have two options: 1D and 2D mapping. The default is 2D mapping, and you can switch to 1D mapping by setting `REG_DISPCNT{6}`.
+精灵并不局限于单个图块。实际上,大多数精灵都更大(GBA 精灵可用尺寸的列表见 {*@tbl:obj-size})。更大的精灵只是简单地使用多个图块,但这可能带来一个问题。对于背景,你通过图块地图显式地选择每个图块。对于精灵,你有两种选择:1D 和 2D 映射。默认是 2D 映射,你可以通过设置 `REG_DISPCNT{6}` 切换到 1D 映射。
 
-How do these work? Consider the example sprite of {@fig:obj-map}a, showing the metroid of {@fig:metr} divided into tiles. In 2D mapping, you're interpreting the sprite charblocks as one big bitmap of 256×256 pixels and the sprite a rectangle out of that bitmap (still divided into tiles, of course). In this case, each tile-row of a sprite is at a 32-tile offset. This is shown in {@fig:obj-map}b. On the other hand, you can also consider the charblocks as one big array of tiles, and the tiles of every sprite are consecutive. This is shown in {@fig:obj-map}c. The numbers in {@fig:obj-map}a show the difference between 1D and 2D mapping. Assuming we start at tile 0, the red and cyan numbers follow 2D and 1D mapping, respectively.
+它们是如何工作的?考虑 {@fig:obj-map}a 中的示例精灵,展示了 {@fig:metr} 的 metroid 被划分成图块。在 2D 映射中,你将精灵字符块解释为一块 256×256 像素的大位图,精灵是从该位图中取出的一个矩形(当然仍然划分成图块)。在这种情况下,精灵的每个图块行偏移 32 个图块。这在 {@fig:obj-map}b 中显示。另一方面,你也可以将字符块视为一个大图块数组,每个精灵的图块是连续的。这在 {@fig:obj-map}c 中显示。{@fig:obj-map}a 中的数字显示了 1D 和 2D 映射之间的区别。假设我们从图块 0 开始,红色和青色数字分别遵循 2D 和 1D 映射。
 
-From a GBA-programming viewpoint, it is easier to use 1D mapping, as you don't have to worry about the offset of each tile-row when storing sprites. However, actually *creating* sprites is easier in 2D mode. I mean, do you *really* want to edit a bitmap tile by tile? That's what I thought. Of course, it should be the exporting tool's job to convert your sprites from 2D to 1D mapping for you. You can do this with [Usenti](https://www.coranac.com/projects/#usenti) too.
+从 GBA 编程的角度看,使用 1D 映射更容易,因为在存储精灵时你不必担心每个图块行的偏移。然而,实际*创建*精灵在 2D 模式下更容易。我的意思是,你*真的*想逐个图块地编辑位图吗?我也是这么想的。当然,将精灵从 2D 转换为 1D 映射应该是导出工具的工作。你也可以用 [Usenti](https://www.coranac.com/projects/#usenti) 来做。
 
 <div class="lblock">
 <table id="fig:obj-map"
@@ -80,16 +79,15 @@ From a GBA-programming viewpoint, it is easier to use 1D mapping, as you don't h
 <td>
   <div class="cpt" style="width:200px">
   <img src="./img/metr/tile_1d2d.png" alt="a metroid divided into tiles">
-  <b>{*@fig:obj-map}a</b>: zoomed out version of 
-  {*@fig:metr}, divided into tiles; colored numbers 
-    indicate mapping mode: red for 2D, cyan for 1D.
+  <b>{*@fig:obj-map}a</b>：{*@fig:metr} 的缩小版本，已划分为图块；
+  彩色数字表示映射模式：2D 为红色，1D 为青色。
   </div>
 <td>
   <div class="cpt" style="width:297px">
   <img src="./img/metr/tile_2d.png" alt="2d mapping">
   <b>{*@fig:obj-map}b</b>: how 
     {@fig:obj-map}a should be stored in memory when 
-	using 2D mapping.
+    using 2D mapping.
   </div>
   <br>
   <div class="cpt" style="width:296px">
@@ -101,9 +99,9 @@ From a GBA-programming viewpoint, it is easier to use 1D mapping, as you don't h
 </table>
 </div>
 
-:::note Object data conversion via CLI
+:::note 通过命令行转换对象数据
 
-Some command-line interfaces can tile bitmaps for use with objects (and tilemaps). In some cases, they can also convert images with multiple sprite-frames to a set of object tiles in 1D object mapping mode. If *foo.bmp* is a 64×16 bitmap with 4 16×16 objects, here's how you can convert it to 8×8 4bpp tiles using gfx2gba and grit (flags for 1D mapping are given in brackets)
+一些命令行界面可以为对象(以及图块地图)做位图平铺。在某些情况下,它们还可以将带有多个精灵帧的图像转换为 1D 对象映射模式下的一组对象图块。如果 *foo.bmp* 是一个包含 4 个 16×16 对象的 64×16 位图,下面介绍如何使用 gfx2gba 和 grit 将其转换为 8×8 4bpp 图块(1D 映射的标志在括号中给出)
 
 ```sh
 # gfx2gba
@@ -117,21 +115,21 @@ Some command-line interfaces can tile bitmaps for use with objects (and tilemaps
     grit foo.bmp -gB4 [-Mw 2 -Mh 2]
 ```
 
-Two notes on the 1D mapping flags here. First, gfx2gba can only meta-tile (-T) square objects; for something like 16×8 objects you'd need to do the 1D mapping yourself. Second, grit's meta-tiling flags (`-Mw` and `-Mh`) can be anything, and use tile units, not pixels.
+关于这里的 1D 映射标志有两点说明。首先,gfx2gba 只能元平铺(meta-tile, -T)正方形对象;对于 16×8 这样的对象,你需要自己做 1D 映射。其次,grit 的元平铺标志(`-Mw` 和 `-Mh`)可以是任意值,并且使用图块单位,而不是像素。
 
 :::
 
 :::note Size units: tiles vs pixels
 
-The default unit for bitmap dimensions is of course the pixel, but in tiled graphics it is sometimes more useful to use tiles as the basic unit, that is, the pixel size divided by 8. This is especially true for backgrounds. In most cases the context will suffice to indicate which one is meant, but at times I will denote the units with a ‘p’ for pixels or ‘t’ for tiles. For example, a 64x64p sprite is the same as a 8×8t sprite.
+位图尺寸的默认单位当然是像素,但在平铺图形中有时使用图块作为基本单位更有用,即像素尺寸除以 8。对于背景来说尤其如此。在大多数情况下,上下文足以表明指的是哪一个,但有时我会用 "p" 表示像素或 "t" 表示图块来标注单位。例如,64x64p 的精灵与 8×8t 的精灵相同。
 
 :::
 
-## Sprite control: Object Attribute Memory {#sec-oam}
+## 精灵控制:对象属性内存 {#sec-oam}
 
-Much unlike in the bitmap modes, you don't have to draw the sprites yourself: the GBA has special hardware that does it for you. This can get the sprites on screen faster than you could ever achieve programmatically. There are still limits, though: there is a limit to the amount of sprite pixels you can cram in one scanline. About 960, if the fora are anything to go by.
+这与位图模式大不相同,你不必自己绘制精灵:GBA 有专门的硬件替你完成。这能让精灵比你自己用程序实现更快地出现在屏幕上。不过仍有上限:你能塞进一条扫描线的精灵像素数量是有限的。根据各种论坛的说法,大约是 960。
 
-So you don't have to draw the sprites yourself; however, you *do* need to tell the GBA how you want them. This is what the <dfn>Object Attribute Memory </dfn> –OAM for short– is for. This starts at address `0700:0000h` and is 1024 bytes long. You can find two types of structures in OAM: the <dfn>OBJ_ATTR</dfn> struct for regular sprite attributes, and the <dfn>OBJ_AFFINE</dfn> struct containing the transformation data. The definitions of these structures can be found below. Note that names may vary from site to site.
+所以你不必自己绘制精灵;但是,你*确实*需要告诉 GBA 你希望它们如何显示。这正是<dfn>对象属性内存</dfn>(Object Attribute Memory,OAM 的简称)的作用。它起始于地址 `0700:0000h`,长 1024 字节。你可以在 OAM 中找到两种结构:用于常规精灵属性的 `OBJ_ATTR` 结构,以及包含变换数据的 `OBJ_AFFINE` 结构。这些结构的定义见下文。注意,名称可能因站点而异。
 
 <div id="cd-oam-structs">
 
@@ -158,7 +156,7 @@ typedef struct OBJ_AFFINE
 ```
 </div>
 
-There are a few interesting things about these structures. First, you see a lot of `fill`er fields. Second, if you would take 4 `OBJ_ATTR` structures and lay them over one `OBJ_AFFINE` structure, as done in {@tbl:obj-weave}, you'd see that the fillers of one would exactly cover the data of the other, and vice versa. This is no coincidence: OAM is in fact a weave of `OBJ_ATTR`s and `OBJ_AFFINE`s. Why would Nintendo use a weave instead of simply having one section of attributes and one for transform data? That's a good question and deserves a good answer. When I have one, I'll tell you (I'm guessing it's a data-alignment thing). Also, note that the elements of the `OBJ_AFFINE` are *signed* shorts. I've gone through a world of hurt with the `obj_aff` code because I used `u16` instead of `s16`. With 1024 bytes at our disposal, we have room for 128 `OBJ_ATTR` structures and 32 `OBJ_AFFINE`s. The rest of this file will explain regular sprites that only use `OBJ_ATTR`. I want to give the [affine transformation matrix](affine.html) the full mathematical treatment it deserves and will save [affine sprites](affobj.html) for later.
+关于这些结构有几点有趣的地方。首先,你会看到很多 `fill`(填充)字段。其次,如果你将 4 个 `OBJ_ATTR` 结构叠加在 1 个 `OBJ_AFFINE` 结构上,如 {@tbl:obj-weave} 所示,你会看到其中一个的填充字段正好覆盖另一个的数据,反之亦然。这并非巧合:OAM 实际上是 `OBJ_ATTR` 和 `OBJ_AFFINE` 的交织(weave)。任天堂为什么使用交织而不是简单地划分一个属性段和一个变换数据段?这是个好问题,值得一个好答案。等我有答案了会告诉你(我猜是数据对齐方面的原因)。另外,注意 `OBJ_AFFINE` 的元素是*有符号*短整数。我因为使用 `u16` 而不是 `s16`,在 `obj_aff` 代码上吃尽了苦头。我们有 1024 字节可用,因此可以容纳 128 个 `OBJ_ATTR` 结构和 32 个 `OBJ_AFFINE`。本文件的其余部分将解释只使用 `OBJ_ATTR` 的常规精灵。我想给[仿射变换矩阵](affine.html)应有的完整数学处理,并将[仿射精灵](affobj.html)留到以后。
 
 <div class="lblock">
 <table id="tbl:obj-weave"
@@ -180,17 +178,17 @@ There are a few interesting things about these structures. First, you see a lot 
 
 :::tip Force alignment on OBJ_ATTRs
 
-As of devkitARM r19, there are new rules on struct alignments, which means that structs may not always be word aligned, and in the case of `OBJ_ATTR` structs (and others), means that `struct` copies like the one in `oam_update()` later on, will not only be slow, they may actually break. For that reason, I will force word-alignment on many of my structs with `ALIGN4`, which is a macro for `__attribute__((aligned(4)))`. For more on this, see the section on [data alignment](bitmaps.html#ssec-data-align).
+从 devkitARM r19 起,关于结构对齐有了新规则,这意味着结构可能并不总是字对齐的,而在 `OBJ_ATTR` 结构(及其他)的情况下,意味着像后面 `oam_update()` 中的那种 `struct` 拷贝不仅会很慢,而且实际上可能出错。因此,我会用 `ALIGN4` 强制对许多结构进行字对齐,它是 `__attribute__((aligned(4)))` 的宏。更多信息,请参见[数据对齐](bitmaps.html#ssec-data-align)一节。
 
 :::
 
-## Object attributes: OBJ_ATTR {#sec-oam-entry}
+## 对象属性:OBJ_ATTR {#sec-oam-entry}
 
-The basic control for every sprite is the `OBJ_ATTR` structure. It consists of three 16-bit attributes for such qualities as size, shape, position, base tile and more. Each of the three attributes is covered below.
+每个精灵的基本控制是 `OBJ_ATTR` 结构。它由三个 16 位的属性组成,用于大小、形状、位置、基础图块等品质。下面分别介绍这三个属性。
 
-### Attribute 0 {#ssec-obj-attr0}
+### 属性 0 {#ssec-obj-attr0}
 
-The first attribute controls a great deal, but the most important parts are for the *y* coordinate, and the shape of the sprite. Also important are whether or not the sprite is transformable (an affine sprite), and whether the tiles are considered to have a bit depth of 4 (16 colors, 16 sub-palettes) or 8 (256 colors / 1 palette).
+第一个属性控制很多东西,但最重要的部分是*y*坐标和精灵的形状。同样重要的是精灵是否可变换(仿射精灵),以及图块被认为是 4 位深度(16 色,16 个子调色板)还是 8 位深度(256 色 / 1 个调色板)。
 
 <div class="reg">
 <table class="table-reg" id="tbl-oe-attr0"
@@ -241,9 +239,9 @@ The first attribute controls a great deal, but the most important parts are for 
       <li><b>00</b>. Normal rendering.
       <li><b>01</b>. Enables alpha blending. Covered 
         <a href="gfx.html#sec-blend">here</a>.
-      <li><b>10</b>. Object is part of the object window. The sprite 
-        itself isn't rendered, but serves as a mask for bgs and other 
-        sprites. (I think, haven't used it yet)
+      <li><b>10</b>. 对象属于对象窗口的一部分。该精灵
+        本身不被渲染，而是作为背景与其他
+        精灵的掩码。（我想是这样，还没用过）
       <li><b>11</b>. Forbidden.
     </ul>
 <tr class="bg1">	
@@ -265,7 +263,7 @@ The first attribute controls a great deal, but the most important parts are for 
 </table>
 </div>
 
-Two extra notes on attribute 0. First, `attr0` contains the ***y*** coordinate; `attr1` contains the ***x*** coordinate. For some reason I keep messing these two up; if you find your sprite is moving left when it should be moving up, this may be why. Second, the affine and gfx modes aren't always named as such. In particular, `attr0{9}` is simply referred to as *the* double-size flag, even though it only works in that capacity if bit 8 is set too. If it isn't, then it hides the sprite. I think that it's actually taken out of the object rendering stage entirely leaving more time for the others, but I'm not 100% sure of that.
+关于属性 0 有两条额外说明。首先,`attr0` 包含***y***坐标;`attr1` 包含***x***坐标。出于某种原因,我总是把这两个搞混;如果你的精灵本该向上移动却向左移动了,这可能就是原因。其次,仿射模式和图形模式并不总是这样命名。特别是,`attr0{9}` 仅仅被称为*双尺寸*(double-size)标志,尽管它只有第 8 位也置位时才起这个作用。如果不是,那么它隐藏精灵。我认为它实际上被从对象渲染阶段完全移除了,从而为其他对象留出更多时间,但我对此不是 100% 确定。
 
 <div class="lblock">
 <table id="tbl:obj-size"
@@ -279,9 +277,9 @@ Two extra notes on attribute 0. First, `attr0` contains the ***y*** coordinate; 
 <tr><th>10<td>8×16 <td>8×32 <td>16×32 <td>32×64
 </table></div>
 
-### Attribute 1 {#ssec-obj-attr1}
+### 属性 1 {#ssec-obj-attr1}
 
-The primary parts of this attribute are the *x* coordinate and the size of the sprite. The role of bits 9 to 13 depend on whether or not this is a affine sprite (determined by `attr0{8}`). If it is, these bits specify which of the 32 `OBJ_AFFINE`s should be used. If not, they hold flipping flags.
+这个属性主要的部分是*x*坐标和精灵的大小。位 9 到 13 的作用取决于这是否是仿射精灵(由 `attr0{8}` 决定)。如果是,这些位指定应使用 32 个 `OBJ_AFFINE` 中的哪一个。如果不是,它们保存翻转标志。
 
 <div class="reg">
 <table class="table-reg" id="tbl-oe-attr1">
@@ -334,11 +332,11 @@ The primary parts of this attribute are the *x* coordinate and the size of the s
 </table>
 </div>
 
-I'll say it here too: `attr0` contains *y*, `attr1` contains *x*. Note that bits 12 and 13 have a double role as either flipping flags or affine index. And if you are wondering if you can still flip affine sprites, the answer is yes: simply use negative scales in the matrix.
+我在这里也要说:`attr0` 包含 *y*,`attr1` 包含 *x*。注意位 12 和 13 有双重角色,既可以是翻转标志,也可以是仿射索引。如果你想知道是否还能翻转仿射精灵,答案是肯定的:只需在矩阵中使用负的缩放值即可。
 
-### Attribute 2 {#ssec-obj-attr2}
+### 属性 2 {#ssec-obj-attr2}
 
-This attribute tells the GBA which tiles to display and its background priority. If it's a 4bpp sprite, this is also the place to say what sub-palette should be used.
+这个属性告诉 GBA 要显示哪些图块,以及它的背景优先级。如果是 4bpp 精灵,这里也是说明应使用哪个子调色板的地方。
 
 <div class="reg">
 <table class="table-reg" id="tbl-oe-attr2">
@@ -367,10 +365,10 @@ This attribute tells the GBA which tiles to display and its background priority.
 <tr class="bg1">	
   <td>A-B<td class="rclr2">Pr
   <td>ATTR2_PRIO#
-  <td><b>Priority</b>. Higher priorities are drawn first (and therefore 
-    can be covered by later sprites and backgrounds). Sprites cover 
-    backgrounds of the same priority, and for sprites of the 
-    same priority, the higher <code>OBJ_ATTR</code>s are drawn first.
+  <td><b>优先级</b>。优先级高的先绘制（因此
+    可能被后绘制的精灵和背景覆盖）。精灵会覆盖
+    同优先级的背景；对于同优先级的精灵，
+    <code>OBJ_ATTR</code> 序号较大的先绘制。
 <tr class="bg0">	
   <td>C-F<td class="rclr1">PB
   <td>ATTR2_PALBANK#
@@ -380,28 +378,28 @@ This attribute tells the GBA which tiles to display and its background priority.
 </table>
 </div>
 
-### Attribute 3 {#ssec-obj-attr3}
+### 属性 3 {#ssec-obj-attr3}
 
-There is *no* attribute 3. Although the `OBJ_ATTR` struct does *have* a fourth halfword, this is only a filler. The memory in that filler actually belongs to the `OBJ_AFFINE`s. Nobody is to mistreat `attr3` in any way … if there's any affine sprite active.
+*没有*属性 3。尽管 `OBJ_ATTR` 结构确实*有*第四个半字,但这只是一个填充。该填充中的内存实际上属于 `OBJ_AFFINE`。如果任何仿射精灵处于活动状态,谁也不能以任何方式滥用 `attr3`……
 
-### OAM double buffering {#ssec-oam-buffer}
+### OAM 双缓冲 {#ssec-oam-buffer}
 
-You *could* write all your sprite data directly to the OAM at `0700:0000h`, but that might not always be the best move. If it's done during VDraw there's the possibility of tearing. Even worse, you might change the sprite's tile-index in mid-render so that the top is in one animation frame and the bottom is in another. Not a pretty sight. Actually, this isn't something to worry about because you *can't* update OAM during VDraw; it's locked then. What's often done is creating a separate buffer of OAM entries (also known as the <dfn>object shadow</dfn>) that can be modified at any time, and then copy that to the real OAM during VBlank. Here's my take on this.
+你*可以*将所有精灵数据直接写入位于 `0700:0000h` 的 OAM,但那并不总是最好的做法。如果这在 VDraw(垂直绘制)期间完成,可能会出现撕裂。更糟的是,你可能会在渲染中途改变精灵的图块索引,导致上半部分在一个动画帧,下半部分在另一个。那可不好看。实际上,这无需担心,因为你*不能*在 VDraw 期间更新 OAM;那时它被锁定了。常见的做法是创建一个独立的 OAM 条目缓冲区(也称为<dfn>对象影子</dfn>,object shadow),可以随时修改,然后在 VBlank 期间将其复制到真正的 OAM。这是我的做法。
 
 ```c
 OBJ_ATTR obj_buffer[128];
 OBJ_AFFINE *const obj_aff_buffer= (OBJ_AFFINE*)obj_buffer;
 ```
 
-I'm using 128 now, but I suppose you could use a lower number if you don't use all the sprites. Anyway, now you have a double buffer for both `OBJ_ATTR` and `OBJ_AFFINE` data, which is available at any given time. Just make sure you copy it to the *real* OAM when the time is right.
+我现在用了 128,但我想如果你不使用所有精灵,可以用更小的数字。总之,现在你有了一个用于 `OBJ_ATTR` 和 `OBJ_AFFINE` 数据的双缓冲,这在任何时刻都可用。只需确保在恰当的时机将它复制到*真正的* OAM。
 
-## Bitfield macros (OAM or otherwise) {#sec-macro}
+## 位域宏(OAM 或其他) {#sec-macro}
 
-Setting and clearing individual bits is easy, but sometimes it's not too convenient to do it all yourself. This is especially true for field of bits like positions or palette banks, which would involve long statements with masks and shifts if you want to do it nicely. To improve on this a little bit, I have a number of macros that may shorted the amount of actual code. There are essentially three classes of macros here, but before I go into that, I have to explain a little bit more about the hashed (*foo*‘#”) defines in the attribute lists above.
+设置和清除单个位很容易,但有时全部自己来做并不太方便。对于位置和调色板库这样的位域尤其如此,如果要做得漂亮,会涉及带掩码和移位的冗长语句。为了稍微改进这一点,我有一组宏可以缩短实际代码量。这里本质上宏有三类,但在介绍之前,我得先解释一下上面属性列表中带哈希(*foo*‘#’)的 define 多一点。
 
-The hash means that for each of these, there will be three `#define`s with *foo* as their roots: *foo*`_MASK`, *foo*`_SHIFT`, and *foo*`(_n)`. These give the bitmask, bitshift and a bitfield set macro for the corresponding type.
+哈希意味着,对于其中的每一个,都会有三个以 *foo* 为根的 `#define`:*foo*`_MASK`、*foo*`_SHIFT` 和 *foo*`(_n)`。它们给出相应类型的位掩码、位移和一个位域设置宏。
 
-For example, the one attached to the tile index, `ATTR2_ID#`. The tile index field has 10 bits and starts at bit 0. The corresponding defines therefore are:
+例如,附加在图块索引上的 `ATTR2_ID#`。图块索引字段有 10 位,从位 0 开始。因此相应的 define 是:
 
 ```c
 // The 'ATTR2_ID#' from the attr2 list means these 3 #defines exist
@@ -410,9 +408,9 @@ For example, the one attached to the tile index, `ATTR2_ID#`. The tile index fie
 #define ATTR2_ID(n)        ((n)<<ATTR2_ID_SHIFT)
 ```
 
-Most GBA libraries out there have `#define`s like these, albeit with different names. The actual macro isn't 100% safe because it does no range checking, but it's short and sweet. Now, as far as Tonc's text is concerned, every time you see the hash in the define list for a register, it'll have these three `#define`s to go with that name.
+大多数 GBA 库都有这样的 `#define`,只是名字不同。实际的宏并不是 100% 安全,因为它不做范围检查,但它简短而精练。就 Tonc 的文本而言,每次你在寄存器的 define 列表中看到哈希,就意味着该名字会带有这三个 `#define`。
 
-I also have a second batch of macros you can use for setting and getting specific fields, which use the mask and shift names explained above. I'll admit the macros look horrible, but I assure you they make sense and can come in handy.
+我还有第二批宏,可用于设置和获取特定字段,它们使用上面解释的掩码和移位名称。我承认这些宏看起来很恐怖,但我向你保证它们有意义,而且能派上用场。
 
 <div id="cd-bitfield">
 
@@ -428,7 +426,7 @@ I also have a second batch of macros you can use for setting and getting specifi
 ```
 </div>
 
-Well, I did warn you. The `name` argument here is the *foo* from before. The preprocessor concatenation operator is use to create the full mask and shift names. Again using the tile-index as an example, these macros expand to the following:
+好吧,我确实警告过你了。`name` 参数就是之前的 *foo*。预处理器连接运算符用来创建完整的掩码和移位名称。再次以图块索引为例,这些宏展开为以下内容:
 
 ```c
 // Create bitfield:
@@ -447,9 +445,9 @@ BF_SET(attr2, id, ATTR2_ID);
 attr2= (attr&~ATTR2_ID_MASK) | ((id<<ATTR2_ID_SHIFT) & ATTR2_ID_MASK);
 ```
 
-`BF_PREP()` can be used to prepare a bitfield for later insertion or comparison. `BF_GET()` gets a bitfield from a value, and `BF_SET()` sets a bitfield in a variable, without disturbing the rest of the bits. This is basically how bitfields normally work, except that true bitfields cannot be combined with OR and such.
+`BF_PREP()` 可用于准备一个位域以便稍后插入或比较。`BF_GET()` 从值中获取一个位域,`BF_SET()` 在变量中设置一个位域,而不干扰其余的位。这基本上就是位域通常的工作方式,只是真正的位域不能与 OR 等组合。
 
-The macros with a ‘2’ in their names work in a similar way, but do not apply shifts. These can be useful when you have already shifted `#define`s like `ATTR0_WIDE`, which can't use the other ones.
+名字中带"2"的宏工作方式类似,但不做移位。当你已有像 `ATTR0_WIDE` 这样已经移位过的 `#define` 时,它们会很有用,此时无法使用其他的宏。
 
 ```c
 // Insert pre-shifted bitfield:
@@ -457,9 +455,9 @@ The macros with a ‘2’ in their names work in a similar way, but do not apply
 attr0= (attr0&~ATTR0_SHAPE_MASK) | (id & ATTR0_SHAPE_MASK);
 ```
 
-Note that none of these three have anything GBA specific in them; they can be used on any platform.
+注意,这三组宏中没有一个是 GBA 特有的;它们可以用在任何平台上。
 
-Finally, what I call my build macros. These piece together the various bit-flags into a single number in an orderly fashion, similar to HAM's tool macros. I haven't used them that often yet, and I'm not forcing you to, but on occasion they are useful to have around especially near initialization time.
+最后,是我所谓的构建宏(build macros)。它们将各种位标志有序地拼成单一数字,类似于 HAM 的工具宏。我还没怎么用过它们,也不强迫你用,但偶尔在初始化附近它们会很有用。
 
 <div id="cd-oe-build">
 
@@ -485,24 +483,24 @@ Finally, what I call my build macros. These piece together the various bit-flags
 ```
 </div>
 
-Instead of doing ORring the bitflags together yourself, you can use these and perhaps save some typing. The order of arguments maybe annoying to remember for some, and the amount of safety checking may be a bit excessive (gee, ya think?!?), but if the numbers you give them are constants the operations are done at compile time so that's okay, and sometimes they really can be helpful. Or not <kbd>:P</kbd>. Like I said, I'm not forcing you to use them; if you think they're wretched pieces of code (and I admit they are) and don't want to taint your program with them, that's fine.
+你不必自己用 OR 把位标志组合在一起,可以使用这些宏,也许能省点打字。参数顺序对有些人来说可能难以记住,安全检查的程度可能有点过头(哎呀,你觉着呢?!?),但如果你给它们的数字是常量,操作会在编译时完成,所以没关系,而且有时它们确实很有帮助。或者没帮助 <kbd>:P</kbd>。正如我所说,我不强迫你使用它们;如果你认为它们是糟糕的代码(我承认它们是),并且不想用它们玷污你的程序,那没问题。
 
-Note that with the exception of `bpp`, the arguments are all shifted by the macros, meaning that you should *not* use the `#define` flags from the lists, just small values like you'd use if they were separate variables rather than bits in a variable.
+注意,除了 `bpp` 之外,参数都被宏移位了,这意味着你*不应*使用列表中的 `#define` 标志,只应使用像它们是独立变量而非变量中位那样的小值。
 
-## Demo time {#sec-obj-demo}
+## 演示时间 {#sec-obj-demo}
 
-Now, to actually use the bloody things. The code below is part of the *obj_demo*. It is the most complex I've shown yet, but if you take it one step at a time you'll be fine. Essentially, this demo places the tiles of a boxed metroid in the VRAM allotted for objects and then lets you screw around with various `OBJ_ATTR` bits like position and flipping flags. The controls are as follows:
+现在,来真正使用这些该死的东西。下面的代码是 *obj_demo* 的一部分。这是我展示过的最复杂的,但如果你一步一步来,就没问题。本质上,这个演示将一个盒装 metroid 的图块放入分配给对象的 VRAM 中,然后让你摆弄各种 `OBJ_ATTR` 位,比如位置和翻转标志。控制方式如下:
 
-- Control Pad  
-  Moves the sprite. Note that if you move far enough off-screen, it'll come up on the other side.
-- A and B Buttons  
-  Flip the sprite horizontally or vertically, respectively.
-- Select Button  
-  Makes it glow. Well, makes it palette-swap, actually. Handy for damage-flashing.
-- Start Button  
-  Toggles between 1D and 2D mapping modes. {*@fig:obj-map}b and {@fig:obj-map}c should explain what happens. Since the sprite is in 1D mode, there's really not much to see when you switch to 2D mapping, but I had a few buttons to spare, so I thought why not.
-- L and R Buttons  
-  Decreases or increase the starting tile, respectively. Again, I had a few keys to spare.
+- 方向键  
+  移动精灵。注意,如果你移动得足够远离开屏幕,它会从另一侧出现。
+- A 和 B 键  
+  分别水平或垂直翻转精灵。
+- Select 键  
+  让它发光。嗯,实际上是让它调色板交换。对受伤闪烁很有用。
+- Start 键  
+  在 1D 和 2D 映射模式之间切换。{*@fig:obj-map}b 和 {@fig:obj-map}c 应该能解释发生了什么。由于精灵处于 1D 模式,切换到 2D 映射时其实没什么可看的,但我有几个多余的按键,所以我想,为什么不呢。
+- L 和 R 键  
+  分别减少或增加起始图块。同样,我有些多余的键。
 
 ```c
 // Excerpt from toolbox.h
@@ -579,13 +577,13 @@ void oam_copy(OBJ_ATTR *dst, const OBJ_ATTR *src, uint count)
 }
 ```
 
-This is the basic utility code for the demo, and contains most of the things you'd actually like to have functions for. Note that the inline functions make good use of the bitfield macros shown earlier; if I hadn't done that, the code would be a good deal longer.
+这是演示的基本工具代码,包含了你真正需要为其编写函数的大部分内容。注意内联函数很好地利用了前面展示的位域宏;如果我不这么做,代码会更长。
 
-Another point that I need to make is that if I'd put everything into *toolbox.h*, the file would be pretty big, around 700 lines or so. And with future demos, it'd be a lot longer. With that in mind, I've started redistributing the contents a little: all the types go in *types.h*, everything to do with the memory map goes into *memmap.h*, all the register defines go into *memdef.h* and the input inlines and macros can be found in *input.h*. The rest is still in *toolbox.h*, but will find themselves redistributed in the end as well.
+我需要说明的另一点是,如果我把所有东西都放进 *toolbox.h*,文件会相当大,大约 700 行左右。而有了未来的演示,它会更长。考虑到这一点,我开始将内容重新分配:*types.h* 中放所有类型,与内存映射相关的一切放入 *memmap.h*,所有寄存器 define 放入 *memdef.h*,输入内联函数和宏可以在 *input.h* 中找到。其余的仍在 *toolbox.h* 中,但最终也会被重新分配。
 
-The two functions in *toolbox.c* need some more clarification as well I guess. In `oam_init()` I cast the objects to a word pointer and use that for setting things; again, this is simply because it's a lot faster. Because it may be used to initialixe something other than the real OAM, I copy the initialized buffer to OAM just in case.
+*toolbox.c* 中的两个函数我想也需要更多说明。在 `oam_init()` 中,我将对象转换为字指针,并用它来设置内容;同样,这仅仅是因为它快得多。因为它可能用于初始化真 OAM 之外的东西,所以我将初始化后的缓冲区复制到 OAM 以防万一。
 
-The other point concerns something of a very specific bug in the optimizer of the current compiler (devkitARM r19b). I expect this to be fixed in a later addition and the basic version here *should* work, but just in case it isn't, set the `#if` expression to 0 if you see OAM get corrupted. If you must know, the problem seems to be `struct` copying of OBJ_ATTRs in a `for` loop. Yes, it's that specific. Even though `struct` copying is legal and fast if they're word aligned, it seems GCC gets confused with 8-byte blocks in loops and uses `memcpy()` for each struct anyway, something that wouldn't work on OAM. Oh well.
+另一点与当前编译器(devkitARM r19b)优化器的一个非常具体的 bug 有关。我希望这在以后的版本中能修复,这里的基本版本*应该*能工作,但以防万一,如果你看到 OAM 被破坏,就把 `#if` 表达式设为 0。如果你非要知道,问题似乎是在 `for` 循环中 `OBJ_ATTR` 的 `struct` 拷贝。是的,就是这么具体。尽管 `struct` 拷贝在它们字对齐时是合法且快速的,但 GCC 似乎在循环中处理 8 字节块时会感到困惑,并且无论如何都为每个结构使用 `memcpy()`,而这在 OAM 上是行不通的。哦,好吧。
 
 <div id="cd-obj-demo">
 
@@ -668,83 +666,83 @@ int main()
 ```
 </div>
 
-### Setting up sprites {#ssec-demo-init}
+### 设置精灵 {#ssec-demo-init}
 
-Before any sprites show up, there are three things you have to do, although not necessarily in this order. They are: copying sprite graphics to VRAM, setting up OAM to use these graphics, and enabling sprites in the display control, `REG_DISPCNT`.
+在任何精灵显示出来之前,有三件事你必须做,尽管顺序不一定如此。它们是:将精灵图形复制到 VRAM,设置 OAM 以使用这些图形,以及在显示控制 `REG_DISPCNT` 中启用精灵。
 
-#### Display control
+#### 显示控制
 
-Starting with the last one, you enable sprites by setting bit 12 of `REG_DISPCNT`. Usually you'll also want to use 1D mapping, so set bit 6 as well. This is done at **point (2)** of the code.
+从最后一个开始,通过设置 `REG_DISPCNT` 的第 12 位来启用精灵。通常你还想使用 1D 映射,所以也设置第 6 位。这在代码的**标号 (2)** 处完成。
 
-#### Hiding all sprites
+#### 隐藏所有精灵
 
-The other step performed here is a call to `oam_init()`. This isn't strictly necessary, but a good idea nonetheless. What `oam_init()` does is hide all the sprites. Why is this a good idea? Well, because a fully zeroed out OAM does *not* mean the sprites are invisible. If you check the attributes you'll see that this will mean that they're all 8×8-pixel sprites, using tile 0 for their graphics, located at (0,0). If the first tile isn't empty, you'll start with 128 versions of that tile in the top-left corner, which looks rather strange. So, make sure they're all invisible first. The demo also comes with `obj_hide()` and `obj_unhide()` functions, although they aren't used here.
+这里执行的另一步是对 `oam_init()` 的调用。这并非严格必要,但无论如何是个好主意。`oam_init()` 的作用是隐藏所有精灵。为什么这是个好主意?因为如果 OAM 全为零,并*不*意味着精灵不可见。如果你检查属性,你会看到这意味着它们都是 8×8 像素的精灵,使用图块 0 作为图形,位于 (0,0)。如果第一个图块不是空的,你会从屏幕左上角开始看到 128 个该图块的副本,看起来相当奇怪。所以,确保它们先全部不可见。演示还附带了 `obj_hide()` 和 `obj_unhide()` 函数,尽管这里没有用到。
 
-#### Loading sprite graphics
+#### 加载精灵图形
 
-The first thing to do (**point (1)**) is to store the sprite graphics in object VRAM. As I've already said a few times now, these graphics should be stored as 8×8-pixel tiles, not as a flat bitmap. For example, my sprite here is 64×64p in size, so to store it I've had to convert this to 8×8 separate tiles first. If you do *not* do this, your sprites will look very strange indeed.
+要做的第一件事(**标号 (1)**)是将精灵图形存入对象 VRAM。正如我已经说过好几次,这些图形应存储为 8×8 像素的图块,而不是扁平的位图。例如,我的精灵这里是 64×64p 大小,所以要存储它,我必须先将其转换为 8×8 的独立图块。如果你*不*这样做,你的精灵看起来会非常奇怪。
 
-Exactly where you put these tiles is actually not all that relevant (apart from the obvious, like mapping mode, and tile alignment, of course). Object VRAM works as a texture pool and has nothing to do with the screen directly. You store the tiles that you want to be available there, and it is by manipulating the OAM attributes that the system knows which tiles you want to use and where you want them. There is no reason why sprite 0 couldn't start at tile 42, or why multiple sprites couldn't use the same tiles. This is also why `OAMData`, which is sometimes used for object VRAM, is such a misnomer: object VRAM has nothing to do with OAM. *Nothing*! If your headers use this name for <kbd>0601:0000</kbd>, or even <kbd>0601:4000</kbd>, change it. Please. And be careful where you put things in the bitmap modes, as you can't use tiles 0-511 there.
+你把这些图块放在哪里其实并不那么重要(除了显而易见的因素,比如映射模式和图块对齐,当然)。对象 VRAM 就像一个纹理池,与屏幕没有直接关系。你存储想要可用的图块,而系统是通过操纵 OAM 属性才知道你想使用哪些图块以及把它们放在哪里。精灵 0 没有理由不能从图块 42 开始,也没有理由多个精灵不能使用相同的图块。这也是为什么有时用于对象 VRAM 的 `OAMData` 如此名不副实:对象 VRAM 与 OAM 毫无关系。*毫无关系*!如果你的头文件用这个名字表示 <kbd>0601:0000</kbd>,甚至 <kbd>0601:4000</kbd>,请改掉它。拜托。并且在位图模式中要注意放置位置,因为你不能使用那里的图块 0-511。
 
-As I said, loading the sprites happens at **point (1)** in the code. If you paid attention to the [overview](objbg.html#ssec-img-cbb), you'll remember that `tile_mem[][]` is a two dimensional array, mapping charblocks and 4-bit tiles. You'll also remember that object VRAM is charblocks 4 and 5, so `&tile_mem[4][0]` points to the first tile in object VRAM. So I'm loading my boxed metroid into the first 64 tiles of object VRAM.
+正如我所说,精灵的加载发生在代码的**标号 (1)**。如果你留意过[概述](objbg.html#ssec-img-cbb),你会记得 `tile_mem[][]` 是一个二维数组,映射字符块和 4 位图块。你也会记得对象 VRAM 是字符块 4 和 5,所以 `&tile_mem[4][0]` 指向对象 VRAM 中的第一个图块。所以我将盒装 metroid 加载到对象 VRAM 的前 64 个图块中。
 
-I am also loading its palette into the sprite palette. That's *sprite* palette (<kbd>0500:0200</kbd>), not background palette. Load it to the wrong place and you won't see anything.
+我还将它的调色板加载到精灵调色板。那是*精灵*调色板(<kbd>0500:0200</kbd>),不是背景调色板。加载到错误的地方你就什么也看不到。
 
 :::tip Finding tile addresses
 
-Use `tile_mem` or a macro to find the addresses to copy your tiles too, it's much more readable and maintainable than calculating them manually. You should not have any hard-coded VRAM addresses in your code, ever.
+使用 `tile_mem` 或宏来查找要复制图块的地址,这比手动计算它们更具可读性和可维护性。你的代码中永远不应该有任何硬编码的 VRAM 地址。
 
 :::
 
 :::danger OAMData
 
-Headers from other sites sometimes `#define OAMData` as part of VRAM. It is not. Rename it.
+其他站点的头文件有时将 `#define OAMData` 定义为 VRAM 的一部分。它不是。请重命名它。
 
 :::
 
-#### Setting attributes
+#### 设置属性
 
-Lastly, I'll set up one `OBJ_ATTR` so that it actually uses the metroid tiles. This is done at **point (3)**, using the `obj_set_attr()` inline function. All it does is three assignments to the attributes of the first argument, by the way, nothing spectacular. This just saves typing doing it this way rather than three separate statements. With this particular call, I tell this sprite that it's a 64×64 pixel (8×8 tile) sprite, and its starting tile is `tid`, which is 0. This means that it'll use the 64 tiles, starting at tile 0.
+最后,我将设置一个 `OBJ_ATTR`,使它真正使用 metroid 图块。这在使用 `obj_set_attr()` 内联函数的**标号 (3)** 处完成。顺便说一句,它所做的只是对第一个参数的属性做三次赋值,没有什么了不起。这样做只是比三条独立语句省打字。通过这一次调用,我告诉这个精灵它是一个 64×64 像素(8×8 图块)的精灵,其起始图块是 `tid`,即 0。这意味着它将使用从图块 0 开始的 64 个图块。
 
-Note that the sprite I'm setting is actually part of the OAM buffer, not the real OAM. This means that even after I set the attributes there, nothing happens yet. To finalize the sprite I need to update the *real* OAM, which is done by a call to `oam_copy()` (**point (6)**). This carries two arguments: an index and a count denoting how many sprites to update, and which sprite to start at. I also have `obj_copy()`, which only copies attributes 0, 1 and 2, but *not* 3! This is necessary when you start using affine sprites, which may be copied incorrectly otherwise.
+注意我设置的精灵实际上是 OAM 缓冲区的一部分,而不是真正的 OAM。这意味着即使我在那里设置了属性,也还没有发生任何事。要完成精灵,我需要更新*真正的* OAM,这是通过调用 `oam_copy()`(**标号 (6)**)完成的。它带两个参数:一个索引和一个表示要更新多少精灵以及从哪个精灵开始的计数。我还有 `obj_copy()`,它只复制属性 0、1 和 2,但*不*复制 3!当你开始使用仿射精灵时这是必要的,否则它们可能会被错误复制。
 
-The previous steps are enough to get the metroid sprite on-screen. The story doesn't end there, of course. Here are a few things that you can do with sprites.
+前面的步骤足以让 metroid 精灵显示在屏幕上。当然,故事并未到此结束。这里有几件你可以用精灵做的事。
 
-### Sprite positioning {#ssec-demo-pos}
+### 精灵定位 {#ssec-demo-pos}
 
-The first order of business is usually to place it at some position on screen, or even off screen. To do this you have to update the bits for the *y* and *x* positions in attributes 0 and 1, respectively. One mistake I often seem to make is fill *x* into attr0 and *y* into attr1, when it should be the other way around. If your sprite moves strangely, this might be why.
+最优先的事通常是把它放在屏幕上的某个位置,甚至屏幕外。为此,你必须分别更新属性 0 和 1 中的 *y* 和 *x* 位置位。我经常犯的一个错误是把 *x* 填入 attr0、把 *y* 填入 attr1,而应该是反过来。如果你的精灵移动得很奇怪,这可能就是原因。
 
-Note that these coordinates mark the **top-left** of the sprite. Also, the number of bits for the coordinates means we have 512 possible *x*-values and 256 *y*-values. The coordinate ranges wrap around, so you could also say that these are signed integers, with the ranges *x* ∈ \[-256, 255\] and *y* ∈ \[-128, 127\]. Yes, that would make the highest *y*-value smaller than the height of the screen, but thanks to the wrapping it all works out. Well, [almost](affobj.html#ssec-wrap). Anyway, thanks to the 2s-complement nature of integers, simply masking the *x* and *y* values by `0x01FF` and `0x00FF`, respectively, will give proper 9- and 8-bit signed values. You can do this manually, or use the `obj_set_pos()` function used at **point (4)**.
+注意这些坐标标记的是精灵的**左上角**。另外,坐标的位数意味着我们有 512 个可能的 *x* 值和 256 个 *y* 值。坐标范围会回绕,所以你也可以说它们是有符号整数,范围为 *x* ∈ \[-256, 255\] 和 *y* ∈ \[-128, 127\]。是的,这会使最高的 *y* 值小于屏幕高度,但多亏了回绕,一切都正常。总之,多亏了整数的 2 的补码特性,只需分别用 `0x01FF` 和 `0x00FF` 对 *x* 和 *y* 值进行掩码,就能得到正确的 9 位和 8 位有符号值。你可以手动做,或者使用**标号 (4)** 处用到的 `obj_set_pos()` 函数。
 
-You might see code that clears the lower bits of the attributes and then directly ORRs in *x* and *y*. This is not a good idea, because negative values are actually represented by upper half of a datatype's range. −1 for example is all bits set (0xFFFFFFFF). Without masking off the higher bits, negative values would overwrite the rest of the attribute bits, which would be bad.
+你可能会看到清除属性低位然后直接将 *x* 和 *y* OR 进去的代码。这不是个好主意,因为负值实际上是由数据类型范围的上半部分表示的。例如 −1 是所有位都置位(0xFFFFFFFF)。如果不屏蔽掉高位,负值会覆盖属性的其余位,那会很糟。
 
 :::warning Mask your coordinates
 
-If you're making a sprite positioning function or use someone else's **make sure** you mask off the bits in *x* and *y* before you insert them into the attributes. If not, negative values will overwrite the whole attribute.
+如果你在编写精灵定位函数或使用别人的**请务必**在将 *x* 和 *y* 插入属性之前屏蔽掉这些位。否则,负值会覆盖整个属性。
 
-This is bad
+这样不好:
 
 ```c
 obj->attr0= (obj->attr0 &~ 0x00FF) | (y);
 ```
 
-This is good:
+这样好:
 
 ```c
 obj->attr0= (obj->attr0 &~ 0x00FF) | (y & 0x00FF);
 ```
 :::
 
-#### Position variables and using tribools
+#### 位置变量与三态键(tribool)的使用
 
-Instead of using an `OBJ_ATTR` to store the sprite's position, it is better to keep them in separate variables, in this case `x` and `y`. This avoids having to mask coordinate fields all the time, but more importantly, the positions can extend beyond the size of the screen. As most game worlds aren't restricted to a single screen, this is an important point. Then, when the time is right, these are fed to `oam_set_pos()` to update the sprite.
+与其使用 `OBJ_ATTR` 来存储精灵的位置,不如将它们保存在独立的变量中,这里是 `x` 和 `y`。这避免了总是要掩码坐标字段,但更重要的是,位置可以延伸到屏幕大小之外。由于大多数游戏世界并不局限于单个屏幕,这一点很重要。然后,在恰当时机,将这些值传给 `oam_set_pos()` 来更新精灵。
 
-Also, note the use of my [tribool key functions](keys.html#ssec-adv-tri) to update the positions. Input processing often follows a pattern of “key X pressed: increment, key opposite of Y pressed, decrement” The tribool functions bring that kind of code down from four lines to one, which makes the code easier to read (once you get over the initial hurdle). For example, `key_tri_horz()` returns +1 if ‘right’ is pressed, −1 if ‘left’ is pressed, and 0 if neither or both are pressed. `key_tri_vert()` does something similar for vertical movement and the line with `bit_tribool()` function makes a variant using `key_hit()` and R and L to increment or decrement the tile index.
+另外,注意我使用[三态键函数](keys.html#ssec-adv-tri)来更新位置。输入处理通常遵循这样的模式:"按下键 X:递增;按下相反方向的键 Y:递减"。三态键函数把这类代码从四行缩减为一行,这让代码更易读(一旦你跨过了最初的门槛)。例如,`key_tri_horz()` 在按下"右"时返回 +1,按下"左"时返回 −1,都没有按下或都按下时返回 0。`key_tri_vert()` 对垂直移动做类似的事情,而带有 `bit_tribool()` 的那行则使用 `key_hit()` 以及 R 和 L 来递增或递减图块索引。
 
-### Other attrs {#ssec-demo-attr}
+### 其他属性 {#ssec-demo-attr}
 
-Sprite coordinates are only two of the many sprite attributes that can be controlled with via specific OAM bits, even while the sprite is already active. Some of the obvious ones are flipping or mirroring it, which can be done using A and B here. Or, if you're using a 4bpp sprite, you can swap palettes so that all the colors change. Pressing Select in the demo switches from palette bank 0 to 1, which happens to have a grey to white gradient. Toggling between these palette banks quickly can make the sprite flash. You could also change the priorities in which the sprites are rendered, or toggle alpha blending, although I haven't done those things here.
+精灵坐标只是可以通过特定 OAM 位控制的众多精灵属性中的两个,即使精灵已经激活。一些明显的例子是翻转或镜像,这里可以用 A 和 B 来做。或者,如果你使用的是 4bpp 精灵,你可以交换调色板,使所有颜色改变。在演示中按下 Select 会从调色板库 0 切换到 1,后者恰好有一个从灰到白的渐变。在这两个调色板库之间快速切换可以让精灵闪烁。你也可以改变精灵渲染的优先级,或切换 alpha 混合,尽管我在这里没有做这些。
 
-Now, these things don't really change the overall image of the sprite. What you should realize though is that it *is* possible to do that. As I've already noted before, it's not true that the contents of VRAM *are* the sprite, rather that a sprite *uses* parts of VRAM to show something, anything, on screen. You could, for example, change the starting tile `tid` that the sprite uses, which in this case can be done using L and R. Not only is this legal, it's the standard practice for animation (although you can also overwrite VRAM for that – resetting the tile index is just faster). Understanding this is one of the points of moving from a user to a developer perspective: the user only sees the surface; the coder looks below it and sees what's really going on.
+现在,这些东西并不会真正改变精灵的整体图像。但你应该意识到,*确实*可以那样做。正如我之前指出的,VRAM 的内容*就是*精灵这种说法并不正确,更准确地说,精灵*使用* VRAM 的某些部分在屏幕上显示某物,任何东西。例如,你可以改变精灵使用的起始图块 `tid`,在这里可以用 L 和 R 实现。这不仅合法,而且是动画的标准做法(尽管你也可以为此覆盖 VRAM——重置图块索引只是更快)。理解这一点是从用户视角转向开发者视角的关键点之一:用户只看到表面;而编码者看透表面,看到真正发生了什么。
 
-And that's it for regular sprites. Using multiple sprites isn't much different – seen one, seen them all. Basic animation shouldn't be problematic either, until you run out of VRAM to put them in. There are still a few regions left untouched like blending and mosaic, but I'll deal with those [later](gfx.html).
+常规精灵就讲到这里。使用多个精灵并没有太大不同——见一个,就见过全部了。基本动画也不应该有什么问题,直到你用完存放它们的 VRAM。还有一些区域未被触及,比如混合和马赛克,但我会在[以后](gfx.html)处理它们。

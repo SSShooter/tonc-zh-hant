@@ -1,47 +1,47 @@
-# Summary
+# 目录
 
-[Foreword](./foreword.md)
-[Introduction](./intro.md)
+[前言](./foreword.md)
+[引言](./intro.md)
 
-# GBA Basics
+# GBA 基础
 
-- [GBA Hardware](./hardware.md)
-- [Setting up a development environment](./setup.md)
-- [My First GBA Demo](./first.md)
-- [Video Introduction](./video.md)
-- [The bitmap modes](./bitmaps.md)
-- [The GBA keypad](./keys.md)
-- [Sprite and tiled background overview](./objbg.md)
-- [Regular sprites](./regobj.md)
-- [Regular tiled backgrounds](./regbg.md)
+- [GBA 硬件](./hardware.md)
+- [搭建开发环境](./setup.md)
+- [我的第一个 GBA 演示程序](./first.md)
+- [视频显示入门](./video.md)
+- [位图模式](./bitmaps.md)
+- [GBA 按键](./keys.md)
+- [精灵与图块背景概述](./objbg.md)
+- [常规精灵](./regobj.md)
+- [常规图块背景](./regbg.md)
 
-# GBA Extended
+# GBA 进阶
 
-- [The affine transformation matrix](./affine.md)
-- [Affine sprites](./affobj.md)
-- [Affine tiled backgrounds](./affbg.md)
-- [Graphic effects](./gfx.md)
-- [Direct Memory Access](./dma.md)
-- [Timers](./timers.md)
-- [Hardware interrupts](./interrupts.md)
-- [BIOS calls](./swi.md)
-- [Beep! GBA sound introduction](./sndsqr.md)
+- [仿射变换矩阵](./affine.md)
+- [仿射精灵](./affobj.md)
+- [仿射图块背景](./affbg.md)
+- [图形特效](./gfx.md)
+- [直接内存访问（DMA）](./dma.md)
+- [定时器](./timers.md)
+- [硬件中断](./interrupts.md)
+- [BIOS 调用（SWI）](./swi.md)
+- [哔！GBA 声音入门](./sndsqr.md)
 
-# Advanced / Applications
+# 进阶 / 应用
 
-- [Text systems](./text.md)
+- [文本系统](./text.md)
 - [Mode 7](./mode7.md)
-- [More Mode7 tricks](./mode7ex.md)
-- [Tonc's Text Engine](./tte.md)
-- [Whirlwind tour of ARM assembly](./asm.md)
-- [The Lab](./lab.md)
+- [更多 Mode 7 技巧](./mode7ex.md)
+- [Tonc 文本引擎](./tte.md)
+- [ARM 汇编速成](./asm.md)
+- [实验室](./lab.md)
 
 ---
 
-[Appendix A - Numbers, bits and bit operations](./numbers.md)
-[Appendix B - Fixed-point math & LUTs](./fixed.md)
-[Appendix C - Vector and matrix math](./matrix.md)
-[Appendix D - More on makefiles and compiler options](./makefile.md)
-[Appendix E - Make via editors](./edmake.md)
-[Appendix F - References](./refs.md)
-[Appendix G - Change log](./log.md)
+[附录 A - 数字、比特与位运算](./numbers.md)
+[附录 B - 定点数与查找表（LUT）](./fixed.md)
+[附录 C - 向量与矩阵数学](./matrix.md)
+[附录 D - 更多关于 makefile 与编译器选项](./makefile.md)
+[附录 E - 通过编辑器进行 Make](./edmake.md)
+[附录 F - 参考文献](./refs.md)
+[附录 G - 更新日志](./log.md)

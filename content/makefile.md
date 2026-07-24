@@ -1,28 +1,28 @@
-# D. More on makefiles and compiler options
+# D. 更多关于 makefile 与编译器选项
 
 <!-- toc -->
 
-:::warning This chapter may be outdated
+:::warning 本章可能已过时
 
-This part may need an overhaul and some of the suggested tools or practices may be deprecated.
-
-:::
-
-## Introduction {#sec-intro}
-
-Although I gave a quick introduction to makefiles and compiler flags in the [setup](setup.html) section, a more complex look into these items may prove useful as well. So I'll present and explain the makefiles that Tonc uses in more detail, as well as some other little things about makefiles and compiler/linker options. I hope that this will give you enough ammo to understand the makefiles that are out there and allow you to figure out the more complicated aspects of the make process yourself. This page is hardly a substitute for the full documentation on the maketool make, the assembler as, compiler gcc and the linker ld, but it'll have to do for now. You can get the full documentation on these tools at [GNU Manuals Online](https://www.gnu.org/manual/manual.html). You may also be interested in MrMrIce's make tutorial, which can be found in [gbadev.org](http://www.gbadev.org)'s documentation section.
-
-By the way, I'm no expert at this stuff. I know a few tricks about makefiles and compiler options but that's it. If you have suggestions on improving my makefiles, do tell.
-
-## My standard makefile {#sec-make}
-
-:::warning Update note
-
-As of 20060428, I'm using a different style of makefiles, which means that this section is now largely out-of-date. I'll update when it reaches the top of my priority stack (which may be a while).
+这部分可能需要大修，且其中一些建议的工具或做法可能已被弃用。
 
 :::
 
-What follows is the makefile for my int_demo demo. This is a moderately complex makefile, using the assembler, implicit rules and pattern substitution. The things you'll see here should be sufficient for most everyday makefiles. Two notes before we begin: this is a makefile for devkitARM. Instructions for getting it to work on DKA are indicated by comments.
+## 简介 {#sec-intro}
+
+虽然我在[环境搭建](setup.html)一节对 makefile 和编译器标志做了快速介绍，但更深入地审视这些东西可能也很有用。所以我会更详细地展示并解释 Tonc 使用的 makefile，以及关于 makefile 和编译器/链接器选项的其他一些小事情。我希望这能给你足够的弹药去理解那些已有的 makefile，并让你能自己搞清 make 过程中更复杂的方面。本页很难替代关于构建工具 make、汇编器 as、编译器 gcc 和链接器 ld 的完整文档，但目前只能将就。你可以在 [GNU Manuals Online](https://www.gnu.org/manual/manual.html) 获取这些工具的完整文档。你可能也会对 MrMrIce 的 make 教程感兴趣，它可以在 [gbadev.org](http://www.gbadev.org) 的文档区找到。
+
+顺便说一句，我在这块不是专家。我对 makefile 和编译器选项知道几个小技巧，但也仅此而已。如果你有改进我的 makefile 的建议，请告诉我。
+
+## 我的标准 makefile {#sec-make}
+
+:::warning 更新提示
+
+截至 20060428，我使用的是不同风格的 makefile，这意味着本节现在大体上过时了。等它排到我优先级栈顶时我会更新（那可能要一阵子）。
+
+:::
+
+下面是我的 int_demo 演示的 makefile。这是一个中等复杂的 makefile，使用了汇编器、隐式规则和模式替换。你在这里看到的东西对大多数日常 makefile 应该足够了。开始前两点说明：这是一个用于 devkitARM 的 makefile。让它适用于 DKA 的说明用注释标出。
 
 ```makefile
 #
@@ -85,9 +85,9 @@ clean :
     @rm -fv $(PROJ).elf 
 ```
 
-As you can see, I've divided the file into four sections: project details, tool settings, building and clean. I'll go through these in order of appearance.
+如你所见，我把文件分成了四个部分：项目细节、工具设置、构建和清理。我会按出现顺序过一遍。
 
-### 1: Project details {#ssec-make-proj}
+### 1：项目细节 {#ssec-make-proj}
 
 ```makefile
 PROJ    := int_demo
@@ -103,35 +103,35 @@ COBJS   := $(CFILES:.c=.o)
 OBJS    := $(SOBJS) $(COBJS)
 ```
 
-These are all just variable definitions. Variables can be defined in two ways (see make manual, 7.2: "The Two Flavors of Variables"):
+这些全都是变量定义。变量可以用两种方式定义（见 make 手册 7.2："The Two Flavors of Variables"）：
 
 ```makefile
 XX  = yy
 AA := bb
 ```
 
-The first flavour (`=`) is a <dfn>recursively expanded</dfn> variable; the second (`:=`) is a <dfn>simply expanded</dfn> variable. In either case, whenever you now write `$(XX)` the make tool will substitute it by `yy`. And yes, the parentheses are mandatory. The difference between the two can be made clear by looking what happens if you do this.
+第一种风味（`=`）是<dfn>递归展开</dfn>变量；第二种（`:=`）是<dfn>简单展开</dfn>变量。无论哪种情况，每当你现在写 `$(XX)`，构建工具都会把它替换成 `yy`。是的，括号是强制的。两者的区别可以通过看看如果你这样做会发生什么来弄清。
 
 ```makefile
 XX = $(XX) -c
 AA := $(AA) -c
 ```
 
-You would like this to behave as the C operator `+=`, but in the first case the expansion is done recursively, meaning that you get an endless loop. The second version does what you expect to happen. Simply expanded variables make things more predictable, which is a good thing. See the make manual for more details on this. Oh, in case you were wondering, the assignment operator is available for makefiles as well.
+你希望这表现得像 C 的 `+=` 运算符，但在第一种情况下展开是递归进行的，意味着你会得到一个无限循环。第二种版本做了你预期的事。简单展开变量让事情更可预测，这是件好事。更多细节见 make 手册。哦，如果你在疑惑，赋值运算符在 makefile 里也可用。
 
-In this case I've defined variables for the project's name (int_demo), the extension (gba) and the directory where I keep all my utility routines (../libtonc). It's a good practice to do this, because you can modify and use it to suit another project without too much trouble.
+在这个例子中，我定义了项目的名字（int_demo）、扩展名（gba）和我存放所有工具例程的目录（../libtonc）的变量。这样做是个好习惯，因为你可以修改并用它适配另一个项目，而不必太费劲。
 
-The second part defines the source files (not the object files, but the actual C and assembly files) of the project. Note the use of `$(UDIR)` in many of the names. Note also that the definition of `CFILES` is split over two lines using a backslash (`\`). When you do this, though, make *absolutely* sure it's the last character on the line. If you put, say, a space behind it, you'll regret it. Some editors have an option with which you can show non-printable characters; try it if you suspect these kinds of errors (will work for the tab requirement as well).
+第二部分定义了项目的源文件（不是目标文件，而是实际的 C 和汇编文件）。注意许多名字里 `$(UDIR)` 的用法。还要注意 `CFILES` 的定义用反斜杠（`\`）分成了两行。不过，当你这样做时，请*绝对*确保它是该行最后一个字符。如果你在它后面放了一个空格，你会后悔的。有些编辑器有一个选项可以显示不可打印字符；如果你怀疑这类错误（对 tab 要求也适用），可以试试。
 
-And the third part is where it gets interesting. The form
+第三部分才有意思。形如
 
 ```makefile
 $(var:a=b)
 ```
 
-is called <dfn>substitution reference</dfn>, one of the many forms of pattern substitution. In this case it looks at variable *var* and if it finds the string *a* at the end of a word, it'll be replaced by string *b*. I've used this to turn the lists of .s and .c files into lists of object files. GNU Make is full of string-transformation commands such as this. Look at libtonc.mak for some others.
+的东西叫<dfn>替换引用</dfn>，是模式替换的众多形式之一。在这种情况下，它查看变量 *var*，如果在某个词的末尾找到字符串 *a*，它就会被字符串 *b* 替换。我用它把 .s 和 .c 文件列表转换成目标文件列表。GNU Make 充满了像这样的字符串变换命令。看看 libtonc.mak 找找其他的。
 
-### 2: Tools settings {#ssec-make-tool}
+### 2：工具设置 {#ssec-make-tool}
 
 ```makefile
 CROSS := arm-none-eabi-                      # use arm-agb-elf- for DKA
@@ -149,11 +149,11 @@ CFLAGS  := -I./ -I$(UDIR) $(MODEL) -O2 -Wall
 LDFLAGS := $(SPECS) $(MODEL)
 ```
 
-More variables. First, I list the tools I use for assembling (`arm-none-eabi-as`), compiling (`arm-none-eabi-gcc`) and linking (`arm-none-eabi-gcc`). Note that I'm using the same program for compiling and linking. You can also use the command that does the actual linking (`arm-none-eabi-ld`), but if you do that you have to tell it what standard libraries to use and where to find them. gcc does that for us, which saves us a lot of hassle. To indicate it really is a different step conceptually, I'm using a different variable name for the link-step. Now, in principle the variable names are yours to choose, you can call them HUEY, LOUIS and DEWEY for all I care, but AS, CC and LD are conventional, so you'd do the world a favour by sticking to that. And there's actually a second reason why using these names are preferred, which I'll go into later. Additionally, using a separate variable for the command prefix (the `CROSS` variable) makes switching to another devkit easier. Abstraction is your friend.
+更多变量。首先，我列出用于汇编（`arm-none-eabi-as`）、编译（`arm-none-eabi-gcc`）和链接（`arm-none-eabi-gcc`）的工具。注意我用了同一个程序来编译和链接。你也可以用真正做链接的命令（`arm-none-eabi-ld`），但如果你那样做，你得告诉它用什么标准库以及在哪里找它们。gcc 替我们做了这些，省了我们很多麻烦。为了表明它在概念上确实是不同的步骤，我为链接步骤用了不同的变量名。现在，原则上变量名随你选，你大可管它们叫 HUEY、LOUIS 和 DEWEY，但 AS、CC 和 LD 是约定俗成的，所以坚持用它们算是给全世界做了件好事。而且使用这些名字还有第二个理由，我稍后会讲。此外，用一个单独的变量表示命令前缀（那个 `CROSS` 变量）让切换到另一个 devkit 更容易。抽象是你的朋友。
 
-The rest are lists of assembler, compiler and linker flags. I want to tell you what these do later, since it has nothing to do with the make-process in itself. It's standard practice to do something like this, though. Again, by using variables for this stuff (especially with these precise names) rather than adding them to the actual build commands, makes it easier to switch to something that requires other flags. Abstraction is a very good friend.
+其余的是汇编器、编译器和链接器标志的列表。我想稍后告诉你它们做什么，因为这本身与 make 过程无关。不过，这样做是标准做法。再次，通过对这些东西（尤其用这些确切的名字）使用变量，而非把它们加到实际的构建命令中，让切换到需要其他标志的东西更容易。抽象是个非常好的朋友。
 
-### 3: The build commands {#ssec-make-cmd}
+### 3：构建命令 {#ssec-make-cmd}
 
 ```makefile
 build : $(PROJ).$(EXT)
@@ -173,28 +173,28 @@ $(SOBJS) : %.o : %.s
     $(AS) $(ASFLAGS) $< -o $@
 ```
 
-And now for the real work. The actual build process is composed of a number of rules. If you've forgotten what a rule looks like, here it is again:
+现在来看真正的工作。实际的构建过程由若干规则组成。如果你忘了规则长什么样，它又在这儿了：
 
 ```makefile
 target : prerequisite
     command
 ```
 
-One thing to remember here is that the command *must* be preceded by a TAB, *not* spaces! Anyway, the commands will run only when the target is out of date. This is true when the target doesn't exist or is older than the prerequisites. By default, the first rule in the makefile starts the build-chain, but you can start at another rule in the command line (or the Project Settings). Let's trace through the rules one by one.
+这里要记住的一件事是，命令*必须*以 TAB 而非空格开头！总之，命令只有当目标过期时才会运行。当目标不存在或比先决条件更旧时就是这种情况。默认情况下，makefile 中的第一条规则启动构建链，但你可以在命令行（或项目设置）从另一条规则开始。让我们逐条追溯这些规则。
 
-It starts at the `build` rule, which has one prerequisite, `int_demo.gba`. This has a rule too, and one that requires `int_demo.elf`, which in turn requires `the object  list`. The objects list is composed of two parts, `COBJS` and `SOBJS`. The percentage signs ('%') in their rules make them <dfn>pattern rules</dfn>. Taking `SOBJS` as an example, the rule says that for every file in the list that ends in ‘.o’, the prerequisite is its ‘.s’ counterpart. Here ends the `build` chain, as the sources have prerequisites. Now the commands come into play, in an stack-unwind manner.
+它从 `build` 规则开始，它有一个先决条件 `int_demo.gba`。这也有一条规则，且需要 `int_demo.elf`，而后者又需要`目标列表`。目标列表由两部分组成，`COBJS` 和 `SOBJS`。它们规则中的百分号（'%'）使它们成为<dfn>模式规则</dfn>。以 `SOBJS` 为例，规则说对于列表中每个以 '.o' 结尾的文件，其先决条件是对应的 '.s' 文件。由于源文件有先决条件，到这里 `build` 链就结束了。现在命令登场，以栈展开的方式。
 
-In almost all the commands, you'll see unknown things with dollar signs: `$^`, `$<` and `$@`. These are <dfn>automatic variables</dfn>. These refer to the full prerequisite, a single item in the prerequisite and the target, respectively. Other things to not about some commands are the hyphen ('-') and the at sign ('@') in front of them. The '@' suppresses echoing that line. The hyphen lets make ignore errors. I'm using it in the gbafix command to keep the makefile running, even if you don't have the tool.
+在几乎所有的命令中，你会看到带美元符号的未知东西：`$^`、`$<` 和 `$@`。这些是<dfn>自动变量</dfn>。它们分别指代完整的先决条件、先决条件中的单项，以及目标。关于某些命令还要注意它们前面的连字符（'-'）和 at 符号（'@'）。'@' 抑制该行的回显。连字符让 make 忽略错误。我在 gbafix 命令里用它来让 makefile 即使你没有这个工具也能继续运行。
 
-An observant reader may have noticed that the lines for compiling the C files have been commented out. So how can the files be compiled without a rule? Via <dfn>implicit rules</dfn>. For a good number of suffices GNUmake knows how to build them. For example, if you need an object file *foo.o* and *foo.c* is nearby, it'll use the rule
+细心的读者可能注意到编译 C 文件的行被注释掉了。那么文件没有规则怎么能编译呢？通过<dfn>隐式规则</dfn>。对于相当多的后缀，GNUmake 知道如何构建它们。例如，如果你需要一个目标文件 *foo.o* 而 *foo.c* 在附近，它会使用规则
 
 ```makefile
 $(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 ```
 
-There's an implicit rule for assembly files too, only it uses `AS` and `ASFLAGS`, which is why I used those names. You can find a full list of implicit rules and the variables they use in the make manual.
+对汇编文件也有一条隐式规则，只是它用 `AS` 和 `ASFLAGS`，这也是我为什么用那些名字。你可以在 make 手册中找到隐式规则及其所用变量的完整列表。
 
-### 4: cleaning up {#ssec-make-clean}
+### 4：清理 {#ssec-make-clean}
 
 ```makefile
 # --- Clean ---
@@ -205,31 +205,31 @@ clean :
     @rm -fv $(PROJ).elf
 ```
 
-This rule is separate from the others and is used to remove the output and intermediaries of the project (but not the utility objects, because they may be used in another project as well). It's really simple: rm is the command for removing stuff, the flags tells it to keep going even if the file doesn't exist (`-f`) and to display what it's doing (`-v`). And that's it. Well, almost. There's one more thing, namely the `.PHONY` directive. Remember that I said that the commands are only run when the target doesn't exist or is older that its prerequisites. Since the target (clean) doesn't exist, it's always out of date and the commands always run. But what happens if there *is* a file called clean? Because there are no prerequisites the commands will never run. The `.PHONY` directive is used to indicate that the target is a target in name only and that the commands should always be executed.
+这条规则与其他的分离，用于移除项目的输出和中间产物（但不是工具对象，因为它们也可能在另一个项目中使用）。它真的很简单：rm 是移除东西的命令，标志告诉它即使文件不存在也继续（`-f`）并显示它在做什么（`-v`）。就这些。嗯，差不多。还有一件事，即 `.PHONY` 指令。记得我说过命令只有当目标不存在或比其先决条件更旧时才运行。由于目标（clean）不存在，它总是过期的，命令总是运行。但如果*确实*有一个叫 clean 的文件呢？因为没有先决条件，命令永远不会运行。`.PHONY` 指令用于表明目标只是名义上的目标，命令应该总是被执行。
 
-There's a lot more fun to be had with makefiles. You can use makefiles that run other makefiles (which is actually how tonc.mak is set up) or include them in other makefiles. This last one can make your life a lot easier. For example, by proper use of variables, steps 3 and 4 will rarely change between projects. This means that you could put them into a master makefile and include them in all your project-makefiles, in which you will only have to write down the things that are really specific to the current project (for an example of this, see [HAM](http://www.ngine.de)). Abstraction wants to have your babies.
+makefile 还有更多好玩的。你可以用运行其他 makefile 的 makefile（这实际上正是 tonc.mak 的设置方式），或在其他 makefile 中包含它们。最后一种能让你的生活轻松很多。例如，通过恰当使用变量，步骤 3 和 4 在不同项目之间很少变化。这意味着你可以把它们放进一个主 makefile，并包含在所有你的项目 makefile 中，在其中你只需写下真正针对当前项目的东西（这方面的例子见 [HAM](http://www.ngine.de)）。抽象想给你生宝宝。
 
-With the pattern substitution and wildcard rules you can practically make makefiles that write themselves! (see the [devkitARM](https://www.devkitpro.org) sample code). The full extent of makefile capabilities is beyond the scope of this tutorial, but trust me, there's a lot more cool stuff here.
+通过模式替换和通配符规则，你几乎可以写出会自己写的 makefile！（见 [devkitARM](https://www.devkitpro.org) 示例代码）。makefile 能力的全部范围超出了本教程的范围，但相信我，这里还有更多很酷的东西。
 
-## Common compiler flags {#sec-flags}
+## 常用编译器标志 {#sec-flags}
 
-Knowing how to write a working makefile is only part of the problem of getting the GNU tools to work. What's even more important is knowing what options you can use with the assembler, compiler and linker. In an IDE, you can enable these by selecting them in check- and list-boxes and such. No such luck for command line tools, though, here you have to set all the options by including certain flags. The key is knowing which flags to use. I'm not going to list each and every one of these since there are literally hundreds of flags. But I am going to list the ones you're most likely to see in GBA programming.
+知道如何写一个能用的 makefile 只是让 GNU 工具工作的问题的一部分。更重要的是知道你能对汇编器、编译器和链接器使用哪些选项。在 IDE 里，你可以通过在勾选框和列表框里选它们等来启用这些。但对命令行工具就没这运气了，在这里你必须通过包含某些标志来设置所有选项。关键是知道用哪些标志。我不会把它们每一个都列出来，因为确实有成百上千个标志。但我会列出你在 GBA 编程中最可能看到的那些。
 
-- `-c`:   (gcc) Compile to object file, but do not link.
-- `-E`:   (gcc) Stop after the preprocessor stage.
-- `-g`:   (as, gcc) Generates debug-information for the gdb debugger. Haven't used myself this yet.
-- `-Idir`:   (gcc) Add the directory dir to the list of directories to be searched for header files. (That's a capital 'i', by the way)
-- `-llibrary`:   (gcc, ld) Search the library named *library* or *liblibrary.a* when linking. Important libraries are libm (math library), libgcc, libc and libstdc++; the last three are linked automatically when you use `gcc` as a linker, rather than calling `ld` directly. And that's a lowercase 'L', by the way. “lI1”, “oO0”, I do so hate the Latin alphabet sometimes.
-- `-Ldir`:   (gcc, ld) Add directory dir to the list of directories to be searched for code libraries.
-- `-M`:   (gcc) The family of `-M` flags generate dependency information for header files. Normally when you create rules, you only mention the source files, which are recompiled when they've been modified. But when you modify the headers that that file includes, the file itself is still considered up-to-date. You can either create a rule for the headers yourself or let make do it for you with these flags. Unfortunately, I haven't been able to make them work for me yet.
-- `-Map mapfile`:   (ld) Creates a <dfn>map-file</dfn>, which indicates where the linker puts your functions and global variables. Since it is a pure linker option, you need to use -Wl,-Map,filename when linking with gcc.
+- `-c`:   (gcc) 编译成目标文件，但不链接。
+- `-E`:   (gcc) 在预处理阶段后停止。
+- `-g`:   (as, gcc) 为 gdb 调试器生成调试信息。我自己还没用过。
+- `-Idir`:   (gcc) 把目录 dir 加入到搜索头文件的目录列表中。（顺便说一句，那是大写的 'i'）
+- `-llibrary`:   (gcc, ld) 链接时搜索名为 *library* 或 *liblibrary.a* 的库。重要的库有 libm（数学库）、libgcc、libc 和 libstdc++；后三个在您用 `gcc` 作为链接器而非直接调用 `ld` 时会自动链接。而那是小写的 'L'，顺便说一句。"lI1"、"oO0"，有时候我真恨拉丁字母。
+- `-Ldir`:   (gcc, ld) 把目录 dir 加入到搜索代码库的目录列表中。
+- `-M`:   (gcc) `-M` 系列标志为头文件生成依赖信息。通常当你创建规则时，你只提到源文件，它们在被修改时会重新编译。但当你修改那个文件所包含的头文件时，文件本身仍被认为是最新的。你可以自己为头文件创建规则，或让 make 用这些标志替你做。不幸的是，我还未能让它们对我起作用。
+- `-Map mapfile`:   (ld) 创建一个<dfn>映射文件</dfn>，它指示链接器把你的函数和全局变量放在哪里。由于它是纯链接器选项，用 gcc 链接时需要用 -Wl,-Map,filename。
 - `-marm, -mthumb, -mthumb-interwork`
-:   (as, gcc, ld) Indicates the CPU model to write object files for (ARM or Thumb). The default is ARM. With `-mthumb-interwork` you allow mixing between ARM and Thumb code, which you'll want to allow for even when you're not actually using it. This flags it actually *required* under devkitARM.
-- `-nostartfiles`:   (gcc, ld) Do not use the standard system start-up files when linking. If you want to link a custom *crt0.o* you want this *so* bad. (Whether you want a custom crt0.o is another matter, though.)
-- `-o file`:   (as, gcc, ld) Place output in file file.
-- `-Onum`:   (gcc) Enables optimisation level `num`, where `num` is usually `g`, `1`, `s`, `2`, or `3`. If you want to use inline functions, you need at least one level of optimisation. See the gcc manual for details.
-- `-S`:   (gcc) compile, but not assemble. This gives you an assembly file of the C file you just compiled. Very useful for finding out how ARM assembly works, you should do this at least once.
-- `-specs=specfile`:   (gcc) use specfile to determine what switches need to be passed to gcc's subprocesses (`as`, `cc1`, `cc1plus`, `ld`) instead of the default specs. (gcc.info, line 5556. Fer IPU's sake, people, don't you guys read manuals? It's only 26k lines you know).
-- `-T scriptfile`:   (ld) Use scriptfile as the linker script. (Like Jeff Frohwein's lnkscript.)
-- `-Wall`:   (as, gcc) Enable common warnings. Options of the form `-Wfoo` are used for all kinds of warnings actually.
-- `-Wl,opts`:   (gcc) passes options to the linker; opts is a comma-separated list.
+:   (as, gcc, ld) 指示要为哪种 CPU 型号（ARM 或 Thumb）编写目标文件。默认是 ARM。用 `-mthumb-interwork` 你允许 ARM 和 Thumb 代码混用，即使你实际上没用到也该允许。这个标志在 devkitARM 下实际上是*必需*的。
+- `-nostartfiles`:   (gcc, ld) 链接时不要使用标准系统启动文件。如果你想链接自定义的 *crt0.o*，你会非常想要这个。（不过，你是否想要自定义的 crt0.o 是另一回事。）
+- `-o file`:   (as, gcc, ld) 把输出放在文件 file 中。
+- `-Onum`:   (gcc) 启用优化级别 `num`，其中 `num` 通常是 `g`、`1`、`s`、`2` 或 `3`。如果你想用内联函数，你至少需要一级优化。详见 gcc 手册。
+- `-S`:   (gcc) 编译但不汇编。这会给你刚编译的 C 文件的汇编文件。对弄清 ARM 汇编如何工作非常有用，你至少该做一次。
+- `-specs=specfile`:   (gcc) 使用 specfile 来决定需要传给 gcc 子进程（`as`、`cc1`、`cc1plus`、`ld`）哪些开关，而非默认 specs。（gcc.info，第 5556 行。看在 IPU 的份上，各位，你们就不看手册吗？要知道那才 26k 行。）
+- `-T scriptfile`:   (ld) 使用 scriptfile 作为链接器脚本。（像 Jeff Frohwein 的 lnkscript。）
+- `-Wall`:   (as, gcc) 启用常见警告。形如 `-Wfoo` 的选项实际上用于各种警告。
+- `-Wl,opts`:   (gcc) 把选项传给链接器；opts 是逗号分隔的列表。

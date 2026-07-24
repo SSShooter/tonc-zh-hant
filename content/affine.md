@@ -1,12 +1,12 @@
-# 10. The Affine Transformation Matrix (a.k.a. **P**)
+# 10. 仿射变换矩阵（即 **P**）
 
 <!-- toc -->
 
-## About this page
+## 关于本页
 
-As you probably know, the GBA is capable of applying geometric transformations like rotating and/or scaling to sprites and backgrounds. To set them apart from the regular items, the transformable ones are generally referred to as Rot/Scale sprites and backgrounds. The transformations are described by four parameters, `pa`, `pb`, `pc` and `pd`. The locations and exact names differ for sprites and backgrounds but that doesn't matter for now.
+正如你可能知道的那样，GBA 能够对精灵(对象)和背景施加旋转和/或缩放等几何变换。为了把它们与常规项目区分开来，这些可变换的对象通常被称为旋转/缩放（Rot/Scale）精灵和背景。这些变换由四个参数 `pa`、`pb`、`pc` 和 `pd` 描述。对于精灵和背景来说，它们的位置和确切名称有所不同，但眼下这并不重要。
 
-There are two ways of interpreting these numbers. The first is to think of each of them as individual offsets to the sprite and background data. This is how the reference documents like [GBATEK](https://problemkaputt.de/gbatek.htm) and [CowBite Spec](http://www.cs.rit.edu/~tjh8300/CowBite/CowBiteSpec.htm) describe them. The other way is to see them as the elements of a 2x2 matrix which I will refer to as **P**. This is how pretty much all tutorials describe them. These tutorials also give the following matrix for rotation and scaling:
+有两种方式来理解这些数字。第一种是把它们看作各自独立的、作用于精灵和背景数据的偏移量。这正是 [GBATEK](https://problemkaputt.de/gbatek.htm) 和 [CowBite Spec](http://www.cs.rit.edu/~tjh8300/CowBite/CowBiteSpec.htm) 这类参考文档描述它们的方式。另一种方式则是把它们看作一个 2×2 矩阵的元素，我将其称为 **P**。几乎所有教程都是这样描述的。这些教程还会给出如下用于旋转和缩放的矩阵：
 
 <math id="eq:incorrect_transform_matrix" class="block">
     <mo>(</mo>
@@ -46,14 +46,14 @@ There are two ways of interpreting these numbers. The first is to think of each 
     </mrow>
 </math>
 
-Now, this is indeed a rotation and scale matrix. Unfortunately, it's also the <span class="rem">wrong one</span>! Or at least, it probably does not do what you'd expect. For example, consider the case with a scaling of <math><msub><mi>s</mi><mi>x</mi></msub></math> = 1.5, <math><msub><mi>s</mi><mi>y</mi></msub></math> = 1.0 and a rotation of α= 45. You'd probably expect something like {@fig:rotatescale}a, but what you'd actually get is {@fig:rotatescale}b. The sprite has rotated, but in the wrong direction, it has shrunk rather than expanded and there's an extra shear as well. Of course, you can always say that you meant for this to happen, but that's probably not quite true.
+现在，这确实是一个旋转加缩放矩阵。不幸的是，它同时也是<span class="rem">错误</span>的那一个！或者至少，它很可能不会按你预期的那样工作。举例来说，考虑缩放 <math><msub><mi>s</mi><mi>x</mi></msub></math> = 1.5、<math><msub><mi>s</mi><mi>y</mi></msub></math> = 1.0，旋转角 α = 45 的情况。你大概会预期得到类似 {@fig:rotatescale}a 的结果，但你实际得到的却是 {@fig:rotatescale}b。精灵确实旋转了，但方向错了，它非但没有放大反而缩小了，而且还多出了一个切变。当然，你大可以说你本来就是想要这种效果的，但那多半并非实情。
 
 <div style="display: flex; margin: 20px">
 <div class="cpt" style="width:160px;">
 
 <img src="./img/affine/metr_rs_good.png" id="fig:rotatescale">  
 
-**{*@fig:rotatescale}a**: when you say ‘rotate and scale’, you probably expect this…
+**{*@fig:rotatescale}a**：当你说“旋转并缩放”时，你预期的很可能是这样的……
 
 </div>
 &nbsp;
@@ -61,37 +61,37 @@ Now, this is indeed a rotation and scale matrix. Unfortunately, it's also the <s
 <img src="./img/affine/metr_rs_bad.png" id="fig:rotatescale">  
 
 
-**{*@fig:rotatescale}b**: but with **P** from {@eq:incorrect_transform_matrix}, this is what you get.
+**{*@fig:rotatescale}b**：但使用 {@eq:incorrect_transform_matrix} 中的 **P**，你得到的却是这个。
 </div>
 </div>
 
-Unfortunately, there is a lot of incorrect or misleading information on the transformation matrix around; the matrix of {@eq:incorrect_transform_matrix} is just one aspect of it. This actually starts with the moniker “Rot/Scale”, which does not fit with what actually occurs, continues with the fact that the terms used are never properly defined and that most people often just copy-paste from others without even considering checking whether the information is correct or not. The irony is that the principle reference document, GBATEK, gives the correct descriptions of each of the elements, but somehow it got lost in the translation to matrix form in the tutorials.
+遗憾的是，关于变换矩阵存在大量不正确或具有误导性的信息；{@eq:incorrect_transform_matrix} 中的矩阵只是其中一个方面。这实际上要从“Rot/Scale”这个绰号说起，它并不符合实际发生的情况；接着是这样一个事实：所使用的术语从未被正确地定义过，而且大多数人往往只是互相复制粘贴，连停下来想一想这些信息是否正确都不愿意。讽刺的是，权威的参考文档 GBATEK 对每个元素都给出了正确的描述，但在教程里翻译成矩阵形式的环节中，这些正确信息 somehow 丢失了。
 
-In this chapter, I'll provide the **correct** interpretation of the **P**-matrix; how the GBA uses it and how to construct one yourself. To do this, though, I'm going into full math-mode. If you don't know your way around vector and matrix calculations you may have some difficulties understanding the finer points of the text. There is an appendix on [linear algebra](matrix.html) for some pointers on this subject.
+在本章中，我会给出 **P** 矩阵的<strong>正确</strong>解读：GBA 是如何使用它的，以及你该如何自己构建它。不过，要做到这一点，我得完全进入数学模式。如果你对向量和矩阵运算不太熟悉，可能会在理解文中那些细微之处时遇到一些困难。关于这个主题，[线性代数](matrix.html) 附录中给出了一些指引。
 
-This is going to be a purely theoretical page: you will find nothing that relates directly to sprites or backgrounds here; that's what the next two sections are for. Once again, we will be assisted by the lovely metroid (keep in cold storage for safe use). Please mind the direction of the y-axis and the angles, and do *not* leave without reading the [finishing up](#sec-finish) paragraph. This contains several key implementation details that will be ignored in the text preceding it, because they will only get in the way at that point.
+这将是一个纯粹理论性的页面：你在这里找不到任何与精灵或背景直接相关的内容；那是接下来两节要讲的东西。我们再次请出可爱的 metroid（请冷藏保存以备安全使用）。请注意 y 轴的方向和角度的定义，并且在没有读完[收尾](#sec-finish)段落之前<strong>不要</strong>离开。那段包含了若干关键的实现细节，在之前的文字中我故意略去不谈，因为它们在那个阶段只会碍事。
 
-:::warning Be wary of documents covering affine parameters
+:::warning 请警惕那些讲解仿射参数的文档
 
-It's true. Pretty much every document I've seen that deals with this subject is problematic in some way. A lot of them give the wrong rotate-scale matrix (namely, the one in {@eq:incorrect_transform_matrix}), or misname and/or misrepresent the matrix and its elements.
+这是真的。我见过的几乎每一份涉及这个主题的文档，都在某些方面存在问题。其中很多都给出了错误的旋转-缩放矩阵（即 {@eq:incorrect_transform_matrix} 中的那一个），或者错误地命名和/或错误地表述了矩阵及其元素。
 
 :::
 
-## Texture mapping and affine transformations.
+## 纹理映射与仿射变换。
 
-### General 2D texture mapping
+### 通用 2D 纹理映射
 
-What the GBA does to get sprites and tiled backgrounds on screen is very much like texture mapping. So forget about the GBA right now and look at how texture mapping is done. In {@fig:metroid_texture}a, we see a metroid texture. For convenience I am using the standard Cartesian 2D coordinate system (y-axis points up) and have normalised the texture, which means that the right and top side of the texture correspond precisely with the unit-vectors <math><msub><mi>e</mi><mi>x</mi></msub></math> and <math><msub><mi>e</mi><mi>y</mi></msub></math> (which are of length 1). The texture mapping brings **p** (in texture space) to a point **q** (in screen space). The actual mapping is done by a 2×2 matrix **A**:
+GBA 把精灵和图块背景显示到屏幕上的方式，与纹理映射非常相似。所以现在先忘掉 GBA，来看看纹理映射是怎么做的。在 {@fig:metroid_texture}a 中，我们看到一张 metroid 纹理。为了方便，我使用了标准的笛卡尔二维坐标系（y 轴向上），并对纹理做了归一化处理，也就是说，纹理的右侧和顶侧分别与单位向量 <math><msub><mi>e</mi><mi>x</mi></msub></math> 和 <math><msub><mi>e</mi><mi>y</mi></msub></math>（长度为 1）精确对应。纹理映射把纹理空间中的点 **p** 映射到屏幕空间中的点 **q**。实际的映射由一个 2×2 矩阵 **A** 完成：
 
 <math class="block">
     <mi>𝗾</mi>
     <mo>=</mo>
     <mi>𝗔</mi>
     <mo>&middot;</mo>
-    <mi>𝗽</mi>
+    <mi>𝗉</mi>
 </math>
 
-So how do you find **A**? Well, that's actually not that hard. The matrix is formed by lining up the transformed base vectors, which are **u** and **v** (this works in any number of dimensions, btw), so that gives us:
+那么该如何求 **A** 呢？嗯，其实没那么难。该矩阵是由变换后的基向量（即 **u** 和 **v**，顺便说一句，这在任意维数下都成立）并排排列而成的，于是我们得到：
 
 <math class="block">
     <mi>𝗔</mi>
@@ -116,30 +116,31 @@ So how do you find **A**? Well, that's actually not that hard. The matrix is for
 <div class="cpt" style="width:128px;" markdown>
 <img src="./img/affine/metr_tex.png" id="fig:metroid_texture">  
 
-**{*@fig:metroid_texture}a**: a texture.
+**{*@fig:metroid_texture}a**：一张纹理。
 </div>
 
 <span style="font-size: 3em; display: inline-flex; flex-direction: column; padding: 10px">
 A <br>
 →
+
 </span>
 
 <div class="cpt" style="width:128px;" markdown>
 <img src="./img/affine/metr_texmapA.png" id="fig:metroid_texture">  
 
-**{*@fig:metroid_texture}b**: a texture mapped
+**{*@fig:metroid_texture}b**：一张被映射的纹理
 </div>
 </div>
 
-A forward texture mapping via affine matrix **A**.
+通过仿射矩阵 **A** 进行的一次正向纹理映射。
 
-### Affine transformations
+### 仿射变换
 
-The transformations you can do with a 2D matrix are called <dfn>[affine](https://en.wikipedia.org/wiki/Affine_geometry)</dfn> transformations. The technical definition of an affine transformation is one that preserves parallel lines, which basically means that you can write them as matrix transformations, or that a rectangle will become a parallelogram under an affine transformation (see {@fig:metroid_texture}b).
+用 2D 矩阵所能完成的变换被称为 <dfn>[仿射](https://en.wikipedia.org/wiki/Affine_geometry)</dfn> 变换。仿射变换的技术性定义是“保持平行线不变”的变换，这基本上意味着你可以把它们写成矩阵变换的形式，或者说，一个矩形在仿射变换下会变成一个平行四边形（参见 {@fig:metroid_texture}b）。
 
-Affine transformations include rotation and scaling, but *also* shearing. This is why I object to the name “Rot/Scale”: that term only refers to a special case, not the general transformation. It is akin to calling colors shades of red: yes, reds are colors too, but not all colors are reds, and to call them that would give a distorted view of the subject.
+仿射变换包含旋转和缩放，但<strong>也</strong>包含切变。这正是我反对“Rot/Scale”这个名字的原因：那个词只指代了一种特殊情况，而非一般的变换。这就好比把颜色都叫做“红色系”：没错，红色当然也是颜色，但并非所有颜色都是红色，而把它们都叫做红色，只会让人对这个主题产生扭曲的认识。
 
-As I said, there are three basic 2d transformations, though you can always describe one of these in terms of the other two. The transformations are: rotation (**R**), scaling (**S**) and shear (**H**). {*@tbl:transformation_matrices_and_their_inverses} shows what each of the transformations does to the regular metroid sprite. The black axes are the normal base vectors (note that *y* points down!), the blue axes are the transformed base vectors and the cyan variables are the arguments of the transformation. Also given are the matrix and inverse matrix of each transformation. Why? You'll see.
+正如我所说，基本的 2D 变换有三种，不过你总是可以用其中两种来描述第三种。这些变换分别是：旋转（**R**）、缩放（**S**）和切变（**H**）。{*@tbl:transformation_matrices_and_their_inverses} 展示了每种变换作用于常规 metroid 精灵时的效果。黑色坐标轴是普通的基向量（注意 *y* 是向下的！），蓝色坐标轴是变换后的基向量，青色变量则是变换的参数。同时给出的还有每种变换的矩阵及其逆矩阵。为什么？你很快就会明白。
 
   
 <math id="eq:transformation_matrix_and_inverse" class="block">
@@ -191,14 +192,14 @@ As I said, there are three basic 2d transformations, though you can always descr
     </mrow>
 </math>
 
-{*@tbl:transformation_matrices_and_their_inverses}: transformation matrices and their inverses.
+{*@tbl:transformation_matrices_and_their_inverses}：变换矩阵及其逆矩阵。
 <table id="tbl:transformation_matrices_and_their_inverses" class="table-data">
     <thead>
         <tr>
-            <th>Identity</th>
-            <th>Rotation</th>
-            <th>Scaling</th>
-            <th>Shear</th>
+            <th>单位矩阵</th>
+            <th>旋转</th>
+            <th>缩放</th>
+            <th>切变</th>
         </tr>
     </thead>
     <tbody>
@@ -366,7 +367,7 @@ As I said, there are three basic 2d transformations, though you can always descr
     </tbody>
 </table>
 
-We can now use these definitions to find the correct matrix for enlargements by <math><msub><mi>s</mi><mi>x</mi></msub></math> and <math><msub><mi>s</mi><mi>y</mi></msub></math>, followed by a **counter-clockwise** rotation by α (=−θ), by matrix multiplication.
+现在我们可以借助这些定义，通过矩阵乘法求出在 <math><msub><mi>s</mi><mi>x</mi></msub></math> 和 <math><msub><mi>s</mi><mi>y</mi></msub></math> 方向上的放大，再接一个**逆时针**旋转 α（= −θ）的正确矩阵。
 
 <math id="eq:inverse_transform" class="block">
     <mo>(</mo>
@@ -395,57 +396,57 @@ We can now use these definitions to find the correct matrix for enlargements by 
     </mrow>
 </math>
 
-… ermm, wait a sec … I'm having this strange sense of déja-vu here …
+…呃，等等……我有一种似曾相识的奇怪感觉……
 
-:::note Clockwise vs counterclockwise
+:::note 顺时针 vs 逆时针
 
-It's a minor issue, but I have to mention it. If the definition of **R** uses a clockwise rotation, why am I suddenly using a counter-clockwise one? Well, traditionally **R** is given as that particular matrix, in which the angle runs from the x-axis towards the y-axis. Because *y* is downward, this comes down to clockwise. However, the affine routines in BIOS use a counter-clockwise rotation, and I thought it'd be a good idea to use that as a guideline for my functions.
-
-:::
-
-:::note Nomenclature: Affine vs Rot/Scale
-
-The matrix **P** is not a rotation matrix, not a scaling matrix, but a general affine transformation matrix. Rotation and scaling may be what the matrix is mostly used for, but that does not mean they're the only things possible, as the term ‘Rot/Scale’ would imply.
-
-To set them apart from regular backgrounds and sprites, I suppose ‘Rotation’ or ‘Rot/Scale’ are suitable enough, just not entirely accurate. However, calling the **P**-matrix by those names is simply wrong.
+这是个小问题，但我必须提一下。如果 **R** 的定义是使用顺时针旋转，为什么我突然改用逆时针了呢？嗯，传统上 **R** 就是被给定为那个特定的矩阵，其中角度从 x 轴指向 y 轴。由于 *y* 是向下的，这等价于顺时针。然而，BIOS 中的仿射例程使用的是逆时针旋转，而我觉得以它作为我自己函数的准绳是个好主意。
 
 :::
 
-## “Many of the truths we cling to depend greatly upon our own point of view.”
+:::note 命名法：仿射 vs 旋转/缩放
+
+矩阵 **P** 既不是旋转矩阵，也不是缩放矩阵，而是一个通用的仿射变换矩阵。旋转和缩放或许是这个矩阵最常用的用途，但这并不意味着它们就是唯一可能的事，而“Rot/Scale”这个词所暗示的恰恰就是“唯一可能”。
+
+为了把它们与常规背景和精灵区分开来，我觉得“Rotation”或“Rot/Scale”也够用了，只是不完全准确。不过，把 **P** 矩阵叫做那些名字，根本就是错误的。
+
+:::
+
+## “我们坚持的许多真理，很大程度上取决于我们自己的视角。”
 
 <div class="cpt_fr" style="width:160px">
 
 <img src="./img/affine/metr_texmapA.png" id="fig:human_pov">  
 
-**{*@fig:human_pov}**: Mapping process as seen by humans. **u** and **v** are the columns of **A** (in screen space).
+**{*@fig:human_pov}**：从人类视角看到的映射过程。**u** 和 **v** 是 **A** 的各列（在屏幕空间中）。
 
 </div>
 
-As you must have noticed, {@eq:inverse_transform} is identical to {@eq:incorrect_transform_matrix}, which I said was incorrect. So what gives? Well, if you enter this matrix into the `pa-pd` elements you do indeed get something different than what you'd expect. Only now I've proven what you were supposed to expect in the first place (namely a scaling by <math><msub><mi>s</mi><mi>x</mi></msub></math> and <math><msub><mi>s</mi><mi>y</mi></msub></math>, followed by a counter-clockwise rotation by α). The *real* question is of course, why doesn't this work? To answer this I will present two different approaches to the 2D mapping process.
+正如你一定已经注意到的那样，{@eq:inverse_transform} 与 {@eq:incorrect_transform_matrix} 完全相同，而我之前说它是错的。那么这是怎么回事？嗯，如果你把这个矩阵填入 `pa-pd` 这些元素里，你确实会得到与你预期不同的东西。只不过现在，我已经从一开始就证明了你原本应该预期的是什么（即先按 <math><msub><mi>s</mi><mi>x</mi></msub></math> 和 <math><msub><mi>s</mi><mi>y</mi></msub></math> 缩放，再逆时针旋转 α）。真正的问题当然是：为什么这不起作用？为了回答这个问题，我将给出两种不同的看待 2D 映射过程的方式。
 
-### Human point of view
+### 人类视角
 
-“Hello, I am Cearn's brain. I grok geometry and can do matrix- transformations in my head. Well, his head actually. When it comes to texture mapping I see the original map (in texture space) and then visualize the transformation. I look at the original map and look at where the map's pixels end up on screen. The transformation matrix for this is **A**, which ties texel **p** to screen pixel **q** via **q**= **A · p**. The columns of **A** are simply the transformed unit matrices. Easy as π.”
+“你好，我是 Cearn 的大脑。我懂几何，能在脑子里做矩阵变换。呃，其实是他的脑子。说到纹理映射，我看到原始的图（在纹理空间中），然后想象出变换。我看着原始图，看着图的像素最终落在屏幕的什么位置。这个变换的矩阵是 **A**，它通过 **q** = **A · p** 把纹素 **p** 与屏幕像素 **q** 联系起来。**A** 的各列就是变换后的单位矩阵。简单得就像 π。”
 
-### Computer point of view
+### 计算机视角
 
 <div class="cpt_fr" style="width:160px">
 
 <img src="./img/affine/metr_texmapB.png" id="fig:comp_pov">  
 
-**{*@fig:comp_pov}**: Mapping process as seen by computers. **u** and **v** (in texture space) are the columns of **B** and are mapped to the principle axes in screen space.
+**{*@fig:comp_pov}**：从计算机视角看到的映射过程。**u** 和 **v**（在纹理空间中）是 **B** 的各列，被映射到屏幕空间中的主轴。
 
 </div>
 
-“Hello, I am Cearn's GBA. I'm a lean, mean gaming machine that fits in your pocket, and I can push pixels like no one else. Except perhaps my owner's GeForce 4 Ti4200, the bloody show-off. Anyway, one of the things I do is texture mapping. And not just ordinary texture-mapping, I can do cool stuff like rotation and scaling as well. What I do is fill pixels, all I need to know is for you to tell me where I should get the pixel's color from. In other words, to fill screen pixel **q**, I need a matrix **B** that gives me the proper texel **p** via **p = B · q**. I'll happily use any matrix you give me; I have complete confidence in your ability to supply me with the matrix for the transformation you require.”
+“你好，我是 Cearn 的 GBA。我是一台精悍的掌上游戏机，能以无人能及的方式推送像素。也许除了他主人的那块 GeForce 4 Ti4200，那个爱显摆的家伙。总之，我做的事情之一就是纹理映射。而且不只是普通的纹理映射，我还能玩旋转和缩放之类的酷炫花样。我所做的不过是填充像素，我只需要你告诉我该从哪儿取像素的颜色。换句话说，为了填充屏幕像素 **q**，我需要一个矩阵 **B**，它通过 **p = B · q** 给我对应的纹素 **p**。你给我什么矩阵我都乐意用；我完全相信你有能力提供你所需变换的矩阵。”
 
-### Resolution
+### 解析
 
-I hope you spotted the crucial difference between the two points of view. **A** maps *from* texture space *to* screen space, while **B** does the exact opposite (i.e., <math><mi>𝗕</mi><mo>=</mo><msup><mi>𝗔</mi><mn>-1</mn></msup></math>). I think you know which one you should give the GBA by now. That's right: **P = B**, not **A**. This one bit of information is the crucial piece of the affine matrix puzzle.
+我希望你已经发现了这两种视角之间的关键差异。**A** 的映射方向是从纹理空间<strong>到</strong>屏幕空间，而 **B** 恰好相反（即 <math><mi>𝗕</mi><mo>=</mo><msup><mi>𝗔</mi><mn>-1</mn></msup></math>）。我想你现在应该知道该把哪一个交给 GBA 了。没错：**P = B**，而不是 **A**。这一条信息，就是仿射矩阵谜题中最关键的一块拼图。
 
-So now you can figure out **P**'s elements in two ways. You can stick to the human POV and invert the matrix at the end. That's why I gave you the inverses of the affine transformations as well. You could also try to see things in the GBA's way and get the right matrix directly. Tonc's main affine functions (<i>tonc_video.h</i>, <i>tonc_obj_affine.c</i> and <i>tonc_bg_affine.c</i>) do things the GBA way, setting **P** directly; but inverted functions are also available using an "`_inv`" affix. Mind you, these are a little slower. Except for when scaling is involved; then it's a *lot* slower.
+所以现在你可以用两种方式求出 **P** 的元素。你可以坚守人类视角，最后再对矩阵求逆。这正是我之前把仿射变换的逆矩阵也一并交给你的原因。你也可以试着用 GBA 的方式去思考，从而直接得到正确的矩阵。Tonc 的主要仿射函数（<i>tonc_video.h</i>、<i>tonc_obj_affine.c</i> 和 <i>tonc_bg_affine.c</i>）都采用 GBA 的方式，直接设置 **P**；不过也提供了使用 “`_inv`” 后缀的逆变换函数。请注意，这些会稍微慢一些。除非涉及缩放，那样就会慢<strong>很多</strong>。
 
-In case you're curious, the proper matrix for scale by (<math><msub><mi>s</mi><mi>x</mi></msub></math>, <math><msub><mi>s</mi><mi>y</mi></msub></math>) and counter-clockwise rotation by α is:
+如果你好奇的话，先做按 (<math><msub><mi>s</mi><mi>x</mi></msub></math>, <math><msub><mi>s</mi><mi>y</mi></msub></math>) 缩放、再逆时针旋转 α 的正确矩阵是：
 
 <math class="block">
     <mi>𝗔</mi>
@@ -489,7 +490,7 @@ In case you're curious, the proper matrix for scale by (<math><msub><mi>s</mi><m
     </mtable>
 </math>
 
-Using the inverse matrices given earlier, we find
+使用前面给出的逆矩阵，我们得到
 
 <math id="eq:correct_matrix" class="block">
     <mo>(</mo>
@@ -550,36 +551,36 @@ Using the inverse matrices given earlier, we find
 </math>
 
 <div class="note" markdown>
-Just to make it perfectly clear:
+只是为了把它讲得清清楚楚：
 
-The affine matrix **P** maps from screen space *to* texture space, not the other way around!
+仿射矩阵 **P** 的映射方向是从屏幕空间<strong>到</strong>纹理空间，而不是相反！
 
-In other words:  
+换句话说：
 
-&nbsp;<math><msub><mi>p</mi><mi>a</mi></msub></math>: texture *x*-increment / pixel
+&nbsp;<math><msub><mi>p</mi><mi>a</mi></msub></math>：纹理 *x* 方向每像素的增量
 
-&nbsp;<math><msub><mi>p</mi><mi>b</mi></msub></math>: texture *x*-increment / scanline
+&nbsp;<math><msub><mi>p</mi><mi>b</mi></msub></math>：纹理 *x* 方向每扫描线的增量
 
-&nbsp;<math><msub><mi>p</mi><mi>c</mi></msub></math>: texture *y*-increment / pixel
+&nbsp;<math><msub><mi>p</mi><mi>c</mi></msub></math>：纹理 *y* 方向每像素的增量
 
-&nbsp;<math><msub><mi>p</mi><mi>d</mi></msub></math>: texture *y*-increment / scanline
+&nbsp;<math><msub><mi>p</mi><mi>d</mi></msub></math>：纹理 *y* 方向每扫描线的增量
 </div>
 
-## Finishing up {#sec-finish}
+## 收尾工作 {#sec-finish}
 
-Knowing what the **P**-matrix is used for is one thing, knowing how to use them properly is another. There are three additional points you need to remember when you're going to deal with affine objects/backgrounds and the affine matrices.
+知道 **P** 矩阵是用来做什么的是一回事，知道如何正确地使用它们是另一回事。在你着手处理仿射对象/背景和仿射矩阵时，还有三个要点需要记住：
 
-1.  Datatypes
-2.  Luts
-3.  Initialisation
+1.  数据类型
+2.  查找表
+3.  初始化
 
-### Data types of affine elements
+### 仿射元素的数据类型
 
-Affine transformations are part of mathematics and, generally speaking, math numbers will be real numbers. That is to say, floating point numbers. However, if you were to use floating points for the **P** elements, you'd be in for two rude surprises.
+仿射变换属于数学范畴，一般来说，数学上的数都是实数，也就是浮点数。然而，如果你用浮点数来表示 **P** 的元素，你会遭遇两个令人不快的意外。
 
-The first one is that the matrix elements are not floats, but integers. The reason behind this is that <span class="ack">the GBA has no floating point unit!</span> All floating-point operations have to be done in software and without an FPU, that's going to be pretty slow. Much slower than integer math, at any rate. Now, when you think about this, it does create some problems with precision and all that. For example, the (co)sine and functions have a range between −1 and 1, a range which isn't exactly large when it comes to integers. However, the range would be much greater if one didn't count in units of 1, but in fractions, say in units of 1/256. The \[−1, +1\] range then becomes \[−256, +256\],
+第一个意外是：矩阵元素并不是浮点数，而是整数。其背后的原因在于<span class="ack">GBA 没有浮点运算单元（FPU）！</span>所有的浮点运算都必须在软件中完成，而没有 FPU 的话，这会相当慢——无论如何都比整数运算慢得多。现在，当你细想这件事时，它确实会在精度和诸如此类的方面带来一些问题。例如，(正)余弦函数的取值范围在 −1 到 1 之间，当用整数来表示时，这个范围可不算大。不过，如果人们不是以 1 为单位来计数，而是以分数（比如说以 1/256 为单位）来计数，这个范围就会大得多。这样，\[−1, +1\] 的取值范围就变成了 \[−256, +256\]。
 
-This strategy of representing real numbers with scaled integers is known as <dfn>fixed point arithmetic</dfn>, which you can read more about in [this appendix](fixed.html) and on [wikipedia](https://en.wikipedia.org/wiki/Fixed-point_arithmetic). The GBA makes use of fixed point for its affine parameters, but you can use it for other things as well. The **P**-matrix elements are 8.8 fixed point numbers, meaning a halfword with 8 integer bits and 8 fractional bits. To set a matrix to identity (1s on the diagonals, 0s elsewhere), you wouldn't use this:
+这种用缩放后的整数来表示实数的策略被称为<dfn>定点数运算</dfn>，你可以在[这个附录](fixed.html)以及 [wikipedia](https://en.wikipedia.org/wiki/Fixed-point_arithmetic) 上读到更多相关内容。GBA 把定点数用于它的仿射参数，但你也可以把它用在别的地方。**P** 矩阵的元素是 8.8 格式的定点数，意味着一个半字（halfword）中有 8 个整数位和 8 个小数位。要把一个矩阵设为单位矩阵（对角线上是 1，其余位置是 0），你不应该这样写：
 
 ```c
     // Floating point == Bad!!
@@ -587,7 +588,7 @@ This strategy of representing real numbers with scaled integers is known as <dfn
     pb= pc= 0.0;
 ```
 
-but this:
+而应该这样写：
 
 ```c
     // .8 Fixed-point == Good
@@ -595,27 +596,27 @@ but this:
     pb= pc= 0;
 ```
 
-In a fixed point system with *Q* fractional bits, ‘1’ (‘one’) is represented by <math><msup><mn>2</mn><mi>Q</mi></msup></math> or 1<<*Q*, because simply that's how fractions work.
+在具有 *Q* 个小数位的定点数系统中，“1”（“一”）由 <math><msup><mn>2</mn><mi>Q</mi></msup></math> 或 1<<*Q* 表示，因为这正是分数运作的方式。
 
-Now, fixed point numbers are still just integers, but there are different types of integers, and it is important to use the right ones. 8.8f are 16bit variables, so the logical choice there is `short`. However, this should be a *signed* short: `s16`, not `u16`. Sometimes is doesn't matter, but if you want to do any arithmetic with them they'd better be signed. Remember that internally the CPU works in words, which are 32bit, and the 16bit variable will be converted to that. You really want, say, a 16bit "−1" (`0xFFFF`) to turn into a 32bit "−1" (`0xFFFFFFFF`), and not "65535" (`0x0000FFFF`), which is what happens if you use unsigned shorts. Also, when doing fixed point math, it is recommended to use signed ints (the 32bit kind) for them, anything else will slow you down and you might get overflow problems as well.
+现在，定点数说到底仍然只是整数，但整数也有不同的类型，使用正确的类型很重要。8.8f 是 16 位的变量，所以逻辑上的选择是 `short`。不过，它应该是一个<strong>有符号</strong>的 short：`s16`，而不是 `u16`。有时候这没关系，但如果你要对它们做任何算术运算，它们最好是有符号的。请记住，CPU 内部是以字（word，32 位）为单位工作的，16 位变量会被转换成字。你当然希望，比如说，一个 16 位的 “−1”（`0xFFFF`）能变成 32 位的 “−1”（`0xFFFFFFFF`），而不是 “65535”（`0x0000FFFF`），而后者正是使用无符号 short 时会发生的情况。此外，在做定点数运算时，建议使用有符号的 int（32 位那种），用别的什么都会拖慢你，而且还可能遇到溢出问题。
 
   
 
-:::tip Use 32-bit signed ints for affine temporaries
+:::tip 用 32 位有符号 int 作为仿射临时变量
 
-Of course you should use 32bit variables for everything anyway (unless you actually *want* your code to bloat and slow down). If you use 16bit variables (`short` or `s16`), not only will your code be slower because of all the extra instructions that are added to keep the variables 16bit, but overflow problems can occur much sooner.
+当然，无论如何你都应该把 32 位变量用于所有场合（除非你真的<em>想</em>让代码膨胀并变慢）。如果你使用 16 位变量（`short` 或 `s16`），不仅因为要加上额外的指令来维持变量的 16 位特性而导致代码变慢，而且会更快遭遇溢出问题。
 
-Only in the final step to hardware should you go to 8.8 format. Before that, use the larger types for both speed and accuracy.
+只有在最终写入硬件的那一步，你才应该转换成 8.8 格式。在那之前，为了速度和精度，请使用更大的类型。
 
 :::
 
-### LUTs {#sec-luts}
+### 查找表(LUT) {#sec-luts}
 
-So fixed point math is used because floating point math is just to slow for efficient use. That's all fine and good for your own math, but what about mathematical functions like sin() and cos()? Those are still floating point internally (even worse, *`double`s*!), so those are going to be ridiculously slow.
+所以，使用定点数运算是因为浮点运算对于高效运用来说实在太慢了。对于你自己的数学运算来说，这没什么问题，但像 sin() 和 cos() 这样的数学函数该怎么办呢？它们在内部仍然是浮点的（更糟的是，是 *`double`s*！），所以那些函数会慢得离谱。
 
-Rather than using the functions directly, we'll use a time-honored tradition to weasel our way out of using costly math functions: we're going to build a <dfn>look-up table</dfn> (LUT) containing the sine and cosine values. There are a number of ways to do this. If you want an easy strategy, you can just declare two arrays of 360 8.8f numbers and fill them at initialization of your program. However, this is a poor way of doing things, for reasons explained in the [section on LUTs](fixed.html#sec-lut) in the appendix.
+与其直接使用这些函数，我们不妨采用一个历史悠久的传统来逃避使用昂贵的数学函数：我们将构建一个<dfn>查找表</dfn>（LUT），里面装有正弦和余弦值。这有若干种做法。如果你想要一个省事的策略，你可以直接声明两个各含 360 个 8.8f 数的数组，并在程序初始化时把它们填满。不过，这是一种糟糕的做法，原因在附录的[查找表章节](fixed.html#sec-lut)里有解释。
 
-Tonclib has a single sine lut which can be used for both sine and cosine values. The lut is called `sin_lut`, a `const short` array of 512 4.12f entries (12 fractional bits), created by my [excellut](http://www.coranac.com/projects/#excellut) lut creator. In <i>tonc_math.h</i> you can find two inline functions that retrieve sine and cosine values:
+Tonclib 有一个单一的正弦查找表，它可以同时用于正弦和余弦值。这个查找表叫做 `sin_lut`，是一个由 512 个 4.12f 条目（12 个小数位）组成的 `const short` 数组，由我的 [excellut](http://www.coranac.com/projects/#excellut) 查找表生成器创建。在 <i>tonc_math.h</i> 中，你可以找到两个用于取回正弦和余弦值的 inline 函数：
 
 ```c
 //! Look-up a sine and cosine values
@@ -630,27 +631,27 @@ INLINE s32 lu_cos(uint theta)
 {   return sin_lut[((theta>>7)+128)&0x1FF];     }
 ```
 
-Now, note the angle range: 0-10000h. Remember you don't *have* to use 360 degrees for a circle; in fact, on computers it's better to divide the circle in a power of two instead. In this case, the angle is in 2<sup>16</sup> parts for compatibility with BIOS functions, which is brought down to a 512 range inside the look-up functions.
+现在，请注意角度的范围：0–10000h。请记住，你并不<em>必须</em>用 360 度来代表一个圆；事实上，在计算机上，把一个圆分成 2 的幂次方会更好。在这个例子中，角度使用的是 2<sup>16</sup> 等分（为了与 BIOS 函数兼容），在查找函数内部再缩减为 512 的范围。
 
-### Initialization
+### 初始化
 
-When flagging a background or object as affine, you *must* enter at least some values into `pa-pd`. Remember that these are zeroed out by default. A zero-offset means it'll use the first pixel for the whole thing. If you get a single-colored background or sprite, this is probably why. To avoid this, set **P** to the identity matrix or any other non-zero matrix.
+当你把一个背景或对象标记为仿射时，你<strong>必须</strong>至少向 `pa-pd` 中填入一些值。请记住，默认情况下它们都是零。零偏移意味着整个东西都会使用第一个像素。如果你得到一个纯色的背景或精灵，原因大概就在这里。为了避免这种情况，请把 **P** 设为单位矩阵或任何其它非零矩阵。
 
-## Tonc's affine functions
+## Tonc 的仿射函数
 
-Tonclib contains a number of functions for manipulating the affine parameters of objects and backgrounds, as used by the `OBJ_AFFINE` and `BG_AFFINE` structs. Because the affine matrix is stored differently in both structs you can't set them with the same function, but the functionality is the same. In {@tbl:affine_functions} you can find the basic formats and descriptions; just replace *foo* with `obj_aff` or `bg_aff` and *FOO* with `OBJ` or `BG` for objects and backgrounds, respectively. The functions themselves can be found in <i>tonc_obj_affine.c</i> for objects, <i>tonc_bg_affine.c</i> for backgrounds, and inlines for both in `tonc_video.h` … somewhere.
+Tonclib 中包含若干用于操纵对象和背景的仿射参数的函数，它们通过 `OBJ_AFFINE` 和 `BG_AFFINE` 结构体来使用。由于仿射矩阵在两种结构体中的存储方式不同，你无法用同一个函数来设置它们，但它们的功能是一样的。在 {@tbl:affine_functions} 中你可以找到基本的格式和描述；只需把 *foo* 替换成 `obj_aff` 或 `bg_aff`，把 *FOO* 替换成 `OBJ` 或 `BG`，就分别对应对象和背景。这些函数本身，针对对象的可以在 <i>tonc_obj_affine.c</i> 中找到，针对背景的在 <i>tonc_bg_affine.c</i> 中，而两者的 inline 版本则都在 `tonc_video.h` 里的某处。
 
 <table class="cblock table-data" id="tbl:affine_functions">
     <thead>
         <tr>
-            <th>Function</th>
-            <th>Description</th>
+            <th>函数</th>
+            <th>描述</th>
         </tr>
     </thead>
     <tbody>
         <tr>
             <td>void <i>foo</i>_copy(FOO_AFFINE *dst, const FOO_AFFINE *src, uint count);</td>
-            <td>Copy affine parameters</td>
+            <td>复制仿射参数</td>
         </tr>
         <tr>
             <td>void <i>foo</i>_identity(FOO_AFFINE *oaff);</td>
@@ -658,47 +659,47 @@ Tonclib contains a number of functions for manipulating the affine parameters of
         </tr>
         <tr>
             <td>void <i>foo</i>_postmul(FOO_AFFINE *dst, const FOO_AFFINE *src);</td>
-            <td>Post-multiply: <math><mi>D</mi><mo>=</mo><mi>D</mi><mo>&middot;</mo><mi>S</mi></math></td>
+            <td>后乘：<math><mi>D</mi><mo>=</mo><mi>D</mi><mo>&middot;</mo><mi>S</mi></math></td>
         </tr>
         <tr>
             <td>void <i>foo</i>_premul(FOO_AFFINE *dst, const FOO_AFFINE *src);</td>
-            <td>Pre-multiply: <math><mi>D</mi><mo>=</mo><mi>S</mi><mo>&middot;</mo><mi>D</mi></math></td>
+            <td>前乘：<math><mi>D</mi><mo>=</mo><mi>S</mi><mo>&middot;</mo><mi>D</mi></math></td>
         </tr>
         <tr>
             <td>void <i>foo</i>_rotate(FOO_AFFINE *aff, u16 alpha);</td>
-            <td>Rotate counter-clockwise by α·π/8000h.</td>
+            <td>逆时针旋转 α·π/8000h。</td>
         </tr>
         <tr>
             <td>void <i>foo</i>_rotscale(FOO_AFFINE *aff, FIXED sx, FIXED sy, u16 alpha);</td>
-            <td>Scale by <math><mfrac><mn>1</mn><msub><mi>s</mi><mi>x</mi></msub></mfrac></math> and <math><mfrac><mn>1</mn><msub><mi>s</mi><mi>y</mi></msub></mfrac></math>, then rotate counter-clockwise by α·π/8000h.</td>
+            <td>按 <math><mfrac><mn>1</mn><msub><mi>s</mi><mi>x</mi></msub></mfrac></math> 和 <math><mfrac><mn>1</mn><msub><mi>s</mi><mi>y</mi></msub></mfrac></math> 缩放，再逆时针旋转 α·π/8000h。</td>
         </tr>
         <tr>
             <td>void <i>foo</i>_rotscale2(FOO_AFFINE *aff, const AFF_SRC *as);</td>
-            <td>As <code><i>foo</i>_rotscale()</code>, but input stored in an <code>AFF_SRC</code> struct.</td>
+            <td>与 <code><i>foo</i>_rotscale()</code> 相同，但输入存放在一个 <code>AFF_SRC</code> 结构体中。</td>
         </tr>
         <tr>
             <td>void <i>foo</i>_scale(FOO_AFFINE *aff, FIXED sx, FIXED sy);</td>
-            <td>Scale by <math><mfrac><mn>1</mn><msub><mi>s</mi><mi>x</mi></msub></mfrac></math> and <math><mfrac><mn>1</mn><msub><mi>s</mi><mi>y</mi></msub></mfrac></math></td>
+            <td>按 <math><mfrac><mn>1</mn><msub><mi>s</mi><mi>x</mi></msub></mfrac></math> 和 <math><mfrac><mn>1</mn><msub><mi>s</mi><mi>y</mi></msub></mfrac></math> 缩放</td>
         </tr>
         <tr>
             <td>void <i>foo</i>_set(FOO_AFFINE *aff, FIXED pa, FIXED pb, FIXED pc, FIXED pd);</td>
-            <td>Set P's elements</td>
+            <td>设置 P 的元素</td>
         </tr>
         <tr>
             <td>void <i>foo</i>_shearx(FOO_AFFINE *aff, FIXED hx);</td>
-            <td>Shear top-side right by <math><msub><mi>h</mi><mi>x</mi></msub></math></td>
+            <td>将顶边向右切变 <math><msub><mi>h</mi><mi>x</mi></msub></math></td>
         </tr>
         <tr>
             <td>void <i>foo</i>_sheary(FOO_AFFINE *aff, FIXED hy);</td>
-            <td>Shear left-side down by <math><msub><mi>h</mi><mi>y</mi></msub></math></td>
+            <td>将左边向下切变 <math><msub><mi>h</mi><mi>y</mi></msub></math></td>
         </tr>
     </tbody>
 </table>
-**{*@tbl:affine_functions}**: affine functions
+**{*@tbl:affine_functions}**：仿射函数
 
-### Sample rot/scale function
+### 旋转/缩放示例函数
 
-My code for a object version of the scale-then-rotate function (à la {@eq:correct_matrix}) is given below. Note that it is from the computer's point of view, so that `sx` and `sy` scale down. Also, the alpha `alpha` uses 10000h/circle (i.e., the unit of α is π/8000h = 0.096 mrad, or 180/8000h = 0.0055°) and the sine lut is in .12f format, which is why the shifts by 12 are required. The background version is identical, except in name and type. If this were C++, templates would have been mighty useful here.
+下面给出的是我写的、对象版本的“先缩放再旋转”函数（仿 {@eq:correct_matrix}）。请注意，它是从计算机视角出发的，因此 `sx` 和 `sy` 是缩小。另外，角度 `alpha` 用的是 10000h/圈（即 α 的单位是 π/8000h = 0.096 毫弧度，或 180/8000h = 0.0055°），而正弦查找表是 .12f 格式，这正是为什么需要那些向右移 12 位的操作。背景版本与之完全相同，除了名字和类型不同。如果这是 C++，模板在这里会非常有用。
 
 ```c
 void obj_aff_rotscale(OBJ_AFFINE *oaff, int sx, int sy, u16 alpha)
@@ -710,6 +711,6 @@ void obj_aff_rotscale(OBJ_AFFINE *oaff, int sx, int sy, u16 alpha)
 }
 ```
 
-With the information in this chapter, you know most of what you need to know about affine matrices, starting with why they should be referred to *affine* matrices, rather than merely rotation or rot/scale or the other names you might see elsewhere. You should now know what the thing actually does, and how you can set up a matrix for the effects you want. You should also know a little bit about fixed point numbers and luts (for more, look in the [appendices](fixed.html)) and why they're Good Things; if it hadn't been clear before, you should be aware that the choice of the data types you use actually *matters*, and you should not just use the first thing that comes along.
+有了本章所讲的内容，你就知道了关于仿射矩阵的大部分所需知识，首先是为什么它们应该被称为<em>仿射</em>矩阵，而不是仅仅叫旋转、或是 rot/scale，或是你在别处可能见到的其它名字。你现在应该知道这东西到底做了什么，以及如何为你想要的效果搭建一个矩阵。你也应当对定点数和查找表有了一些了解（更多内容请看[附录](fixed.html)），以及为什么它们是好东西；如果之前还不明确的话，你现在应该意识到，你所使用的数据类型的选择其实<em>很重要</em>，而不该随手抓一个就用。
 
-What has not been discussed here is how you actually set-up objects and backgrounds to use affine transformation, which is what the next two chapters are for. For more on affine transformations, try searching for ‘linear algebra’
+这里还没有讨论的是，你究竟该如何搭建对象和背景来使用仿射变换，而这正是接下来两章的内容。关于仿射变换的更多内容，可以尝试搜索“线性代数”。

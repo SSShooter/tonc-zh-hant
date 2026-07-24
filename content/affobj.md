@@ -1,18 +1,18 @@
-# 11. Affine sprites
+# 11. 仿射精灵
 
 <!-- toc -->
 
-## Affine sprite introduction {#sec-intro}
+## 仿射精灵简介 {#sec-intro}
 
-Essentially, <dfn>affine sprites</dfn> are still sprites. The difference with regular sprites is that you can perform an affine transformation (hence the name) on them before the rendering stage by setting the right bits in the object attributes and filling in the **P** matrix. You can read about affine transformations and the **P** matrix [here](affine.html). It is required reading for this section, as are the [sprite and background overview](objbg.html) and the [regular sprite](regobj.html) page.
+本质上，<dfn>仿射精灵（affine sprites）</dfn> 仍是精灵。和常规精灵的区别在于，你可以在渲染阶段之前通过设置对象属性中的正确位、并填好 **P** 矩阵，对它们执行仿射变换（由此得名）。你可以阅读[这里](affine.html)了解仿射变换和 **P** 矩阵。这是本节的必读内容，[精灵与背景概览](objbg.html) 和[常规精灵](regobj.html) 页也是。
 
-You may wonder whether this is really worth a separate section. The short answer is yes. A longer answer is yes, because using affine sprites involves a lot more math than regular sprites and I didn't want to freak out the, erm, ‘mathematically challenged’. The section on [regular sprites](regobj.html) can stand on its own and you can use it in blissful ignorance of the nasty math that it required for affine sprites.
+你可能想知道这是否真的值得单独成节。简短的答案是：是的。更长的答案是：是的，因为用仿射精灵涉及的数学比常规精灵多得多，而我不想吓到那些，呃，“数学苦手”。[常规精灵](regobj.html)一节可以独立成篇，你能在对它所需的可怕数学一无所知的情况下愉快使用它。
 
-In this chapter we'll see how to set-up object to use affine transformations. This in itself is rather easy. Also discussed are a number of potential graphical problems you might run into sooner or later –one of them almost immediately, actually– and how to correct the sprite's position to make it seem like the transformation's origin is at an arbitrary point. And, as usual, there will be demo-code illustrating the various topics raised in this chapter.
+在本章中，我们会看到如何设置对象来使用仿射变换。这本身相当容易。还会讨论你可能迟早（其实有一个几乎立刻就会）遇到的若干潜在图形问题——以及如何校正精灵的位置，使变换的原点看起来像在任意点上。并且，照例，会有演示代码阐释本章提出的各个主题。
 
-## Affine sprite initialization {#sec-init}
+## 仿射精灵初始化 {#sec-init}
 
-To turn a regular sprite into an affine sprite you need to do two things. First, set `OBJ_ATTR.attr0{8}` to indicate this is a affine sprite. Second, put a number between 0 and 31 into `OBJ_ATTR.attr1{8-C}`. This number indicates which of the 32 Object Affine Matrices (`OBJ_AFFINE` structures) should be used. In case you've forgotten, the `OBJ_AFFINE` looks like this:
+要把一个常规精灵变成仿射精灵，你需要做两件事。首先，设置 `OBJ_ATTR.attr0{8}` 以表明这是个仿射精灵。其次，把一个 0 到 31 之间的数放进 `OBJ_ATTR.attr1{8-C}`。这个数指示应当使用 32 个对象仿射矩阵（`OBJ_AFFINE` 结构体）中的哪一个。如果你忘了，`OBJ_AFFINE` 长这样：
 
 ```c
 typedef struct OBJ_AFFINE
@@ -28,7 +28,8 @@ typedef struct OBJ_AFFINE
 } ALIGN4 OBJ_AFFINE;
 ```
 
-The *signed* 16-bit members `pa`, `pb`, `pc` and `pd` are 8.8 fixed point numbers that form the actual matrix, which I will refer to as **P**, in correspondence with the elements' names. For more information about this matrix, go to the [affine matrix](affine.html) section. Do so now if you haven't already, because I'm not going to repeat it here. If all you are after is a simple scale-then-rotate matrix, try this: for a zoom by s<sub>x</sub> and s<sub>y</sub> followed by a counter-clockwise rotation by α, the correct matrix is this:
+*有符号* 的 16 位成员 `pa`、`pb`、`pc` 和 `pd` 是 8.8 定点数，构成实际的矩阵，我称之为 **P**，与这些元素的名字对应。关于这个矩阵的更多信息，去看[仿射矩阵](affine.html)一节。如果你还没看，现在就去看，因为我不会在这里重复。如果你只想要一个简单的“先缩放后旋转”矩阵，试试这个：对 s<sub>x</sub> 和 s<sub>y</sub> 的缩放、后跟 α 的逆时针旋转，正确的矩阵是：
+
 <!--
 \vb{P} =
 \begin{bmatrix}
@@ -182,21 +183,21 @@ p_{c} & p_{d}
   </mstyle>
 </math>
 
-Note that the origin of the transformation is *center* of the sprite, not the top-left corner. This is worth remembering if you want to align your sprite with other objects, which we'll do later.
+注意变换的原点是精灵的 *中心*，而非左上角。如果你想把精灵和其他对象对齐，这值得记住，我们稍后会做。
 
-:::tip Essential affine sprite steps
+:::tip 仿射精灵的基本步骤
 
--   Set-up an object as usual: load graphics and palette, set `REG_DISPCNT`, set-up an OAM entry.
--   Set bit 8 of attribute 0 to enable affinity for that object, and choose an object affine matrix to use (attribute 1, bits 8-12).
--   Set that obj affine matrix to something other than all zeroes, for example the identity matrix.
+-   像平常一样设置一个对象：加载图形和调色板，设置 `REG_DISPCNT`，设置 OAM 条目。
+-   设置属性 0 的第 8 位以对该对象启用仿射，并选择一个要用的对象仿射矩阵（属性 1 的 8-12 位）。
+-   把那个对象仿射矩阵设为非零以外的东西，例如单位矩阵。
 
 :::
 
-## Graphical artifacts {#sec-artifact}
+## 图形伪影 {#sec-artifact}
 
-### The clipping and discretization artifacts {#ssec-clip}
+### 裁剪与离散化伪影 {#ssec-clip}
 
-The procedure that the GBA uses for drawing sprites is as follows: the sprite forms a rectangle on the screen defined by its size. To paint the screen pixels in that area (**q**) uses texture-pixel **p**, which is calculated via:
+GBA 绘制精灵的过程如下：精灵在屏幕上形成一个由其尺寸定义的矩形。要绘制该区域中的屏幕像素（**q**）所用的纹理像素 **p**，通过下式计算：
 
 <!--
 \vb{p} - \vb{p}_{0} = \vb{P} \cdot (\vb{q} - \vb{q}_0)
@@ -238,7 +239,7 @@ The procedure that the GBA uses for drawing sprites is as follows: the sprite fo
 </math>
 </table>
 
-where **p**<sub>0</sub> and **q**<sub>0</sub> are the centers of the sprite in texture and screen space, respectively. The code below is essentially what the hardware does; it scans the screen-rectangle between plus and minus the half-width and half-height (half-sizes because the center is the reference point), calculates the texture-pixel and plots that color.
+其中 **p**<sub>0</sub> 和 **q**<sub>0</sub> 分别是纹理和屏幕空间中精灵的中心。下面的代码基本就是硬件所做的事；它扫描屏幕矩形（正负各半个宽和高，因为是半尺寸，以中心为参考点），计算纹理像素并绘制该颜色。
 
 ```c
 // pseudocode for affine objects
@@ -256,26 +257,26 @@ for(iy=-hheight; iy<hheight; iy++)
 }
 ```
 
-This has two main consequences, the clipping artifact and a discretization artifact.
+这有两个主要后果：裁剪伪影和离散化伪影。
 
 <div class="cpt_fr" style="width:160px;">
 <img src="./img/metr/aff_clipped.png" id="fig:metr-clip" 
   alt="defanged metroid"><br>
-<b>{*@fig:metr-clip}</b>: a partially defanged metroid, 
-since the parts outside the blue square are clipped off.
+<b>{*@fig:metr-clip}</b>: 一个被部分去掉尖刺的 metroid， 
+因为蓝色方框之外的部分被裁掉了。
 </div>
 
-The <dfn>clipping artifact</dfn> is caused by scanning only over the rectangle **on-screen**. But almost all transformations will cause the texture pixels to exceed that rectangle, and the pixels outside the rectangle will not be rendered. {*@fig:metr-clip} shows the screen rect (grey, blue border) and a rotated object (inside the red border). The parts that extend the blue borderlines will not be cut off.
+<dfn>裁剪伪影（clipping artifact）</dfn> 是由只扫描屏幕上 *矩形内* 的像素造成的。但几乎任何变换都会让纹理像素超出那个矩形，矩形外的像素不会被渲染。{*@fig:metr-clip} 展示了屏幕矩形（灰、蓝边）和一个旋转的对象（红边内）。超出蓝边框的部分不会被裁掉。
 
-As this is an obvious flaw, there is of course a way around it: set the sprite's affine mode to **double-sized affine** (`ATTR0_AFF_DBL`, `OBJ_ATTR.attr0{8,9}`). This will double the screen range of valid **q** coordinates, so you'd have + and − the width and height to play with instead of the half-sizes. This double (well quadruple, really) area means that you can safely rotate a sprite as the maximum distance from the center is ½√2 ≈ 0.707. Of course, you can still get the clipping artifact if you scale up beyond the doubled ranges. Also, note that the sprites' origin is shifted to the center of this rectangle, so that **q**<sub>0</sub> is now one full sprite-size away from the top-left corner.
+由于这是个明显缺陷，当然有绕开的办法：把精灵的仿射模式设为 **双倍尺寸仿射（double-sized affine）**（`ATTR0_AFF_DBL`、`OBJ_ATTR.attr0{8,9}`）。这会把有效 **q** 坐标的屏幕范围加倍，于是你能用正负一个宽和高来摆弄，而非半尺寸。这个双倍（嗯，其实是四倍）区域意味着你能安全地旋转精灵，因为到中心的最大距离是 ½√2 ≈ 0.707。当然，如果你放大到超出加倍范围之外，仍会遇到裁剪伪影。另外，注意精灵的原点移到了这个矩形的中心，所以 **q**<sub>0</sub> 现在离左上角整整一个精灵尺寸。
 
-The double-size flag also has a second use. Or perhaps I should say misuse. If you set it for a regular sprite, it will be hidden. This is an alternative way to hide unused sprites.
+双倍尺寸标志还有第二个用途。或者也许我该说误用。如果你把它设给常规精灵，它会被隐藏。这是隐藏未用精灵的另一种方法。
 
-The second artifact, if you can call it that, is a <dfn>discretization</dfn> artifact. This is a more subtle point than the clipping artifact and you might not even ever notice it. The problem here is that the transformation doesn't actually take place at the center of the object, but at the **center pixel**, rounded up. As an example, look at {@fig:numline}. Here we have a number-line from 0 to 8; and in between them 8 pixels from 0 to 7. The number at the center is 4, of course. The central pixel is 4 as well, however its location is actually halfway between numbers 4 and 5. This creates an unbalance between the number of pixels on the left and on the right.
+第二个伪影，如果你能这么叫的话，是<dfn>离散化（discretization）</dfn>伪影。这比裁剪伪影更微妙，你可能甚至从没注意到它。问题在于变换实际不发生在对象的中心，而是 **中心像素**，向上取整。举个例子，看 {@fig:numline}。这里我们有从 0 到 8 的数轴；它们之间是从 0 到 7 的 8 个像素。中心的数是 4，当然。中心像素也是 4，然而它的位置其实在数字 4 和 5 的正中间。这在左边和右边的像素数之间造成了不平衡。
 
-The center pixel is the reference point of the transformation algorithm, which has indices (ix, iy) = (0, 0). Fill that into the equations and you'll see that this is invariant under the transformation, even though mathematically it should not be. This has consequences for the offsets, which are calculated from the pixel, not the position. In {@fig:numline}, there are 4 pixels on the left, but only 3 on the right. A mirroring operation that would center on pixel 4 would effectively move the sprite one pixel to the right.
+中心像素是变换算法的参考点，其索引是 (ix, iy) = (0, 0)。把它代入等式你会看到它在变换下不变，尽管数学上本不该如此。这对偏移量有影响，因为偏移量是从像素算的，而非位置。在 {@fig:numline} 中，左边有 4 个像素，右边却只有 3 个。一个会以像素 4 为中心的镜像操作，会 effectively 把精灵向右移动一个像素。
 
-{*@fig:aff-algor} shows how this affects rotations. It displays lines every grey gridlines every 8 pixels and a 16×16 sprite of a box. Note that at the start the right and left sides do not lie on the gridlines, because the sprite's width and height is 16, not 17. The other figures are rotations in increments of 90°, which gives nice round numbers in the matrix. When rotating, the center pixel (the red dot in the middle) stays in the same position, and the rest rotate around it, and this process will carry the edges out of the designated 16×16 box of the sprite (the dashed lines).
+{*@fig:aff-algor} 展示了这如何影响旋转。它每 8 像素画一条灰网格线，以及一个 16×16 的盒子精灵。注意开始时左右两侧都不在网格线上，因为精灵的宽和高是 16 而非 17。其他图是按 90° 增量的旋转，这给矩阵里漂亮的整圆数。旋转时，中心像素（中间的红点）保持在同一位置，其余绕它旋转，这个过程会把边缘带出精灵指定的 16×16 方框（虚线）。
 
 <div class="cblock">
 <table>
@@ -285,38 +286,37 @@ The center pixel is the reference point of the transformation algorithm, which h
   <div class="cpt_fr" style="width:288px;">
   <img src="./img/affine/numline.png" id="fig:numline" width="288"
     alt="Numbers vs pixels"><br>
-  <b>{*@fig:numline}</b>: pixels are between, 
-    not on, coordinates.
+  <b>{*@fig:numline}</b>: 像素在坐标之间，而非在坐标上。
   </div></td>
   <td>
   <div class="cpt_fr" style="width:320px;">
   <img src="./img/affine/numalgor.png" id="fig:aff-algor" width="320"
     alt="Rotations"><br>
-  <b>{*@fig:aff-algor}</b>: Rotations in 90&deg; 
-    increments.
+  <b>{*@fig:aff-algor}</b>: 以 90&deg; 
+    为增量的旋转。
   </div></td>
 </tr>
 </tbody>
 </table>
 </div>
 
-:::warning The offsets measure distance from the center pixel, not center position.
+:::warning 偏移量度量的是到中心像素的距离，而非中心位置。
 
-The offsets that are calculated from the affine matrix use the distances from the center pixel (*w*/2, *h*/2), not the center point. As such, there is a half a pixel deviation from the mathematical transformation, which may result in a ±pixel offset for the sprite as a whole and lost texture edges.
+从仿射矩阵算出的偏移量用的是到中心像素（*w*/2, *h*/2）的距离，而非中心点。因此，与数学变换有半像素的偏差，这可能导致精灵整体出现 ±1 像素的偏移，并丢失纹理边缘。
 
 :::
 
-### The wrapping artifact {#ssec-wrap}
+### 环绕伪影 {#ssec-wrap}
 
-Apart from the clipping artifact, there seems to be another; one that I have actually never seen mentioned anywhere. It's what I call the wrapping artifact. As you know, the position for sprites is given in a 9-bit *x*-value and an 8-bit *y*-value, which values wrap around the screen. For *x*, you can just interpret this as having the \[-256, 255\] range. For *y* values, you can't really do that because the top value for a signed 8-bit integer is 127, which would mean that you'd never be able to put a sprite at the bottom 32 lines. But since the values wrap around, it all works out in the end anyway. With one exception.
+除了裁剪伪影，似乎还有另一个；一个我其实从没在任何地方见人提过的。我称之为环绕伪影。如你所知，精灵的位置给的是 9 位 *x* 值和 8 位 *y* 值，这些值在屏幕上环绕。对 *x*，你可以直接把它解释为 \[-256, 255\] 范围。对 *y* 值你没法真这么做，因为有符号 8 位整数的顶值是 127，那意味着你永远没法把精灵放在底部 32 行。但由于值会环绕，最终一切都能搞定。只有一个例外。
 
-There's never any trouble with regular sprites, and hardly any for affine sprites; the one exception is when you have a 64×64 or 32×64 affine sprite with the double size flag switched on. Such a sprite has a bounding box of 128×128. Now there are three different ways of interpreting the meaning of *y* \> 128:
+常规精灵从没任何麻烦，仿射精灵也几乎没；唯一的例外是当你有一个 64×64 或 32×64、且开启了双倍尺寸标志的仿射精灵时。这样的精灵有 128×128 的包围盒。现在有对 *y* \> 128 的三种不同解释：
 
-1.  Full-wrap: the top of the sprite would show at the bottom of the screen, and vice versa.
-2.  Positive precedence: consider the \[128, 159\] range as indicative of the bottom of the screen, and forget the wrap.
-3.  Negative precedence: if *y* value would make the sprite appear partially at the top, consider it to be negative, again neglecting the wrap.
+1.  完全环绕：精灵顶部会显示在屏幕底部，反之亦然。
+2.  正数优先：把 \[128, 159\] 范围视为屏幕底部的指示，忽略环绕。
+3.  负数优先：若 *y* 值会让精灵部分出现在顶部，则认为它是负数，同样忽略环绕。
 
-As it happens, the GBA uses the third interpretation. In other words, it uses
+碰巧，GBA 用的是第三种解释。换句话说，它用
 
 ```c
 // pseudo code
@@ -324,30 +324,29 @@ if(oam.y + bbox_height > 256)
     oam.y -= 256;
 ```
 
-Note, by the way, that some older emulators (VBA and BoycottAdvance) both use interpretation #2, which may seem more logical, but is incorrect. As you can tell, it can only happen with a 32×64 or 64×64, double-sized sprite, and even then you'll only notice it under very specific conditions, namely if the transformed sprite has visible pixels inside the top 32 lines of the bounding box. In the case that you have this problem, as far as I can tell the only way to get the sprite showing at the bottom of the screen is if you reduce the height to 32 for the time being.
+顺便说一下，一些较老的模拟器（VBA 和 BoycottAdvance）都用第二种解释，那可能看起来更合理，但其实是错的。如你所见，它只可能发生在 32×64 或 64×64 的双倍尺寸精灵上，即便如此你也只会在非常特定的条件下注意到它，即变换后的精灵在包围盒顶部 32 行内有可见像素时。如果你有这个问题，据我所知，让精灵显示在屏幕底部的唯一办法是暂时把高度减到 32。
 
-## A very (af)fine demo {#sec-demo}
+## 一个非常（仿）酷的演示 {#sec-demo}
 
-I have a really interesting demo for you this time called *obj_aff*. It features a normal (boxed) metroid, which can be scaled, rotated and scaled. Because these transformations are applied to the *current* state of the matrix, you can end up with every kind of affine matrix possible by concatenating the different matrices. The controls are as follows:
+这次我有个真正有趣的演示叫 *obj_aff*。它有一个普通的（盒装）metroid，可以缩放、旋转和剪切。因为这些变换被应用到矩阵的 *当前* 状态，你可以把不同矩阵连乘起来，得到任何可能的仿射矩阵。操作如下：
 
 <div class="lblock">
   <table cellspacing=0>
     <col valign="top">
-    <tr><th>L,R<td>Rotates the sprite CCW and CW, respectively.
-    <tr><th>D-pad<td>Shears the sprite.
-    <tr><th>D-pad+Sel<td>Moves sprite around.
-    <tr><th>A,B<td>Expands horizontally or vertically, respectively.
-    <tr><th>A,B+Sel<td>Shrinks horizontally or vertically, respectively.
-      (I ran out of buttons, so had to do it like this).
-    <tr><th>Start<td>Toggles double-size flag. Note that a) the corners
-      of a rotated sprite are no longer clipped and b) the position shifts
-      by 1/2 sprite size.
-    <tr><th>Start+Sel<td>Resets <b>P</b> to normal.
-    <tr><th>Select<td>Control button (see A, B and Start).
+    <tr><th>L,R<td>分别逆时针和顺时针旋转精灵。
+    <tr><th>D-pad<td>剪切精灵。
+    <tr><th>D-pad+Sel<td>移动精灵。
+    <tr><th>A,B<td>分别水平或垂直放大。
+    <tr><th>A,B+Sel<td>分别水平或垂直缩小。
+      （我的按钮用完了，所以只能这么做）。
+    <tr><th>Start<td>切换双倍尺寸标志。注意 a) 旋转精灵的角不再被裁掉，b) 位置偏移
+      半个精灵尺寸。
+    <tr><th>Start+Sel<td>把 <b>P</b> 重置为正常。
+    <tr><th>Select<td>控制按钮（见 A、B 和 Start）。
   </table>
 </div>
 
-The interesting point of seeing the transformations back to back is that you can actually see the difference between, for example, a scaling followed by a rotation (**A**=**S**·**R**), and a rotate-then-scale (**A**=**R**·**S**). {*@fig:obj-aff-rs} and {@fig:obj-aff-sr} show this difference for a 45° rotation and a 2× vertical scale. Also, note that the corners are cut off here: the clipping artifact at work – even though I've already set the double-size flag here.
+把变换并排看的有趣之处在于，你能实际看到差异，例如先缩放后旋转（**A**=**S**·**R**）与先旋转后缩放（**A**=**R**·**S**）。{*@fig:obj-aff-rs} 和 {@fig:obj-aff-sr} 展示了 45° 旋转和 2× 垂直缩放下的这个差异。另外，注意角在这里被切掉了：裁剪伪影在起作用——即便我在这里已经设置了双倍尺寸标志。
 
 <div class="cblock">
 <table>
@@ -357,19 +356,19 @@ The interesting point of seeing the transformations back to back is that you can
 <img src="./img/demo/obj_aff_rs.png" id="fig:obj-aff-rs" 
   alt="R*S affine object."><br>
 <b>{*@fig:obj-aff-rs}</b>: 
-  <tt>obj_aff</tt>, via <b>S</b>(1,2), then <b>R</b>(45&deg;)
+  <tt>obj_aff</tt>，经 <b>S</b>(1,2)，后 <b>R</b>(45&deg;)
 </div>
 <td>
 <div class="cpt_fr" style="width:240px;">
 <img src="./img/demo/obj_aff_sr.png" id="fig:obj-aff-sr"
   alt="S*R affine object."><br>
 <b>{*@fig:obj-aff-sr}</b>: 
-  <tt>obj_aff</tt>, via <b>R</b>(45&deg;), then <b>S</b>(1,2)
+  <tt>obj_aff</tt>，经 <b>R</b>(45&deg;)，后 <b>S</b>(1,2)
 </div>
 </table>
 </div>
 
-The full source code for the *obj_aff* demo is given below. It's quite long, mostly because of the amount of code necessary for managing the different affine states that can be applied. The functions that actually deal with affine sprites are `init_metr()`, `get_aff_new()` and part of the game loop in `objaff_test()`; the rest is essentially fluff required to making the whole thing work.
+*obj_aff* 演示的完整源代码给在下面。它相当长，主要是因为管理可应用的不同仿射状态所需的代码量。实际处理仿射精灵的函数是 `init_metr()`、`get_aff_new()` 和 `objaff_test()` 游戏循环的一部分；其余基本是让整个东西运转所需的陪衬。
 
 <div id="cd-obj-aff">
 
@@ -572,11 +571,11 @@ int main()
 ```
 </div>
 
-Making the metroid an affine sprite is all done inside `init_metr()`. As you've seen how bits are set a number of times by now, it should be understandable. That said, do note that I am filling the first `OBJ_AFFINE` (the one that the sprite uses) to the identity matrix **I**. If you keep this fully zeroed-out, you'll just end up with a 64×64-pixel rectangle of uniform color. Remember that **P** contains pixel offsets; if they're all zero, there is no offset and the origin's color is used for the whole thing. In essence, the sprite is scaled up to infinity.
+把 metroid 变成仿射精灵全在 `init_metr()` 里完成。既然你现在看过多次如何设置位，应该能理解。话虽如此，请注意我把第一个 `OBJ_AFFINE`（精灵用的那个）填成了单位矩阵 **I**。如果你让它全零，你得到的只会是一个 64×64 像素的均匀色矩形。记住 **P** 包含像素偏移；如果全为零，就没有偏移，整个东西用的都是原点的颜色。本质上，精灵被放大到了无穷。
 
-To be frank though, calling `obj_aff_identity()` isn't necessary after a call to `oam_init()`, as that initializes the matrices as well. Still, you need to be aware of potential problems.
+坦白说，在 `oam_init()` 之后调用 `obj_aff_identity()` 其实没必要，因为那个函数也初始化了矩阵。不过，你仍需要意识到潜在问题。
 
-That's the set-up, now for how the demo does what it does. At any given time, you will have some transformation matrix, **P**. By pressing a button (or not), a small transformation of the current state will be performed, via matrix multiplication.
+那是设置，现在讲讲这个演示怎么做到它所做的。在任何时刻，你都会有一些变换矩阵 **P**。按一个（或几个）按钮，就会通过矩阵乘法对当前状态执行一个小的变换。
 
 <!--
 \vb{P}_\text{new} = \vb{P}_{old} \cdot \vb{D}^{-1}
@@ -616,7 +615,8 @@ That's the set-up, now for how the demo does what it does. At any given time, yo
 </math>
 </table>
 
-where **D** is either a small rotation (**R**), scaling (**S**) or shear (**H**). Or a no-op (**I**). However, there is a little hitch here. This would work nice in theory, but in *practice*, it won't work well because the fixed point matrix multiplications will result in unacceptable round-off errors very very quickly. Fortunately, all these transformations have the convenient property that
+其中 **D** 是小的旋转（**R**）、缩放（**S**）或剪切（**H**），或空操作（**I**）。然而，这里有个小障碍。这在理论上很好，但在 *实践* 中不行，因为定点数矩阵乘法会非常非常快地导致不可接受的舍入误差。幸运的是，所有这些变换都有个方便的性质：
+
 <!--
 \vb{D}(a)\cdot\vb{D}(b) = \vb{D}(c)
 -->
@@ -652,20 +652,19 @@ where **D** is either a small rotation (**R**), scaling (**S**) or shear (**H**)
 </math>
 </table>
 
-That is to say, multiple small transformations work as one big one. All you have to do is keep track of the current chosen transformation (the variable `aff_state`, in `get_aff_state()`), modify the state variable (`aff_value`), then calculate full transformation matrix (`get_aff_new()`) and apply that (with `obj_aff_postmul()`). When a different transformation type is chosen, the current matrix is saved, the state value is reset and the whole thing continues with that state until yet another is picked. The majority of the code is for keeping track of these changes; it's not pretty, but it gets the job done.
+也就是说，多个小变换和作为一个大变换一样。你只需跟踪当前所选变换（变量 `aff_state`，在 `get_aff_state()` 里）、修改状态变量（`aff_value`），然后计算完整变换矩阵（`get_aff_new()`）并应用它（用 `obj_aff_postmul()`）。当选了不同的变换类型，当前矩阵被保存，状态值被重置，整个东西以该状态继续，直到又选了另一个。大部分代码用于跟踪这些变更；它不漂亮，但能完成任务。
 
-## Off-center reference points and object combos {#sec-combo}
+## 非中心参考点与对象组合 {#sec-combo}
 
 <div class="cpt_fr" style="width:240px;">
 <img src="./img/metr/rot_ofs.png" id="fig:rot-ofs" 
   alt="Rotation around off-center point"><br>
-<b>{*@fig:rot-ofs}</b>: rotation of object around an 
-  off-center point.
+<b>{*@fig:rot-ofs}</b>: 对象绕非中心点旋转。
 </div>
 
-As mentioned earlier, affine sprites always use their centers as affine origins, but there are times when one might want to use something else to rotate around – to use another point as the reference point. Now, you can't actually do this, but you can make it *look* as if you can. To do this, I need to explain a few things about what I like to call anchoring. The <dfn>anchor</dfn> is the position that is supposed to remain ‘fixed’; the spot where the texture (in this case the object) is anchored to the screen.
+如前所述，仿射精灵总是用它们的中心作为仿射原点，但有时你可能想用别的东西来绕其旋转——用另一个点作为参考点。现在，你其实做不到这一点，但你能让它 *看起来* 像是能做到。为此，我需要解释一些我称之为锚定（anchoring）的东西。<dfn>锚（anchor）</dfn> 是应当保持“固定”的位置；纹理（这里是对象）被锚定到屏幕的地方。
 
-For anchoring, you actually need one set of coordinates for each coordinate-space you're using. In this case, that's two: the texture space and the screen space. Let's call these points **p**<sub>0</sub> and **q**<sub>0</sub>, respectively. Where these actually point *from* is largely immaterial, but for convenience' sake let's use the screen and texture origins for this. These points are only the start. In total, there are *seven* vectors that we need to take into account for the full procedure, and they are all depicted in {@fig:rot-ofs}. Their meanings are explained in the table below.
+对于锚定，你其实需要每个所用坐标空间一组坐标。这里就是两个：纹理空间和屏幕空间。我们称这些点为 **p**<sub>0</sub> 和 **q**<sub>0</sub>。它们实际 *从* 哪里指向基本无关紧要，但为方便起见我们用屏幕和纹理原点。这些点只是开始。总共，完整过程我们需要考虑 *七* 个向量，它们都在 {@fig:rot-ofs} 中描绘。它们的含义在下面的表中解释。
 
 <div class="lblock">
 
@@ -678,31 +677,31 @@ For anchoring, you actually need one set of coordinates for each coordinate-spac
 <tr align="left"> <th width=48>point</th>		<th>description</th> </tr>
 <tr>
   <td> <b>p</b><sub>0</sub>, <b>q</b><sub>0</sub> </td>
-  <td> Anchors in texture and screen space. </td>
+  <td> 纹理和屏幕空间中的锚。 </td>
 </tr>
 <tr>
   <td> <b>c</b><sub>p</sub>, <b>c</b><sub>q</sub> </td>
   <td> 
-    Object centers in texture and screen space. With the 
-    object sizes, <b>s</b>=(w,h), we have
-    <b>c</b><sub>p</sub>=&frac12;<b>s</b> and 
-	<b>c</b><sub>q</sub>=<i>m</i><b>s</b>, where <i>m</i> is 
-	  &frac12; or 1, depending on the double-size flag.
+    纹理和屏幕空间中的对象中心。结合对象尺寸 <b>s</b>=(w,h)，我们有
+    <b>c</b><sub>p</sub>=&frac12;<b>s</b> 和 
+	<b>c</b><sub>q</sub>=<i>m</i><b>s</b>，其中 <i>m</i> 是 
+	  &frac12; 或 1，取决于双倍尺寸标志。
   </td>
 </tr>
 <tr>
   <td> <b>r</b><sub>p</sub>, <b>r</b><sub>q</sub> </td>
-  <td> Distances between object centers and anchors. By definition, 
+  <td> 对象中心与锚之间的距离。按定义， 
 	<b>r</b><sub>p</sub> = <b>P</b>·<b>r</b><sub>q</sub></td>
 </tr>
 <tr>
-  <td> <b>x</b> </td>	<td>Desired object coordinates.</td>
+  <td> <b>x</b> </td>	<td>期望的对象坐标。</td>
 </tr>
 </tbody>
 </table>
 </div>
 
-Yes, it is a whole lot of vectors, but funnily enough, most are already known. The center points (**c**<sub>p</sub> and **c**<sub>q</sub>) can be derived from the objects size and double-size status, the anchors are known in advance because those are the input values, and **r**<sub>p</sub> and **r**<sub>q</sub> fit the general equation for the affine transformation, {@eq:aff-ex-base}, so this links the two spaces. All that's left now is to write down and solve the set of equations.
+是的，这是一大堆向量，但有趣的是，大多数已经已知。中心点（**c**<sub>p</sub> 和 **c**<sub>q</sub>）可从对象尺寸和双倍尺寸状态推导，锚是预先已知的（因为它们是输入值），而 **r**<sub>p</sub> 和 **r**<sub>q</sub> 符合仿射变换的一般等式 {@eq:aff-ex-base}，所以这把两个空间联系了起来。剩下要做的就是把这组等式写出来并求解。
+
 <!--
 \begin{matrix}
 \vb{x} + \vb{c}_{q} + \vb{r}_{q} & = & \vb{q}_{0} \\
@@ -814,7 +813,8 @@ Yes, it is a whole lot of vectors, but funnily enough, most are already known. T
 </tr>
 </table>
 
-Three equations with three unknowns, means it is solvable. I won't post the entire derivation because that's not all that difficult; what you see in {@eq:aff-ex} is the end result in the most usable form.
+三个方程、三个未知数，意味着可解。我不会贴出整个推导，因为那并不难；你在 {@eq:aff-ex} 中看到的是以最有用形式给出的结果。
+
 <!--
 \vb{x} = \vb{q}_{0} - m\vb{s} - \vb{P}^{-1} \cdot (\vb{p}_{0} - \tfrac{1}{2} s)
 -->
@@ -872,9 +872,9 @@ Three equations with three unknowns, means it is solvable. I won't post the enti
 </math>
 </table>
 
-The right-hand side here has three separate vectors, two of which are part of the input, a scaling flag for the double-size mode, and the inverted affine matrix. Yes, I did say inverted. This is here because the translations to position the object correctly mostly take place in screen-space. The whole term using it is merely **r**<sub>q</sub>, the transformed difference between anchor and center in texture space, which you need for the final correction.
+右边有三个独立向量，其中两个是输入的一部分，一个用于双倍尺寸模式的缩放标志，以及求逆的仿射矩阵。是的，我说了求逆。这是因为把对象放到正确位置的大部分平移发生在屏幕空间。用它的整个项只是 **r**<sub>q</sub>，即在纹理空间里锚与中心之差的变换结果，你最后校正需要它。
 
-Now, this matrix inversion means two things. First, that you will likely have to set up *two* matrices: the affine matrix itself, and its inverse. For general matrices, this might take a while, especially when considering that if you want scaling, you will have to do a division somewhere. Secondly, because you only have 16 bits for the matrix elements, the inverse won't be the *exact* inverse, meaning that aligning the objects exactly will be difficult, if not actually impossible. This is pretty much guaranteed by the hardware itself and I'll return to this point later on. For now, let's look at a function implementing {@eq:aff-ex} in the case of a 2-way scaling followed by a rotation.
+现在，这个矩阵求逆意味着两件事。首先，你可能得设置 *两* 个矩阵：仿射矩阵本身，和它的逆。对一般矩阵，这可能要花点时间，尤其考虑到如果你想要缩放，就得在某处做除法。其次，因为你矩阵元素只有 16 位，逆不会是 *精确的* 逆，意味着精确对齐对象会困难，如果并非不可能的话。这基本是硬件本身保证的，我稍后会回到这一点。现在，我们来看一个实现 {@eq:aff-ex} 的函数，针对先双向缩放后旋转的情况。
 
 <div id="cd-oe-rs-ex">
 
@@ -944,25 +944,25 @@ void obj_rotscale_ex(OBJ_ATTR *obj, OBJ_AFFINE *oa, AFF_SRC_EX *asx)
 ```
 </div>
 
-The `AFF_SRC_EX` struct and `oam_sizes` arrays are supporting entities of the function that does the positioning, which is `obj_rotscale_ex()`. This creates the affine matrix (`pa-pd`), and carries out all the necessary steps for {@eq:aff-ex}, namely create the inverse matrix **A** (`aa-ad`), calculate all the offsets and correcting for the sizes, and finally updating the `OBJ_ATTR`. Note that the fixed point accuracy varies a lot, so it is important to comment often on this
+`AFF_SRC_EX` 结构体和 `oam_sizes` 数组是做定位的函数 `obj_rotscale_ex()` 的辅助实体。它创建仿射矩阵（`pa-pd`），并执行 {@eq:aff-ex} 的所有必要步骤，即创建逆矩阵 **A**（`aa-ad`）、计算所有偏移并校正尺寸，最后更新 `OBJ_ATTR`。注意定点数精度变化很大，所以经常注释这一点很重要。
 
-As I said, this is not a particularly fast function; it takes roughly a scanline worth of cycles. If you need more speed, I also have a Thumb assembly version which is about 40% faster.
+如我所说，这不是特别快的函数；它大约花一个扫描线的周期数。如果你需要更快，我还有一个 Thumb 汇编版本，约快 40%。
 
-### Affine object combo demo {#ssec-combo-demo}
+### 仿射对象组合演示 {#ssec-combo-demo}
 
 <div class="cpt_fr" style="width:64px;">
 <img src="./img/demo/oac_orb.png" id="fig:oac-orb"
   width=64 alt=""><br>
-<b>{*@fig:oac-orb}</b>: object for <tt>oacombo</tt>.
+<b>{*@fig:oac-orb}</b>: <tt>oacombo</tt> 用的对象。
 </div>
 
-The demo for this section, *oacombo*, will display three versions of essentially the same object, namely the circle of {@fig:oac-orb}. The difference between them is in how they are constructed
+本节的演示 *oacombo* 会显示本质上同一个对象的三个版本，即 {@fig:oac-orb} 里的圆。它们之间的区别在于如何构造：
 
-0.  1 32×32p object, full circle.
-1.  2 32×16p objects, two semi-circles.
-2.  4 16×16p objects, four quarter-circles.
+0.  1 个 32×32p 对象，整圆。
+1.  2 个 32×16p 对象，两个半圆。
+2.  4 个 16×16p 对象，四个四分之一圆。
 
-The point of this demo will be to rotate them and position the components of the combined sprites (<dfn>object combos</dfn>) as if they were a single sprite. This requires off-center anchors and therefore ties in nicely with the subject of this section. To manage the combos, I make use of the following struct.
+这个演示的要点是旋转它们并定位组合精灵（<dfn>对象组合（object combos）</dfn>）的组件，就好像它们是单个精灵。这需要非中心锚，因此与本节的主题契合得很好。为了管理组合，我用了下面这个结构体。
 
 ```c
 typedef struct OACOMBO
@@ -977,11 +977,11 @@ typedef struct OACOMBO
 } OACOMBO;
 ```
 
-Each combo is composed of `sub_count` objects; `sub_oe` is a pointer to the array storing these objects, and `sub_pos` is a pointer to the list of (top-left) coordinates of these objects, relative to the top-left of the full sprite. This global position is in `pos`. The anchor (in `anchor`) is also relative to this position. The global screen-anchor would be at `pos+anchor`, and the texture-anchor of sub-object *ii* at `anchor-sub_pos[ii]`.
+每个组合由 `sub_count` 个对象组成；`sub_oe` 是指向存储这些对象的数组的指针，`sub_pos` 是指向这些对象（左上）坐标列表的指针，相对于整个精灵的左上。这个全局位置在 `pos` 里。锚（在 `anchor` 里）也相对于这个位置。全局屏幕锚会在 `pos+anchor`，子对象 *ii* 的纹理锚在 `anchor-sub_pos[ii]`。
 
-The rotation will take place around the center of the circle, so that's an anchor of (16,16). Or, rather (16,16)\*256 because they're .8 fixed point numbers, but that's not important right now. For the full circle, this will be the center of the object, but it'll still need to be corrected for the double-size flag. For the other combos, the anchor will *not* be at the center of their sub-objects.
+旋转会绕圆心进行，所以锚是 (16,16)。或者更确切地说 (16,16)\*256，因为它们是 .8 定点数，但现在不重要。对整圆，这会是对象的中心，但仍需要为双倍尺寸标志校正。对其他组合，锚 *不会* 在它们子对象的中心。
 
-Because the sub-objects share the same **P** matrix, it'd be a waste to recalculate it the whole time, so I'm using a modified version of it especially tailored to `OACOMBO` structs called `oac_rotscale()`. The code is basically the same though. The `oacs[]` array forms the three combos, which are initialized at definition because that makes things so much easier. The full circle is at (16,20), the semis at (80,20) and the one composed of quarter circles is at (48,60). The `obj_data[]` array contains the data for our seven objects, and is copied to `obj_buffer` in the initialization function. While it is generally true that magic numbers (such as using hex for OAM attributes) are evil, it is also true that they really aren't central to this story and to spend a lot of space on initializing all of them in the ‘proper’ fashion may actually do more harm than good … this time. I am still using `#define`s for the anchor and a reference point though, because they appear multiple times in the rest of the code.
+因为子对象共享同一个 **P** 矩阵，一直重算它是浪费，所以我用一个特别为 `OACOMBO` 结构体改写的版本 `oac_rotscale()`。代码基本一样。七个对象的数据在 `obj_data[]` 数组里，并在初始化函数中复制到 `obj_buffer`。虽然魔术数字（比如用十六进制表示 OAM 属性）通常很糟，但同样真实的是它们其实不是这个故事的核心，而为所有对象用“恰当”方式初始化可能反而弊大于利……这次。不过锚和参考点我还是用 `#define`，因为它们在代码其余部分出现多次。
 
 <div id="cd-oacombo">
 
@@ -1135,16 +1135,17 @@ int main()
 <div class="cpt_fr" style="width:272px;">
 <img src="./img/demo/oacombo.png" id="fig:oacombo" width=272
   alt=""><br>
-<b>{*@fig:oacombo}</b>: <tt>oacombo</tt> in action. 
-Note the gaps.
+<b>{*@fig:oacombo}</b>: 运行中的 <tt>oacombo</tt>。 
+注意缝隙。
 </div>
 
-{*@fig:oacombo} on the right shows a screenshot of the demo. There are three main things to point out here. First, all three objects are indeed roughly the same shape, meaning that the function(s) work. But this was never really much in doubt anyway, since it just follows the math. The second point is that there appear to be gaps in the semi- and quarter-circle combos. If you play with the demo yourself for a while, you'll see these gaps appear and disappear seemingly at random. Meanwhile, the full-circle object looks fine throughout. Well mostly anyway.
+右边 {*@fig:oacombo} 是演示的截图。有三点要指出。首先，三个对象确实都大致是同一形状，意味着函数（们）有效。但这其实没什么可怀疑的，因为它只是遵循数学。第二点是半圆形和四分之一圆组合里似乎有缝隙。如果你自己玩一阵演示，会看到这些缝隙似乎随机地出现和消失。与此同时，整圆对象一直看着没问题。嗯，大致是。
 
-The cause of this is related to the third point. Compare the pixel clusters of all three circles, in particular the smaller circles within each of them. Note that even though they use the **exact** same **P** matrix, their formations are different! The reason for this is that while we may have positioned the sub-objects to make them form a bigger object, the pixel-mapping for each of them *still* starts at their centers. This means that the cumulative offsets that determine which source pixel is used for a given screen pixel will be different and hence you'll get a different picture, which is especially visible at the seams.
+造成这个的原因与第三点有关。比较三个圆的像素簇，特别是每个圆里较小的圆。注意即使它们用 *完全* 相同的 **P** 矩阵，它们的排列却不同！原因是，虽然我们把子对象摆放成组成一个更大的对象，但每个子对象的像素映射 *仍* 从它们的中心开始。这意味着决定给定屏幕像素用哪个源像素的累积偏移会不同，因此你会得到不同的画面，在接缝处尤其明显。
 
-If this is a little hard to visualize, try this: open a bitmap editor and draw a single-width diagonal line. Now duplicate this with a (1, 1) pixel offset. Instead of a single thick line, you'll have two thin ones with a slit in between. The same thing happens here.
+如果这有点难想象，试试这个：打开一个位图编辑器，画一条单宽度的对角线。现在把它复制一份并偏移 (1, 1) 像素。你会得到两条细线中间有缝，而非一条粗线。这里发生的是同样的事。
 
-The point is that getting affine objects to align perfectly at the seams will be pretty much impossible. Alright, I suppose in some simple cases you might get away with it, and you could spend time writing code that corrects the textures to align properly, but generally speaking you should expect a hardware-caused uncertainty of about a pixel. This will be a noticeable effect at the off-center reference point, which will tend to wobble a bit, or at the seams of affine object combos, where you'll see gaps. A simple solution to the former would be to rearrange the object's tiles so that the ref-point is not off-center (sounds cheap I know, but works beautifully), or to have transparent pixels there – you can't notice something wobbling if it's invisible, after all. This would also work for the combo, which might also benefit from having the objects overlap slightly, although I haven't tried that yet. It *may* be possible to gain some accuracy by adding rounding terms to the calculations, but I have a hunch that it won't do that much. Feel free to try though.
+重点是，让仿射对象在接缝处完美对齐几乎不可能。好吧，我假定在简单情况下你可能侥幸成功，而且你可以花时间写代码校正纹理以正确对齐，但通常你应该预期约一个像素的硬件不确定性。这在非中心参考点处会是个可见效果，它会有些许抖动，或在仿射对象组合的接缝处，你会看到缝隙。前者的简单解决办法是重新排布对象的图块，使参考点不在中心（听起来廉价我知道，但效果绝佳），或者让那里是透明像素——毕竟，如果它是看不见的，你就注意不到有什么在抖。这对组合也有效，组合或许还能受益于让对象稍微重叠，虽然我还没试过。通过在计算里加舍入项 *可能* 能获得一些精度，但我直觉它作用不大。不过尽管试。
 
-Don't let all this talk of the pitfalls of affine objects get to you too much, I'm just pointing out that it might not be quite as simple as you might have hoped. So they come with a few strings, they're still pretty cool effects. When designing a game that uses them, take the issues raised in this chapter to heart and make sure your math is in order, it might save you a lot of work later on.
+别让这些关于仿射对象陷阱的谈论太过困扰你，我只是想指出它可能没你希望的那么简单。所以它们带着几根线，但它们仍是很酷的效果。在设计使用它们的游戏时，把本章提到的问题放在心上，并确保你的数学是对的，这也许能为你省下日后大量工作。
+

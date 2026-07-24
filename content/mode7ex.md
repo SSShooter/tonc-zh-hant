@@ -1,18 +1,18 @@
-# 21. Mode 7 Part 2
+# 21. Mode 7 第二部分
 
 <!-- toc -->
 
-## Introduction {#sec-intro}
+## 简介 {#sec-intro}
 
-[Mode 7: part 1](mode7.html) covered the basics of how to get an affine background to look like a 3D plane, and discussed some of the trickier parts of the fixed point arithmetic involved. Getting the basic look of a 3D plane is only the first step.
+[Mode 7 第一部分](mode7.html)介绍了如何把一个仿射背景变成看起来像 3D 平面的基本方法，并讨论了一些涉及定点数算术的棘手部分。让一个 3D 平面看起来正确只是第一步。
 
-In this chapter, we'll look into the general math involved of creating a 3D world and translate it back to a form we can use for mode 7. This includes translations in all directions and looking around (yaw) like before, but also a pitch angle for looking up and down. We'll also see how to deal with the horizon and use a background for the backdrop above the horizon. I'll even throw in a bit of fogging to occlude the distant parts of the ground.
+在本章中，我们将研究创建一个 3D 世界所涉及的一般数学，并将其转化为可用于 mode 7 的形式。这包括各个方向上的平移与环视（yaw，偏航），和之前一样，但还包含一个用于上下看的俯仰角（pitch）。我们还将看到如何处理地平线，并使用一个背景作为地平线上方的远景。我甚至会加入一点雾效，来遮挡地面上较远的部分。
 
-I'll discuss also working with sprites in 3D space. Not just the transformation from 3D space to 2D screen, but also culling, scaling for distance (which is not as simple as one might think), animation and sorting. Note that this part of the chapter is basic 3D sprite theory, and can be applied to 3D games that use sprites in some way.
+我还会讨论如何在 3D 空间中使用精灵(对象)。不仅是从 3D 空间到 2D 屏幕的变换，还包括剔除（culling）、按距离缩放（这并不像想的那么简单）、动画与排序。请注意，本章这部分属于基础的 3D 精灵(对象)理论，可以应用于以某种方式使用精灵(对象)的 3D 游戏。
 
-The theory part of the chapter is going to be very math-heavy, as 3D theory always is. Knowing a little bit about [linear algebra](matrix.html) certainly wouldn't hurt. The full story about geometry is beyond the scope of Tonc, but this stuff is quite general; most books on 3D programming will have a chapter on geometric transformations, so you can look at those if you get a little lost here.
+本章的理论部分会非常偏重数学，因为 3D 理论向来如此。懂一点[线性代数](matrix.html)肯定不会有害。完整的几何故事超出了 Tonc 的范围，但这些内容相当通用；大多数 3D 编程书籍都会有一章讲几何变换，所以如果你在这里有点迷糊，可以去查阅那些资料。
 
-This chapter touches on almost all of the topics covered so far. It uses [affine objects](affobj.html), backgrounds (both [regular](regbg.html) and [affine](affbg.html)), [interrupts](interrupts.html), [color effects](gfx.html#blend) and a few more. If your understanding of any of these is lacking, you could be in for a rough time here.
+本章几乎涉及了到目前为止讲过的所有主题。它用到了[仿射对象](affobj.html)、背景（既有[常规](regbg.html)也有[仿射](affbg.html)）、[中断](interrupts.html)、[颜色特效](gfx.html#blend)以及更多。如果你对其中的任何一项理解不足，在这里可能会过得很艰难。
 
 <div class="cblock">
     <table id="fig:img-m7-ex">
@@ -23,43 +23,43 @@ This chapter touches on almost all of the topics covered so far. It uses [affine
         </tr>
         <tr>
           <td colspan=2>
-            <b>*@fig:img-m7-ex</b>: <tt>m7_ex</tt>; with horizon, sprites, variable pitch angle and distance fogging.
+            <b>*@fig:img-m7-ex</b>: <tt>m7_ex</tt>; 包含地平线、精灵(对象)、可变俯仰角与距离雾效。
           </td>
         </tr>
       </tbody>
     </table>
 </div>
 
-What we're going to try to do is re-create a scene from the SNES Mario Kart (see {@fig:img-m7-ex}; apologies to Nintendo for using the graphics, but I don't have a lot of options here <kbd>:\\</kbd>). This is just a freeze-frame of the game, not actual game play is involved, but this should present a nice target to aim for. The code is distributed over a number of files: `mode7.c` for the simple mode 7 functions and `mode7.iwram.c` for the less simple mode 7 functions and interrupt routines. The code of demo-specific code can be found in `m7_ex.c`, which does the set-up, interaction and main loop. The basic controls are as follows:
+我们要尝试做的是重现 SNES 超级马里奥赛车的场景（见 {@fig:img-m7-ex}；使用这些图形要向任天堂致歉，但我在这种情况下确实别无选择 <kbd>:\\</kbd>）。这只是游戏的一个定格画面，并不涉及实际玩法，但它应该能提供一个不错的模仿目标。代码分布在多个文件中：简单的 mode 7 函数放在 `mode7.c` 中，较复杂的 mode 7 函数与中断例程放在 `mode7.iwram.c` 中。演示专用代码可以在 `m7_ex.c` 中找到，它负责初始化、交互和主循环。基本操作如下：
 
 <div class="lblock">
   <table cellpadding=2 cellspacing=0>
     <col span=2 align="left" valign="top">
-      <tr><th>D-pad	<td>Looking
-      <tr><th>A/B		<td>Back/forward
-      <tr><th>L/R		<td>Strafing
-      <tr><th>Select+A/B	<td>Float up/down
-      <tr><th>Start	<td>Menu
+      <tr><th>D-pad	<td>视角
+      <tr><th>A/B		<td>后退/前进
+      <tr><th>L/R		<td>平移
+      <tr><th>Select+A/B	<td>上浮/下沉
+      <tr><th>Start	<td>菜单
   </table>
 </div>
 
-Movement and looking follows FPS/aircraft motion, or at least as well as could be expected with the number of buttons available. There are several extra options which have been put in a menu. First is _motion control_ which sets difference methods of movement. Option ‘local’ follows the camera axis for flight-controls, ‘level’ gives movement parallel to the ground, like FPSs usually do, and ‘global’ uses world axis for movement. Other options include toggling fog on or off and resetting the demo.
+移动和视角控制遵循 FPS/飞行器式的运动方式，或者至少在用现有按键数量所能达到的范围内如此。还有几个额外选项被放进了菜单。首先是_运动控制_（motion control），用于设定不同的移动方式。'local' 选项沿相机轴进行飞行控制，'level' 选项提供与地面平行的运动（如同通常的 FPS），而 'global' 选项使用世界轴进行移动。其他选项包括开关雾效以及重置演示程序。
 
-## Basic mode 7 theory {#sec-theory}
+## Mode 7 基础理论 {#sec-theory}
 
-{\*@fig:img-crd-overview} shows what we're up against: we have a camera located at **a**<sub>cw</sub>, which has some orientation with respect to the world coordinate system. What we have to do is find the transformation that links screen point **x**<sub>s</sub> to world point **x**<sub>w</sub>. There are a number of ways to do this. You already saw one in the [first mode 7 chapter](mode7.html), where we I had the GBA hardware in mind from the start. You could extend this to the general mode 7 case (with a non-zero pitch) with some effort. You could also use pure trigonometry, which is a minefield of minus signs and potential sine-cosine mix-ups. Still, it is possible. What I'll use here, though, is [linear algebra](matrix.html). There are several reasons for this choice. Firstly, linear algebra has a very concise notation, so you can write down the final solution in just a few lines (in fact, once you get through the definitions, the solution that covers all cases can be written down in 2 lines). Furthermore, the equations are well structured and uniform in appearance, making debugging easier. Then there's the fact that inverting the whole thing is very easy. And lastly, it's what true 3D systems use too, so the theory can be applied outside the mode 7 arena as well. Conversely, if you know basic 3D theory, you'll feel right at home here.
+{*@fig:img-crd-overview} 展示了我们要面对的局面：我们有一个位于 **a**<sub>cw</sub> 的相机，它相对于世界坐标系有一定的朝向。我们要做的是找到将屏幕点 **x**<sub>s</sub> 与世界点 **x**<sub>w</sub> 联系起来的变换。有多种方法可以做到这一点。你已经在[第一个 mode 7 章节](mode7.html)中见过一种，当时我们从一开始就想着 GBA 硬件。你可以花点功夫把它扩展到一般的 mode 7 情形（非零俯仰角）。你也可以使用纯三角学，但那是个到处是负号和可能的正余弦混淆的雷区。尽管如此，它仍是可行的。不过，我在这里要使用的是[线性代数](matrix.html)。选择它有若干理由。首先，线性代数记号非常简洁，所以你可以用几行就写出最终解（事实上，一旦你理清定义，覆盖所有情形的解可以只用两行写出）。此外，方程结构良好、外观统一，便于调试。再就是，把整套东西求逆非常容易。最后，这也是真正的 3D 系统所用的方法，所以该理论也能应用于 mode 7 之外的领域。反过来，如果你懂基础 3D 理论，在这里也会感到得心应手。
 
 <div class="lblock">
   <div class="cpt" style="width:378px;">
     <img src="img/mode7/crd_overview.png" id="fig:img-crd-overview" alt="overview">
     <br>
-    <b>*@fig:img-crd-overview</b>: The basic 3D situation. The trick is to relate screen point <b>x</b><sub>s</sub> to world point <b>x</b><sub>w</sub>, taking the camera position <b>a</b><sub>cw</sub> and its orientation into account.
+    <b>*@fig:img-crd-overview</b>: 基本的 3D 情形。关键在于将屏幕点 <b>x</b><sub>s</sub> 与世界点 <b>x</b><sub>w</sub> 联系起来，同时考虑相机位置 <b>a</b><sub>cw</sub> 及其朝向。
   </div>
 </div>
 
-### Definitions {#ssec-try-defs}
+### 定义 {#ssec-try-defs}
 
-Before you can do anything, though, you need to know _exactly_ what we're going to use. The first thing to note is that we have two main coordinate systems: the <dfn>world</dfn> system _S_<sub>w</sub> and the <dfn>camera</dfn> system _S_<sub>c</sub>. Inside the camera system we have two minor coordinate systems, namely the <dfn>projection</dfn> space _S_<sub>p</sub> and <dfn>screen</dfn> space _S_<sub>s</sub>. Now, for every transformation between systems _S_<sub>i</sub> and _S_<sub>j</sub> the following relation holds:
+不过，在你做任何事之前，需要先确切地知道我们将使用什么。首先要说明的是，我们有两套主要的坐标系：<dfn>世界</dfn>坐标系 _S_<sub>w</sub> 与<dfn>相机</dfn>坐标系 _S_<sub>c</sub>。在相机坐标系内部，还有两个次级坐标系，即<dfn>投影</dfn>空间 _S_<sub>p</sub> 与<dfn>屏幕</dfn>空间 _S_<sub>s</sub>。现在，对于 _S_<sub>i</sub> 与 _S_<sub>j</sub> 两套系统之间的每一次变换，下面的关系都成立：
 
 <table id="eq:crd-transf">
   <tr>
@@ -116,36 +116,36 @@ where
   <table cellpadding=0>
     <tr>
       <td><b>x</b><sub>i</sub>
-      <td>the coordinate vector in system <i>S</i><sub>i</sub>;
+      <td>系统 <i>S</i><sub>i</sub> 中的坐标向量；
     <tr>
       <td><b>x</b><sub>j</sub>
-      <td>the coordinate vector in system <i>S</i><sub>j</sub>;
+      <td>系统 <i>S</i><sub>j</sub> 中的坐标向量；
     <tr>
       <td><b>a</b><sub>ji</sub>
-      <td>the origin of system <i>S</i><sub>j</sub>, expressed in coordinates of system <i>S</i><sub>i</sub>;
+      <td>系统 <i>S</i><sub>j</sub> 的原点，用系统 <i>S</i><sub>i</sub> 的坐标表示；
     <tr>
       <td><b>M</b><sub>ij</sub>
-      <td>the transformation matrix, which is basically the matrix formed by the principle vectors of <i>S</i><sub>j</sub>, in terms of <i>S</i><sub>i</sub>.
+      <td>变换矩阵，本质上是由 <i>S</i><sub>j</sub> 的主向量（以 <i>S</i><sub>i</sub> 表示）构成的矩阵。
   </table>
 </div>
 
-Once you get over the initial shock of the many indices (meh, in general relativity you have something called the Riemann tensor, which has _four_ indices), you'll see that this equation makes sense. If you don't get it right away, think of them as arrays and matrices. An observant reader will also recognise the structure in the [screen↔map transformation](affbg.html#sec-aff-ofs) we had for affine maps: **P·q** = **p − dx**. {\*@eq:crd-transf} is a very general equation, by the way, it holds for every kind of linear coordinate transformation. In fact, systems _S_<sub>i</sub> and _S_<sub>j</sub> don't even have to have the same number of dimensions!
+一旦你克服了看到这么多下标时的初次震惊（唔，在广义相对论里有个叫黎曼张量的东西，它有_四_个下标），你就会发现这个方程是有道理的。如果你不能立刻明白，就把它们想成数组和矩阵。细心的读者也会在[screen↔map transformation](affbg.html#sec-aff-ofs) 我们在仿射映射中见过：**P·q** = **p − dx**. 顺便说一下，{*@eq:crd-transf} 是一个非常通用的方程，它对任何种类的线性坐标变换都成立。事实上，系统 _S_<sub>i</sub> 和 _S_<sub>j</sub> 甚至不必具有相同的维数！
 
-As said, we have 4 systems in total, so we have 4 subscripts for <dfn>w</dfn>(orld), <dfn>c</dfn>(amera), <dfn>p</dfn>(rojection), <dfn>s</dfn>(creen). Remember these, for they will appear on a very regular basis. The final forms of the matrices and origins depend very much on the exact definitions of these systems, so make sure you know exactly what each means.
+如前所述，我们一共有 4 个系统，因此有 4 个下标分别对应 <dfn>w</dfn>（orld，世界）、<dfn>c</dfn>（amera，相机）、<dfn>p</dfn>（rojection，投影）、<dfn>s</dfn>（creen，屏幕）。请记住它们，因为它们会非常高频率地出现。矩阵和原点的最终形式在很大程度上取决于这些系统的精确定义，所以务必清楚每一个的含义。
 
-### World system {#ssec-try-world}
+### 世界坐标系 {#ssec-try-world}
 
-The first of these, the world system _S_<sub>w</sub>, is easy to deal with. This is simply a right-handed Cartesian system with principle axes **i**, **j**, and **k**, which are its x-, y- and z-axes, respectively. In the right-handed system that is used in computer graphics, the x-axis (**i**) points to the right, the y-axis (**j**) points up and the z-axis (**k**) points _backward_! This means that you're looking in the negative _z_ direction, which may seem weird at first. If you absolutely must have a forward pointing **k**, you could use a left-handed system. While this utterly destroys my 3d intuition, if you want it be my guest. Before you do that, though, remember that the map marks the floor of world space and in a right-handed system, the texture coordinates will match up neatly to world coordinates.
+其中第一个，世界系统 _S_<sub>w</sub>，很好处理。它就是一个右手笛卡尔坐标系，主轴为 **i**、**j** 和 **k**，分别对应于它的 x、y、z 轴。在计算机图形学使用的右手系中，x 轴（**i**）指向右，y 轴（**j**）指向上，而 z 轴（**k**）指向_后方_！这意味着你是在朝负 _z_ 方向看，一开始可能觉得奇怪。如果你非要一个指向前方的 **k**，可以用左手系。虽然这会彻底毁掉我的 3D 直觉，但你想用就用吧。不过在这么做之前，请记住：地图标记的是世界空间的地面，而在右手系中，纹理坐标会整齐地对应到世界坐标。
 
-### The camera frame {#ssec-try-cam}
+### 相机坐标系 {#ssec-try-cam}
 
 <div class="cpt_fr" style="width:260px;">
   <img src="img/mode7/crd_w2c.png" id="fig:img-w2c" alt="word to camera transformation">
   <br>
-  <b>{*@fig:img-w2c}</b>: Camera orientation {<b>u, v, w</b>} in world space {<b>i, j, k</b>}, given by angles &theta; and &phi;
+  <b>{*@fig:img-w2c}</b>: 相机朝向 {<b>u, v, w</b>}，处于世界空间 {<b>i, j, k</b>} 中，由角度 &theta; 和 &phi; 给出
 </div>
 
-The transformation to the camera system is probably the major hurdle in the whole thing. At least it would be if it wasn't for matrices. Rewriting @eq:crd-transf, the transformation between camera and world space is given by
+到相机系统的变换大概是整件事的主要难点。至少，要不是有矩阵的话它本会如此。重写 @eq:crd-transf，相机与世界空间之间的变换由下式给出：
 
 <table id="eq:w2c">
 <tr>
@@ -190,9 +190,9 @@ The transformation to the camera system is probably the major hurdle in the whol
     </math>
 </table>
 
-As you can expect, the origin of camera space is the camera position, **a**<sub>cw</sub>. The camera matrix **C** is formed by the principle axes of camera space, which are **u, v** and **w** for the local x-, y- and z-axes, respectively. This means that the camera matrix is **C** = \[**u v w**\].
+正如你所料，相机空间的原点就是相机位置 **a**<sub>cw</sub>。相机矩阵 **C** 由相机空间的主轴构成，分别是局部 x、y、z 轴的 **u, v** 和 **w**。这意味着相机矩阵为 **C** = \[**u v w**\]。
 
-The orientation of the camera with respect to world space is defined by 3 angles: <dfn>pitch</dfn> (rotation around the x-axis), <dfn>yaw</dfn> (rotation around the y-axis) and <dfn>roll</dfn> (around z-axis). The combination of these give **C**. Traditionally, the rotation direction of these is such that if you look down one of these axes, a positive angle turns the system counter-clockwise. However, I'll do the exact opposite, because it makes a number of things easier. Additionally, I will only be using two angles: pitch and yaw. For mode 7 it is impossible to incorporate roll into the picture. Why? Look at it this way: if you're rolled on your side, the ground would be on the right or left of the screen, which would require a vertical perspective division, which is impossible to achieve since we can only change the affine parameters at HBlank. Therefore, only pitch (θ) and yaw (φ) are allowed. I want my positive θ and φ to the view down and right, respectively, meaning I need the following rotation matrices:
+相机相对于世界空间的朝向由 3 个角度定义：<dfn>pitch</dfn>（绕 x 轴旋转）、<dfn>yaw</dfn>（绕 y 轴旋转）和 <dfn>roll</dfn>（绕 z 轴旋转）。它们的组合给出 **C**。传统上，这些旋转的方向约定为：如果沿其中某轴向下看，正角度使系统逆时针转动。不过我会反其道而行，因为这样能让很多事情更简单。此外，我只会使用两个角度：pitch 和 yaw。对于 mode 7，不可能把 roll 纳入其中。为什么？这样想：如果你侧滚了身体，地面会出现在屏幕的右边或左边，这就需要垂直的透视除法，而由于我们只能在 HBlank 时改变仿射参数，这无法实现。因此，只允许 pitch (θ) 和 yaw (φ)。我希望正的 θ 和 φ 分别使视角向下和向右，也就是说我需要以下旋转矩阵：
 
 <table id="eq:mat-rot">
   <tr>
@@ -379,7 +379,7 @@ The orientation of the camera with respect to world space is defined by 3 angles
   </tr>
 </table>
 
-But now the next problem arises: do we do pitch first, or yaw? That really depends on what kind of effect you want to have _and_ in relation to what system you do your rotation. There is actually only one order that is possible for the same reason that roll wasn't allowed: you cannot have a vertical perspective. What this boils down to is that **u** (the x-axis of the camera frame) _must_ be parallel to the ground plane, i.e., _u_<sub>y</sub> must be zero. In order to do that, you must do pitch first, then yaw. This is depicted in {@fig:img-w2c}. To get a feel for this: stand up, tilt your head down (pitch θ\>0), then turn to your right (yaw φ\>0). The full camera matrix then becomes:
+但接下来出现了一个问题：我们先做俯仰（pitch）还是先做偏航（yaw）？这真的取决于你想要什么样的效果，_以及_你是在哪个坐标系下做旋转。实际上，由于不允许滚转（roll）的同样原因，只有一种顺序是可行的：你不能有垂直的透视。这归根结底意味着 **u**（相机坐标系的 x 轴）_必须_平行于地平面，即 _u_<sub>y</sub> 必须为零。为了做到这一点，你必须先做俯仰，再做偏航。这一点在 {@fig:img-w2c} 中有所描绘。找找感觉：站起来，低下头（pitch θ\>0），然后向右转（yaw φ\>0）。于是完整的相机矩阵就变为：
 
 <table id="eq:rotxy">
   <tr>
@@ -549,21 +549,21 @@ But now the next problem arises: do we do pitch first, or yaw? That really depen
     </td>
 </table>
 
-Aside from being correct, this matrix has two nice properties. Firstly, the column vectors are of unit length. Secondly, the component vectors are perpendicular. This means that **C** is an <dfn>orthogonal matrix</dfn>, which has the very nice feature that **C**<sup>−1</sup> = **C**<sup>T</sup>. This makes the world→camera transformation a relatively simple operation.
+除了正确之外，这个矩阵还有两个很好的性质。首先，列向量都是单位长度的。其次，各分量向量彼此正交。这意味着 **C** 是一个<dfn>正交矩阵</dfn>，它有一个非常好的特性：**C**<sup>−1</sup> = **C**<sup>T</sup>。这使得世界→相机的变换成为一个相对简单的操作。
 
-One last thing here: if you were to rotate the camera system by 180° around **i**, this would give you a forward pointing **w** and a downward pointing **v**, both of which decrease the number of awkward minus signs in later calculations, at the expense of an awkward camera frame. Whether you want to do this is up to you.
+这里最后还有一件事：如果你把相机系统绕 **i** 旋转 180°，就会得到一个指向前方的 **w** 和一个指向下的 **v**，这两者都能减少后续计算中别扭的负号数量，代价是一个别扭的相机坐标系。你是否愿意这么做，取决于你自己。
 
-:::note Matrix transforms and the system they occur in.
+:::note 矩阵变换及其所在的系统
 
-I said that to mimic the rotations of **C** you to tilt your head first (θ), then rotate your body (φ). You might think that you can get the same effect by doing it the other way: turn first, then look down. However, this is incorrect.
+我说过，要模仿 **C** 的旋转，你得先低头（θ），再转动身体（φ）。你也许认为反着做能得到同样的效果：先转，再低头。然而，这是不正确的。
 
-It may _feel_ the same, but in the second case you'd not actually be using the **R**<sub>x</sub>(θ) to invoke the tilt. A matrix isn't a thing in itself, it ‘lives’ in a space. In this case, both **R**<sub>x</sub>(θ) and **R**<sub>y</sub>(φ) are defined in terms of the _world_ coordinate system, and when applying them the directions follow the world's axes. The turn-then-tilt order would use **R**<sub>x</sub>(θ) in a local frame, which is a legal operation, but not the one that the math requires.
+它可能_感觉_一样，但在第二种情况下，你实际上并没有用 **R**<sub>x</sub>(θ) 来引发低头。矩阵本身不是个东西，它‘活’在一个空间里。这里，**R**<sub>x</sub>(θ) 和 **R**<sub>y</sub>(φ) 都是用_世界_坐标系定义的，应用它们时方向遵循世界的轴。先转后低的顺序会在局部坐标系中用 **R**<sub>x</sub>(θ)，那是个合法操作，但不是数学所要求的那个。
 
-I know it's a subtle point, but there really is an important difference. Try visualizing it with a 90° rotation in both orders, maybe that'd help.
+我知道这是个微妙的点，但确实有重要差别。试着用两种顺序各做一个 90° 旋转来可视化，也许会有帮助。
 
 :::
 
-### The projection plane {#ssec-try-proj}
+### 投影平面 {#ssec-try-proj}
 
 <div class="cpt_fr" style="width:256px;">
   <img src="img/mode7/crd_c2p.png" id="fig:img-c2p" alt="">
@@ -571,7 +571,7 @@ I know it's a subtle point, but there really is an important difference. Try vis
   <b>{*@fig:img-c2p}</b>: perspective projection.
 </div>
 
-To create the illusion of depth we need a <dfn>perspective view</dfn>. For this, you need a <dfn>center of projection</dfn> (COP) and a <dfn>projection plane</dfn>. Naturally, both need to be in camera space. While you're free to choose these any way you want, you can simplify matters by placing the center of projection at the origin of camera space and the projection plane at a distance _D_ in front of the camera, so that the plane is given by **x**<sub>p</sub> = (_x_<sub>p</sub>, *y*<sub>p</sub>, −*D*). Yes, that's a negative _z_<sub>p</sub>, because we're looking in the negative z-direction. The projected coordinates are the intersections of the line between COP and **x**<sub>c</sub>, and the projection plane. Since the COP is at the origin, the relation between **x**<sub>c</sub> and **x**<sub>p</sub> is
+为了制造深度的错觉，我们需要一个<dfn>透视视图</dfn>。为此，你需要一个<dfn>投影中心</dfn>（COP）和一个<dfn>投影平面</dfn>。自然，这两者都必须位于相机空间中。虽然你可以任意选择它们，但你可以把投影中心放在相机空间的原点、把投影平面放在相机前方距离 _D_ 处，这样平面就由 **x**<sub>p</sub> = (_x_<sub>p</sub>, *y*<sub>p</sub>, −*D*) 给出。是的，那是负的 _z_<sub>p</sub>，因为我们是在朝负 z 方向看。投影坐标是 COP 与 **x**<sub>c</sub> 连线和投影平面的交点。由于 COP 在原点，**x**<sub>c</sub> 和 **x**<sub>p</sub> 之间的关系是
 
 <table id="eq:c2p">
 <tr>
@@ -605,9 +605,9 @@ To create the illusion of depth we need a <dfn>perspective view</dfn>. For this,
     </td>
 </table>
 
-Here λ is a simple scaling factor, the value of which can be determined in a variety of ways, depending of the information available at the point in your derivations. For example, since _z_<sub>p</sub> = −*D*, by definition, we have λ = −*z*<sub>c</sub> / _D_. Later we'll see another expression. The interesting thing about this expression is that λ is proportional to the distance in camera space, which in turn tells you how much the camera position is to be scaled _down_, or zoomed. This is useful, since the scaling parameters of the affine matrix scales down as well. Also, the distance _D_ attenuates the scaling, which means that it acts as a <dfn>focus length</dfn>. Note that when _z_<sub>c</sub> = −*D*, the scale is one, meaning that the objects at this distance appear in their normal size.
+这里的 λ 是一个简单的缩放因子，它的值可以用多种方法确定，取决于你在推导的该点处掌握的信息。例如，由于 _z_<sub>p</sub> = −*D*（按定义），我们有 λ = −*z*<sub>c</sub> / _D_。稍后我们会看到另一个表达式。这个表达式有趣的地方在于，λ 与相机空间中的距离成正比，而这又告诉你相机位置应该被缩放_ down_（即缩小）多少，或者说缩放了多少。这很有用，因为仿射矩阵的缩放参数同样会缩小。此外，距离 _D_ 会衰减缩放，这意味着它起到了<dfn>焦距</dfn>的作用。注意，当 _z_<sub>c</sub> = −*D* 时，缩放为 1，意味着处在这个距离上的物体以正常大小出现。
 
-### Viewport and viewing volume {#ssec-try-view}
+### 视口与可视体 {#ssec-try-view}
 
 <div class="cpt_fr" style="width:308px;">
   <img src="img/mode7/viewport.png" id="fig:img-viewport" alt="">
@@ -615,13 +615,13 @@ Here λ is a simple scaling factor, the value of which can be determined in a va
   <b>{*@fig:img-viewport}</b>: Viewing frustum in camera space. The green rectangle is the visible part of the projection plane (i.e., the screen).
 </div>
 
-Before I give the last step of the transformation to the screen, I have to say a few words about the viewport and the viewing volume. As you can imagine, you can only see a certain portion of the world. You see the world through a region called the <dfn>viewport</dfn>. This is an area on the projection plane, usually rectangular, that defines the horizontal and vertical boundaries of what you can see. In particular, you have a left side (_L_), right side (_R_), top (_T_) and bottom (_B_). With the axes defined as they are and the origin is usually centered (see @fig:img-viewport, inset), we have _R\>0\>L_ and _T\>0\>B_. Yup, in this particular case _L_ is negative, and _T_ is positive!
+在我给出到屏幕的最后一步变换之前，我得先说几句关于视口和可视体的话。可以想象，你只能看到世界的一小部分。你是通过一个叫做<dfn>视口</dfn>的区域来观察世界的。它是投影平面上的一个区域，通常是矩形，定义了你能看到的水平和垂直边界。具体来说，你有左边 (_L_)、右边 (_R_)、上边 (_T_) 和下边 (_B_)。在坐标轴如上定义、且原点通常位于中心的情况下（见 @fig:img-viewport 插图），我们有 _R\>0\>L_ 且 _T\>0\>B_。没错，在这个特定情形下 _L_ 是负的，而 _T_ 是正的！
 
-The width and height of the viewport are *W* = \|_R−L_\| and *H* = \|_B−T_\|, respectively. Together with the center of projection, the viewport defines the <dfn>viewing volume</dfn> (see @fig:img-viewport). For a rectangular viewport this will be a pyramid.
+视口的宽度和高度分别为 *W* = \|_R−L_\| 和 *H* = \|_B−T_\|。视口与投影中心一起定义了<dfn>可视体</dfn>（见 @fig:img-viewport）。对于矩形视口，这将是一个棱锥。
 
-Most of the time you will want boundaries in depth as well, because things too near will obstruct everything else from view (besides, dividing by 0 is never good), and very distant objects will become so small that they are barely noticeable, and why waste so many calculations on a handful of pixels? These boundaries in depth are called the <dfn>near</dfn> (_N_) and <dfn>far</dfn> (_F_) planes, and will turn the viewing volume in a frustum. The numbers for these distances are a matter of taste. Whatever you use, be aware that the z-values are actually negative. I would prefer to have the values of _N_ and _F_ positive, so that the order or distance is 0\>−*N*\>−*F*.
+大多数时候你还会想要在深度上设置边界，因为太近的物体会挡住其他一切（此外，除以 0 从来都不是什么好事），而非常远的物体会变得极小，几乎看不见，何必在区区几个像素上浪费这么多计算？这些深度边界叫做<dfn>近</dfn>平面 (_N_) 和<dfn>远</dfn>平面 (_F_)，它们会把可视体变成一个截头体（frustum）。这些距离的具体数值可以凭喜好而定。无论你用什么值，都要记住 z 值实际上是负的。我更倾向于让 _N_ 和 _F_ 取正值，这样距离的顺序为 0\>−*N*\>−*F*。
 
-Another point is the notion of the <dfn>field of view</dfn> (FOV). This is the horizontal angle α that you can see, meaning that
+另一点是<dfn>视场角</dfn>（FOV）的概念。这是你能看到的水平角度 α，也就是说
 
 <table id="eq:fov-cam">
   <tr>
@@ -653,9 +653,9 @@ Another point is the notion of the <dfn>field of view</dfn> (FOV). This is the h
       </math>
 </table>
 
-I am told that a commonly used FOV is about 90°, which would require *D* = ½*W*. With *D* = 128 you get close enough to this requirement, with the added benefit that it's a power of 2, but that, of course, is an implementation detail. _However_, it seems that *D* = 256 is more common, so we'll use that instead.
+我听说常用的 FOV 大约是 90°，那将要求 *D* = ½*W*。取 *D* = 128 就相当接近这个要求，而且还有它是 2 的幂的额外好处，不过那当然是个实现细节。_然而_，似乎 *D* = 256 更常见，所以我们改用这个值。
 
-### The screen {#ssec-try-scr}
+### 屏幕 {#ssec-try-scr}
 
 <div class="cpt_fr" style="width:192px;">
   <img src="img/mode7/crd_p2s.png" id="fig:img-p2s" alt="">
@@ -663,7 +663,7 @@ I am told that a commonly used FOV is about 90°, which would require *D* = ½
   <b>{*@fig:img-p2s}</b>: screen space vs camera space
 </div>
 
-The last step is the one from the projection plane onto the screen. This step is almost trivial, but the almost can cause you a lot of trouble if you're not careful. The situation is shown in @fig:img-p2s, where you are looking through the camera. The axes **u** and **v** are the up and right axes of the camera system, while the green arrows denote the x- and y-axes of screen space. And if you have paid attention to any of the tutorials, you should know that the screen's y-axis points _down_. This is bugfest number 1. Also, the origins of camera and screen space differ. Since the screen corresponds to the viewport, the origin of the screen in camera/projection space is **a**<sub>sp</sub> = (_L, T, −D_). Be careful not to reverse the signs here; that would be bugfest number 2. Also remember that since this is in camera space, _L_ is negative and _T_ is positive. Taking both the inverted vertical axis and the origin of screen-space in mind, we have
+最后一步是从投影平面到屏幕。这一步几乎微不足道，但那个“几乎”如果不小心会给你带来大麻烦。情形如 @fig:img-p2s 所示，你正透过相机观察。轴 **u** 和 **v** 是相机系统的上轴和右轴，而绿色箭头表示屏幕空间的 x 轴和 y 轴。如果你留意过任何一个教程，你应该知道屏幕的 y 轴指向_下_。这是头号 bug 源。此外，相机空间和屏幕空间的原点也不同。由于屏幕对应于视口，屏幕在相机/投影空间中的原点是 **a**<sub>sp</sub> = (_L, *T*, −*D*)。注意不要在这里把符号弄反，那是二号 bug 源。还要记住，由于这是在相机空间中，_L_ 是负的而 _T_ 是正的。考虑到垂直轴翻转以及屏幕空间原点，我们有
 
 <table id="eq:p2s">
   <tr>
@@ -712,11 +712,11 @@ The last step is the one from the projection plane onto the screen. This step is
       </math>
 </table>
 
-The scaling matrix reverses the sign of the y-axis. We could have avoided the extra matrix if we had rotated the camera frame by another 180°, in which case **v** would have pointed down and **w** would have pointed forward. But I didn't, so we'll have to live with it here. Also, since the origin of the screen in camera space, is **a**<sub>sp</sub> = (_L, T, −D_), the screen position is **x**<sub>s</sub> = (_x_<sub>s</sub>, *y*<sub>s</sub>, 0), in other words _z_<sub>s</sub> is always zero. If you want to check whether everything is OK, see if the corners of the viewport give the right screen coordinates.
+缩放矩阵把 y 轴的符号翻转了。如果我们把相机坐标系再旋转 180°，本可省掉这个额外的矩阵，那样 **v** 会指向下而 **w** 会指向前。但我没有这么做，所以我们只能将就。另外，由于屏幕在相机空间中的原点是 **a**<sub>sp</sub> = (_L, *T*, −*D*)，屏幕位置为 **x**<sub>s</sub> = (_x_<sub>s</sub>, *y*<sub>s</sub>, 0)，换句话说 _z_<sub>s</sub> 始终为零。如果你要检查一切是否正常，看看视口的各个角是否给出正确的屏幕坐标即可。
 
-### Theory summary {#ssec-try-sum}
+### 理论小结 {#ssec-try-sum}
 
-And that's basically it, phew. Since it took three pages to get here, I'll repeat the most important things. First, the main equations we need are:
+基本上就是这样了，呼。既然花了三页才到这里，我把最重要的东西重复一遍。首先，我们需要的主要方程是：
 
 <table id="eq:m7-main">
 <col span=2 align="right">
@@ -806,7 +806,7 @@ And that's basically it, phew. Since it took three pages to get here, I'll repea
   </td>
 </table>
 
-where
+其中
 
 <div class="lblock">
   <table cellpadding=0>
@@ -840,16 +840,16 @@ where
   </table>
 </div>
 
-Remember these equations and terms, for I will refer to them often. The break between {@eq:m7-main}a and {@eq:m7-main}b is by design: all the real information is in {@eq:m7-main}a; {@eq:m7-main}b is just a final step that needs to be taken to complete the transformation. In the remainder of the text, I will make frequent use of {@eq:m7-main}a and leave out {@eq:m7-main}b unless necessary. Other interesting things to know:
+记住这些方程和术语，因为我以后会经常提到它们。{@eq:m7-main}a 和 {@eq:m7-main}b 之间的划分是刻意的：所有真实的信息都在 {@eq:m7-main}a 中；{@eq:m7-main}b 只是为完成变换而需要走的最后一步。在余下的文字中，我会频繁使用 {@eq:m7-main}a，除非必要，否则略去 {@eq:m7-main}b。其他值得了解的内容有：
 
-- World system _S_<sub>w</sub> = {**i**,**j**,**k**} and camera system _S_<sub>c</sub> = {**u**, **v**, **w**} are right-handed Cartesian coordinate systems. As expected, the columns of camera matrix **C** are the principle axes of _S_<sub>c</sub>: **C** = \[**u v w**\];
-- The viewport and viewing frustum are in camera space, meaning that their boundaries are too. This means that
+- 世界坐标系 _S_<sub>w</sub> = {**i**,**j**,**k**} 与相机坐标系 _S_<sub>c</sub> = {**u**, **v**, **w**} 是右手笛卡尔坐标系。正如预期，相机矩阵 **C** 的列就是 _S_<sub>c</sub> 的主轴：**C** = \[**u v w**\]；
+- 视口与可视体都位于相机坐标系中，这意味着它们的边界也同样如此。也就是说：
   <table>
     <tr><td><i>R</i> &gt; 0 &gt; <i>L</i> <td>(horizontal)
     <tr><td><i>T</i> &gt; 0 &gt; <i>B</i> <td>(vertical)
     <tr><td>0 &gt; &minus;<i>N</i> &gt; &minus;<i>F</i> <td>(depth)
   </table>
-- If we use the GBA screen size as a basis (*W* = 240, *H* = 160), and *D* = 256, reasonable values for the viewing frustum boundaries are the following, but you can pick others if you want.
+- 如果我们以 GBA 屏幕尺寸为基础（*W* = 240，*H* = 160），并取 *D* = 256，那么可视体边界的合理取值如下，不过你也可以另选。
   <table>
     <col span=1>
       <tr><td><i>L</i> = &minus;120  <td><i>R</i> = &minus;120
@@ -857,13 +857,13 @@ Remember these equations and terms, for I will refer to them often. The break be
       <tr><td><i>N</i> =  24   <td><i>F</i> = 1024
   </table>
 
-## Horizon and backdrop {#sec-horz}
+## 地平线与远景 {#sec-horz}
 
-Take the essential mode 7 case: a floor in perspective. Due to the perspective division, the distant parts of the floor will approach a single line: the <dfn>horizon</dfn>. Since the map really is just a floor, the horizon really will be just that: one horizontal line. The space above that is usually empty, but to make it a little less bland, we will use a <dfn>backdrop</dfn>: a panorama view of the distant environment that moves along with the camera's rotation.
+拿最基本的 mode 7 情形来说：一个透视中的地面。由于透视除法，地面远处会趋近于一条线：<dfn>地平线</dfn>。由于地图实际上只是一块地面，地平线确实就只是那样：一条水平线。它上方的空间通常是空的，但为了让画面不那么单调，我们会使用一个<dfn>远景</dfn>：一幅随相机旋转而移动的深景环境全景图。
 
-### Finding the horizon {#sec-horz-find}
+### 寻找地平线 {#sec-horz-find}
 
-Roughly put, the horizon is where z = −∞. If you have lines on the floor, the horizon is where all parallel lines seem to meet: the vanishing line. Naturally, if you only have a floor, then you should only draw it below the horizon and the graphics above it should be part of a skybox. I'm sure you've seen this in the original Mario Kart and other mode 7 racers. Since we're limited to a roll-less camera, the horizon will always be a horizontal line: one scanline _y_<sub>s,h</sub>. To find it, all we have to do is take the _y_-component of {@eq:m7-main}a and rearrange the terms to get
+粗略地说，地平线就是 z = −∞ 所在之处。如果你在地面上有一些线，地平线就是所有平行线看似交汇的地方：灭线（vanishing line）。自然，如果你只有一块地面，那么你应该只在地平线下方绘制它，其上方的图形应该属于天空盒（skybox）。我确信你在原版马里奥赛车以及其他 mode 7 赛车游戏中见过这个。由于我们被限制在无滚转的相机，地平线永远是一条水平线：一条扫描线 _y_<sub>s,h</sub>。要找到它，我们只需取 {@eq:m7-main}a 的 _y_ 分量，并重新排列项，得到
 
 <table id="eq:horz-line">
 <tr>
@@ -970,7 +970,7 @@ Roughly put, the horizon is where z = −∞. If you have lines on the floor, 
     </math>
 </table>
 
-And if we were to take our horizon at infinity, them λ = −∞, which would reduce @eq:horz-line to
+如果我们把地平线取在无穷远处，则 λ = −∞，这会令 @eq:horz-line 简化为
 
 <table>
 <tr>
@@ -1021,7 +1021,7 @@ And if we were to take our horizon at infinity, them λ = −∞, which would 
     </math>
 </table>
 
-However, you need to think about whether you want to use this simplified equation. At very large λ, the gaps in displayed map points are so large that you're effectively showing noise, which can be very ugly indeed. A better way would be making use of the far clipping plane at _z_<sub>c</sub> = −*F*. In that case, λ = *F/D* and we can use @eq:horz-line to calculate the horizon, which will be something like
+不过，你需要考虑是否要使用这个简化方程。在非常大的 λ 下，显示出的地图点之间的间隔如此之大，以至于你实际上在显示噪声，那会非常难看。更好的办法是利用远裁剪面 _z_<sub>c</sub> = −*F*。此时 λ = *F/D*，我们可以用 @eq:horz-line 来计算地平线，结果大致是
 
 <table>
 <tr>
@@ -1084,15 +1084,15 @@ However, you need to think about whether you want to use this simplified equatio
     </math>
 </table>
 
-As expected, if *F* = −∞ then {@eq:horz-line}c reduces to {@eq:horz-line}b. Regardless of whether you chose a finite of infinite _z_<sub>c</sub>, the horizon will be at scanline _y_<sub>s,h</sub> = *T − y*<sub>p,h</sub>.
+正如所料，如果 *F* = −∞，那么 {@eq:horz-line}c 就简化为 {@eq:horz-line}b。无论你选择有限的还是无限的 _z_<sub>c</sub>，地平线都会位于扫描线 _y_<sub>s,h</sub> = *T − y*<sub>p,h</sub>。
 
-### Using the horizon {#ssec-horz-use}
+### 使用地平线 {#ssec-horz-use}
 
-The horizon marks the line between the map and ‘far far away’: between the floor and the backdrop. The floor should be an affine background, obviously; for the backdrop, we will use a regular background, although that's not required. What we need to a way to switch between the two at the horizon scanline. The simplest way is by HBlank interrupt: once the horizon scanline is reached, make the switch between floor and backdrop settings in the BG control registers and perhaps initiate HDMA for the affine parameter transfers if you chose to use DMA for that.
+地平线标出了地图与“远在天边”之间的界线：地面与远景的分界。地面显然应该是一个仿射背景；至于远景，我们会用一个常规背景，尽管那并非必须。我们需要一种方法，能在地平线扫描线处切换这两者。最简单的方法是通过 HBlank 中断：一旦到达地平线扫描线，就在 BG 控制寄存器中切换地面与远景的设置，并且如果你选择用 DMA 来做，可能还要启动 HDMA 来传送仿射参数。
 
-Switching between the backdrop and floor backgrounds is actually trickier than it sounds. You could, for example, have a separate background for each and enable/disable them depending on your needs. The problem is that it seems to take about 3 scanlines before a background is fully set up in hardware (see [forum:1303](https://gbadev.net/forum-archive/thread/4/1303.html)), so you'll see crap during that time. In other words, this solution is no good.
+在远景背景和地面背景之间切换，其实比听起来更棘手。例如，你可以为两者各用一个独立的背景，并根据需要启用/禁用它们。问题在于，似乎要让一个背景在硬件中完全就绪大约需要 3 条扫描线（见 [forum:1303](https://gbadev.net/forum-archive/thread/4/1303.html)），所以那段时间你会看到垃圾内容。换句话说，这个方案不行。
 
-An other way would be to have one background for both and switch the video-mode from 0 to 1 or 2. This won't give you 3 lines of garbage, but now another problem arises: chances are very high that the backdrop and floor have very different tiles and map attributes. This is easy to solve though: simply change the screen (and char) base blocks in `REG_BGxCNT`.
+另一种办法是让两者共用一个背景，并把视频模式从 0 切换到 1 或 2。这不会给你 3 行垃圾，但另一个问题出现了：远景和地面的图块与地图属性极有可能截然不同。不过这很容易解决：只需在 `REG_BGxCNT` 中改变屏幕（以及字符）基块即可。
 
 <div class="lblock">
   <div class="cpt" style="width:336px;">
@@ -1108,13 +1108,13 @@ An other way would be to have one background for both and switch the video-mode 
   </div>
 </div>
 
-### Making and placing the backdrop {#ssec-horz-backdrop}
+### 制作并放置远景 {#ssec-horz-backdrop}
 
-The space directly above the horizon is for the backdrop. You probably want a nice image of a distant town or tree line over there, not just a boring empty sky. The backdrop offers a panoramic view, which can be considered a map painted on the inside of a cylinder and then peeled off to a normal 2D surface (see @fig:img-pan). The idea is to put that surface on a background and the scroll around.
+地平线正上方的空间留给远景。你大概想要一张远处城镇或树线的漂亮图片放在那里，而不是一片无聊的空天空。远景提供的是一幅全景视图，可以把它看作画在一个圆柱内壁上、再剥下来铺到普通 2D 表面上的地图（见 @fig:img-pan）。思路是把那个表面放到一个背景上，并让它滚动起来。
 
-Vertically, the bottom of the background should connect to the horizon. Because regular backgrounds use wrap-around coordinates this is actually quite easy: place the ground-level of the backdrop at the bottom of a screen-block and set the vertical offset to −*y*<sub>s,h</sub>.
+在垂直方向上，背景的底部应该与地平线相接。由于常规背景使用环绕坐标，这其实相当容易：把远景的地面高度放在一个屏幕块的底部，并把垂直偏移设为 −*y*<sub>s,h</sub>。
 
-Horizontally, there are several issues to be aware of. The first is the width of the map, which is simply the perimeter _P_ of the cylinder. As we should have a scrolled a full map's width for a 360° rotation, the correct scroll ratio per unit angle is simply _P_/2π = *R*, the radius. In principle, _R_ is arbitrary, but the best result can be had when the field of view formed by the angle of the panorama (α<sub>p</sub> = *W*/_R_), is equal to the camera field-of-view angle α<sub>c</sub> from @eq:fov-cam. If all is right we should have α<sub>p</sub> = α<sub>c</sub> = α.
+在水平方向上，有若干问题需要注意。第一个是地图的宽度，也就是圆柱的周长 _P_。由于我们每旋转 360° 应当滚动一整张地图的宽度，所以每单位角度正确的滚动比例就是 _P_/2π = *R*，即半径。原则上 _R_ 是任意的，但当全景图的角度视场（α<sub>p</sub> = *W*/_R_）等于 @eq:fov-cam 中的相机视场角 α<sub>c</sub> 时，效果最好。如果一切正确，我们应当有 α<sub>p</sub> = α<sub>c</sub> = α。
 
 <table id="eq:fov">
 <tr>
@@ -1231,11 +1231,11 @@ Horizontally, there are several issues to be aware of. The first is the width of
     </math>
 </table>
 
-That last approximation stems from the first couple of terms of the [Taylor series](https://en.wikipedia.org/wiki/Taylor's_theorem) of the arctangent. Interestingly enough, even _R_ ≈ _D_ seems somewhat adequate. Anyway, filling in *W* = 240 and *D* = 256 gives *P* = 1720, which isn't a very convenient map size, is it? Now, it is possible to create a map of any size and update VRAM if we go outside the screenblock's boundaries (commercial games do it all the time), but doing so would distract for the subject at hand, so you know what? We're going to bend the rules a bit and just force *P* = 1024.
+最后一个近似来自反正切的[泰勒级数](https://en.wikipedia.org/wiki/Taylor's_theorem)的头几项。有趣的是，即便 _R_ ≈ _D_ 看起来也还算过得去。无论如何，代入 *W* = 240 和 *D* = 256 会得到 *P* = 1720，这可不是个方便的地图尺寸，对吧？现在，创建一个任意大小的地图并在超出屏幕块边界时更新 VRAM 是可行的（商业游戏一直都这么做），但那样会偏离手头的主题，所以你知道吗？我们稍微破坏一下规则，直接强制 *P* = 1024。
 
-“Wait a sec ... you can't do that!” Well, yes I can actually. I'm not _supposed_ to do it, but that's another issue. The fact of the matter is that, I don't think there is a _single_ mode 7 game that scrolls the backdrop properly! For example, the Mario Kart's often use multiple backgrounds with different scrolling speeds in their backdrops, which is absolutely ridiculous, mathematically speaking, because looking around doesn't change relative lines of sight. But I guess nobody noticed or at least nobody cares. What I'm trying to say is: we're in good company <kbd>:P</kbd>
+“等等……你不能那么干！”嗯，实际上我能。我不_应该_那么干，但那是另一回事。关键在于，我不认为有_任何_一个 mode 7 游戏正确地滚动了远景！例如，马里奥赛车经常在它们的远景中使用以不同速度滚动的多个背景，从数学上讲这绝对荒谬，因为环视并不会改变相对的视线方向。但我想没人注意到，或者至少没人在乎。我想说的是：我们这么做并不孤单 <kbd>:P</kbd>
 
-So, we just define a perimeter value and with it backdrop map-width ourselves. In this case I'm going to use *P* = 1024, which is a nice round number and for which we can use a 512 px wide tile-map will effectively end up as a panorama with 180° rotational symmetry. Taking into account the circle partitioning of 2π ⇔ 10000h, the scrolling value is simply φ\*_P_/10000h = φ/64. We'll have to offset this by _L_ as well because I want to map φ = 0 to due north. The final position of the backdrop is given in {!@eq:bd-pos}.
+所以，我们只是自己定义一个周长值以及由此得到的远景地图宽度。在这个例子里，我要用 *P* = 1024，这是个很整的数，用它时一个 512 像素宽的图块地图实际上会最终成为一个具有 180° 旋转对称性的全景图。考虑到圆的划分 2π ⇔ 10000h，滚动值就是简单地 φ*_P_/10000h = φ/64。我们还得用 _L_ 来偏移它，因为我想让 φ = 0 对应正北。远景的最终位置由 {!@eq:bd-pos} 给出。
 
 <table id="eq:bd-pos">
 <tr>
@@ -1293,11 +1293,11 @@ So, we just define a perimeter value and with it backdrop map-width ourselves. I
     </math>
 </table>
 
-## The floor {#sec-flr}
+## 地面 {#sec-flr}
 
-### Affine parameters for the floor {#ssec-flr-parms}
+### 地面的仿射参数 {#ssec-flr-parms}
 
-{\*@eq:m7-main} describes the world↔screen transformation but that information uses 3D vectors, while the GBA only has a 2×2 affine matrix **P** and a 2D displacement vector **dx** at its disposal. So we have some rewriting to do. Now, I could give you the full derivation, 2d↔3d conversions and all, but something tells me you really don't want to see that. So instead, I'll give you the set of equations you need to solve, and hints on how to do that.
+{*@eq:m7-main} 描述了世界↔屏幕变换，但那其中的信息使用的是 3D 向量，而 GBA 只有一个 2×2 的仿射矩阵 **P** 和一个 2D 位移向量 **dx** 可用。所以我们需要做一些改写。现在，我可以把完整的推导、2D↔3D 转换等等都给你，但有些东西告诉我你真的不想看到那些。所以，我改为给你一组需要求解的方程，并提示如何求解。
 
 <table id="eq:m7-set">
 <tr>
@@ -1403,7 +1403,7 @@ So, we just define a perimeter value and with it backdrop map-width ourselves. I
     </math>
 </table>
 
-The first two equations are just {@eq:m7-main} again, I just them list for completeness. The last equation is the relation between screen point **q** and map point **p** for an affine map, an equation that should be familiar by now. Now, remember that our map lies on the floor, in other words **p** = (_x_<sub>w</sub>, *z*<sub>w</sub>). The 2D screen point **q** is, of course, similar to the 3D screen vector of **x**<sub>s</sub>. The only thing that you have to remember is that when writing to `REG_BGxY`, the left of the current scanline is taken as the origin, so that effectively **q** = (_x_<sub>s</sub>, 0), which in turn means that _p_<sub>b</sub> and _p_<sub>d</sub> are of no consequence. The values of the other elements of **P** are simply the _x_- and _z_-components of the scaled camera x-axis, λ**u**. If you use these values, you will see that eventually you will end up with an expression that can best be summed up by:
+前两式其实只是 {@eq:m7-main} 的再次罗列，我列出来只是为了完整。最后一式是仿射映射下屏幕点 **q** 与地图点 **p** 之间的关系，这个式子你现在应该已经很熟悉了。现在请记住，我们的地图位于地面上，也就是说 **p** = (_x_<sub>w</sub>, *z*<sub>w</sub>)。二维屏幕点 **q** 自然与三维屏幕向量 **x**<sub>s</sub> 类似。你唯一需要记住的是，向 `REG_BGxY` 写入时，当前扫描线的最左端被当作原点，因此实际上 **q** = (_x_<sub>s</sub>, 0)，这反过来意味着 _p_<sub>b</sub> 和 _p_<sub>d</sub> 不起作用。矩阵 **P** 其余各元素的值，不过就是缩放后的相机 x 轴 λ**u** 的 _x_ 分量和 _z_ 分量。如果你使用这些值，最终会得到一个可以用下面这句话来概括的表达式：
 
 <table id="eq:m7-ofs">
 <tr>
@@ -1520,9 +1520,9 @@ where
   </math>
 </div>
 
-Everything you need for the displacement is neatly packed into this one equation, now we need to disassemble it to construct the algorithm. First, we can use the _y_-component of **dx'** to calculate λ. Once we have that we can use it to calculate the other two elements, i.e., the actual affine offsets. The affine matrix was already given earlier.
+你做位移所需的一切都整齐地打包进了这一个方程，现在我们需要把它拆开，以构造算法。首先，我们可以用 **dx'** 的 _y_ 分量来计算 λ。一旦有了它，我们就能用它来计算另外两个元素，即真正的仿射偏移。仿射矩阵前面已经给出过了。
 
-{\*@eq:m7-sum} gives all the relations explicitly, though I hope you'll forgive me when I prefer the conciseness of {@eq:m7-ofs} myself.
+{*@eq:m7-sum} 把所有关系都明确地写了出来，不过如果我偏好 {@eq:m7-ofs} 的简洁，希望你能原谅我。
 
 <table id="eq:m7-sum">
 <col span=2 align="right">
@@ -1728,15 +1728,15 @@ Everything you need for the displacement is neatly packed into this one equation
     </math>
 </table>
 
-Note that if we take the top at 0 and no pitch (_T_=0 and θ=0) we have exactly the same result as in the first mode 7 chapter, and if we look straight down (θ=90°), the whole thing reduces to a simple scaling/rotation around point (−*L, T*), which is exactly it should be. {\*@eq:m7-sum} is the general equation for mode 7; for the implementation, you can often make a number of shortcuts that speed up calculation, but well get to that [later](#eq-aff-calc).
+注意，如果我们取顶部为 0 且无俯仰（_T_=0 且 θ=0），我们就得到了和第一个 mode 7 章节完全相同的结果；而如果我们直视下方（θ=90°），整个式子就简化成绕点 (−*L, *T*) 的一个简单缩放/旋转，这正是它应该有的样子。{*@eq:m7-sum} 是 mode 7 的通用方程；在实现中，你常常可以做若干捷径来加速计算，不过我们[稍后](#eq-aff-calc)再谈。
 
-### Distance fogging {#ssec-flr-fog}
+### 距离雾效 {#ssec-flr-fog}
 
-In the real world, light coming from far away objects has to travel through the atmosphere, which scatters the photons, attenuating the beam. What you'll end up seeing is partly the object itself and partly the ambient color, and the further the original object, the smaller its contribution is. Because such effect is most easily visible in fog conditions, I'll call this effect <dfn>fogging</dfn>.
+在现实世界中，来自远处物体的光线必须穿过大气层，大气会散射光子，从而衰减光束。你最终看到的，部分是物体本身，部分是环境色，而且原始物体越远，它的贡献就越小。由于这种效应在雾天最易观察，我把这个效应叫做<dfn>雾效</dfn>。
 
-Fogging offers a hint of distance and including it can increase the sense of depth. Also, it can hide objects popping into view as they're loaded. GBA-wise, it can be implemented by using different alpha-blends at every scanline.
+雾效提供了一种距离的暗示，加入它可以增强纵深感。此外，它还能掩盖物体被载入时突然弹出画面的现象。就 GBA 而言，它可以通过在每条扫描线上使用不同的 alpha 混合来实现。
 
-The fundamental equation for this is the following differential equation:
+这方面的基本方程如下面的微分方程：
 
 <math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
   <mstyle displaystyle="true" scriptlevel="0">
@@ -1772,9 +1772,9 @@ The fundamental equation for this is the following differential equation:
   </mstyle>
 </math>
 
-where _I_ is the intensity; _k_(ν) is the absorption coefficient of the medium, which depends on the frequency of the light, ν and possibly position; ρ is the density and _z_ is the distance. Solving this would lead to an exponential decay over distance. And I do mean real distance, with squares and roots and everything.
+其中 _I_ 是强度；_k_(ν) 是介质的吸收系数，它取决于光的频率 ν，也可能取决于位置；ρ 是密度，_z_ 是距离。求解这个方程会得到随距离呈指数衰减的结果。而我指的确实是真实距离，包含平方和开方等等。
 
-Fortunately, we don't have to use something that complicated; all we really need is some functional relation that gives 0 at infinity and 1 close up. Interestingly enough, we already have something like that, namely λ as function of the scanline (see {!@eq:m7-sum}). This is basically a hyperbola, all you have to do then is fiddle with scalers and offsets a bit to get something that looks nice. In my case, λ\*6/16 seems to work well enough.
+幸运的是，我们不需要用那么复杂的东西；我们真正需要的只是一种函数关系，让它在无穷远处为 0、在近处为 1。有趣的是，我们已经有了类似的东西，即作为扫描线函数的 λ（见 {!@eq:m7-sum}）。这基本上是一条双曲线，你只需摆弄一下缩放因子和偏移量，就能得到看起来不错的效果。就我而言，λ*6/16 似乎就够好了。
 
 <div class="cblock">
   <table class="bdr" id="fig:img-fog" border=0 cellpadding=2 cellspacing=2>
@@ -1790,23 +1790,23 @@ Fortunately, we don't have to use something that complicated; all we really need
   </table>
 </div>
 
-{\*@fig:img-fog} shows screenshots with and without the fogging effect as seen from a fairly high altitude. The distance to the floor is relatively small at the bottom of the screen, so those are still very visible. At the horizon, the floor is completely obscured by the orange fog; which is actually a good thing, as the lines near the horizon are usually not much to look at anyway.
+{*@fig:img-fog} 展示了从相当高的高度看到的、有雾效与无雾效的截图。到地面的距离在屏幕底部相对较小，所以那些部分仍然非常清晰可见。在地平线处，地面完全被橙色雾遮挡；这其实是件好事，因为靠近地平线的线条通常本来也不怎么好看。
 
-By the way, note that I said _orange_ fog. If you'd paid attention in the [graphics effects](gfx.html#sec-blend) chapter will know that the GBA only has fading modes for white and black. Nevertheless, fades to an arbitrary color are very much possible, but I'll explain once we get to the implementation. While you ponder over how it can be done, I'll move on to 3D sprites.
+顺便说一句，请注意我说的是_橙色_雾。如果你在[图形特效](gfx.html#sec-blend)章节里留心过，就会知道 GBA 只有针对白色和黑色的渐隐模式。尽管如此，渐隐到任意颜色是完全可能的，不过我要等到实现部分再解释。在你琢磨它怎么做到的时候，我继续讲 3D 精灵(对象)。
 
-## Sprites {#sec-objs}
+## 精灵(对象) {#sec-objs}
 
-Sprites and 3D are a strange combination. By their very nature, sprites are 2D objects – like stickers stuck against the viewport (i.e., the screen). To make them appear part of the 3D world, you have to make them move over the screen in such a way that they appear to move with the world and scale them according to their distance. Once again, the basic of this is @eq:m7-main, but there is considerably more to it.
+精灵(对象)与 3D 是个奇怪的组合。就其本质而言，精灵(对象)是 2D 物体——就像贴在视口（即屏幕）上的贴纸。要让它们看起来属于 3D 世界，你必须让它们在屏幕上以这样的方式移动：看起来像是在随世界一起动，并根据距离缩放它们。再一次，这的基础是 @eq:m7-main，但远不止如此。
 
-Four topics must be covered here. The first is sprite **positioning**. {\*@eq:m7-main} will work at point/pixel level, and a sprite is a simple rectangle. While it's possible to rewrite the sprite's pixels to work around that, it kind of defeats the purpose of using sprites in the first place. Instead, we'll link one point on the object to the world coordinate of the sprite and set the OAM position and matrix to accommodate this. This is basically the theory of [anchoring](affobj.html#sec-combo) discussed in the affine object chapter.
+这里有四个主题必须涵盖。第一个是精灵(对象)的**定位**。{*@eq:m7-main} 在点/像素层面有效，而一个精灵(对象)是一个简单的矩形。虽然你可以重写精灵(对象)的像素来绕过这一点，但那在某种程度上违背了使用精灵(对象)的初衷。相反，我们会把物体上的一个点与精灵(对象)的世界坐标联系起来，并设置 OAM 的位置和矩阵来适应这一点。这基本上就是仿射对象章节中讨论过的[锚定](affobj.html#sec-combo)理论。
 
-Next up: sprite **culling**. Once you have the correct OAM positions you can't use them as is, you have to make sure the sprite is only active if it is actually visible inside the viewport. If not, it should be disabled.
+接下来是精灵(对象)**剔除**。一旦你有了正确的 OAM 位置，就不能原样使用它们，你必须确保只有当精灵(对象)确实可见（位于视口内）时才激活它。否则，应当禁用它。
 
-Then there's the matter of sprite **animation**. Consider Toad's kart in {@fig:img-m7-obj}, which has the correct anchored position, but no matter which angle you look at it, it'll always show the same side. To make it look as if you can actually move around the object, we'll use different frames of animation to show different sides.
+然后是精灵(对象)**动画**的问题。考虑 {@fig:img-m7-obj} 中 Toad 的赛车，它有着正确的锚定位置，但无论你从哪个角度看，它都会显示同一面。为了让它看起来像你真的能绕着物体移动，我们会使用不同的动画帧来显示不同的侧面。
 
-Lastly, sprite **sorting**. By default, objects will be ordered according to the objects' numbers: obj 0 over obj 1, over obj 2, etc. Always linking a sprite to the same object means that the order would be wrong if you look at them from the other side, so we need to sort them by distance.
+最后是精灵(对象)**排序**。默认情况下，对象会按对象编号排序：obj 0 在 obj 1 之上，obj 1 在 obj 2 之上，依此类推。总是把一个精灵(对象)链接到同一个对象，意味着如果你从另一侧看它们，顺序就会出错，所以我们需要按距离对它们排序。
 
-Those are the main issues to deal with. There are a few others, like placing a shadow, and using pre-scaled objects to get around the hardware limitation of 32 affine matrices, but these are fairly easy if the other points are already taken care of. One thing I will discuss as well is what I call object **normalization**: applying an extra scaling for objects so that they don't grow too big for their clipping rectangle.
+这些是要处理的主要问题。还有几个其他的，比如放置阴影，以及使用预缩放的对象来绕过 32 个仿射矩阵这一硬件限制，但一旦其他几点解决了，这些就相当容易了。我也会讨论一点我称之为对象**重归一化**的东西：对对象施加一个额外的缩放，使它们不会长得超出自己的裁剪矩形。
 
 <table id="fig:img-m7-obj" class="bdr" style="width:512px; margin:10px auto;" border=0 cellpadding=2 cellspacing=0>
   <tr>
@@ -1816,16 +1816,16 @@ Those are the main issues to deal with. There are a few others, like placing a s
   </tr>
   <tr>
     <td colspan=3>
-      <b>{*@fig:img-m7-obj}</b>: anchored sprite. The position is good, but no matter how you turn, Toad always turns away. Maybe it's the hat.
+      <b>{*@fig:img-m7-obj}</b>：锚定的精灵(对象)。位置是对的，但无论你怎么转，Toad 总是背对着你。也许是那顶帽子。
     </td>
   </tr>
 </table>
 
-### Positioning and anchoring {#ssec-obj-pos}
+### 定位与锚定 {#ssec-obj-pos}
 
-Positioning sprites consists of two facets. The first is to transform the sprites world position **x**<sub>w</sub> to a position on the screen **x**<sub>s</sub>. After that, you need to use that point to determine the most appropriate OAM coordinates.
+精灵(对象)的定位包含两个层面。其一是把精灵(对象)的世界坐标 **x**<sub>w</sub> 变换到屏幕上的位置 **x**<sub>s</sub>。在此之后，你需要利用该点来确定最合适的 OAM 坐标。
 
-The first part is just another application of {@eq:m7-main} again, only in reverse. Normally, inverting 3D matrix is a particularly un-fun process, but the camera matrix happens to be an orthonormal matrix. An <dfn>orthonormal matrix</dfn> is a matrix of which the component vectors are orthogonal (perpendicular to each other) and have a length of 1. The neat thing about an orthonormal matrix is that its inverse is simply its transpose: **C**<sup>−1</sup> = **C**<sup>T</sup>. That leads us to the following equations:
+第一部分不过是 {@eq:m7-main} 的又一次应用，只是方向相反。通常，求一个三维矩阵的逆是一件相当无趣的事，但相机矩阵恰好是一个正交归一矩阵。所谓的<dfn>正交归一矩阵</dfn>，是指其各组成向量彼此正交（相互垂直）且长度均为 1 的矩阵。正交归一矩阵的一个妙处在于，它的逆矩阵恰好就是它的转置：**C**<sup>−1</sup> = **C**<sup>T</sup>。由此我们得到下面这些式子：
 
 <table id="eq:obj-w2s">
   <tr>
@@ -1922,7 +1922,7 @@ The first part is just another application of {@eq:m7-main} again, only in rever
       </math>
 </table>
 
-The only real unknown here is λ, which we can calculate by using the fact that _z_<sub>p</sub> = −*D*. Now let the distance between camera and sprite be **r** = **x**<sub>w</sub> − **a**<sub>cw</sub>; using **C** = \[**u v w**\], we find
+这里唯一真正未知的量就是 λ，我们可以利用 _z_<sub>p</sub> = −*D* 这一事实来把它算出来。现在设相机与精灵(对象)之间的距离为 **r** = **x**<sub>w</sub> − **a**<sub>cw</sub>；利用 **C** = \[**u v w**\]，可得
 
 <math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
   <mstyle displaystyle="true" scriptlevel="0">
@@ -2000,7 +2000,7 @@ The only real unknown here is λ, which we can calculate by using the fact that 
   <b>{*@fig:img-anchor}</b>: a 32&times;32 sprite, with the anchor <b>p</b><sub>0</sub> relative to the top-left.
 </div>
 
-Finding the screen position of **x**<sub>w</sub> is trivial after that. And now the anchoring part. Instead of stickers, think of objects as pieces of pater to be tacked onto a board (i.e., the screen). The tack goes through one spot of the object, and that spot is fixed to the board. That spot is the <dfn>anchor</dfn>. For affine objects it's not quite as simple as that, because we have to specify OAM coordinates rather than anchor coords, so there is some math involved in how to express the OAM coordinates **x** in terms of the texture anchor **p**<sub>0</sub> and the screen anchor **q**<sub>0</sub>. This theory was covered in the [affine object](affobj.html#sec-combo) chapter, which led to @eq:anchor. The other quantities there are size of the objects, **s** = (_w_, *h*), and _m_ which is ½ for normal affine objects and 1 for double-size affine objects.
+在那之后，求 **x**<sub>w</sub> 的屏幕位置就微不足道了。现在来看锚定部分。把对象想象成要钉到板子（即屏幕）上的纸片，而不是贴纸。图钉穿过物体的某一点，那一点就固定在板子上。那个点就是<dfn>锚点</dfn>。对于仿射对象，这并不像那么简单，因为我们必须指定 OAM 坐标而非锚点坐标，所以这里有点数学，即如何用纹理锚点 **p**<sub>0</sub> 和屏幕锚点 **q**<sub>0</sub> 来表达 OAM 坐标 **x**。这个理论在[仿射对象](affobj.html#sec-combo)章节讲过，并导出了 @eq:anchor。那里的其他量是对象的大小，**s** = (_w_, *h*)，以及 _m_，对普通仿射对象为 ½，对双倍尺寸仿射对象为 1。
 
 <table id="eq:anchor">
   <tr>
@@ -2054,35 +2054,35 @@ Finding the screen position of **x**<sub>w</sub> is trivial after that. And now 
       </math>
 </table>
 
-Now the task is to link the data we have to this equation. The screen anchor **q**<sub>0</sub> is just **x**<sub>s</sub>. The texture anchor **p**<sub>0</sub> is the pixel in texture space you want to keep fixed and is yours to choose. For the kart-sprite, it makes sense to put it near the bottom of the kart, as is depicted in @fig:img-anchor. ‘Vector’ **s** is given by the size of the object, which in this case is (32, 32) and because I'm choosing to always use double-size objects here, _m_=1. The **P**-matrix is just a scaling by λ, unless you want to add other things as well. All that remains then is just to fill it in the numbers.
+现在的任务，是把我们掌握的数据联系到这个方程上。屏幕锚点 **q**<sub>0</sub> 就是 **x**<sub>s</sub>。纹理锚点 **p**<sub>0</sub> 是你想保持固定的纹理空间中的像素，可以由你选择。对于赛车精灵(对象)，把它放在赛车底部附近是有意义的，如 @fig:img-anchor 所示。‘向量’ **s** 由对象的大小给出，此例中为 (32, 32)，而且因为我在这里总是选择双倍尺寸对象，所以 _m_=1。**P** 矩阵就是按 λ 缩放（除非你还想加入其他东西）。剩下的就只是把数值填进去了。
 
-### Sprite culling {#ssec-obj-cull}
+### 精灵(对象)剔除 {#ssec-obj-cull}
 
 <div class="cpt_fr" style="width:308px;">
   <img src="img/mode7/viewport_obj.png" id="fig:img-vp-obj" alt="">
   <br>
-  <b>{*@fig:img-vp-obj}</b>: View-frustum with sprites <i>a</i>, <i>b</i> and <i>c</i>. <i>b</i> and <i>c</i> are visible, <i>a</i> is not.
+  <b>{*@fig:img-vp-obj}</b>：带精灵(对象) <i>a</i>、<i>b</i> 和 <i>c</i> 的可视体。<i>b</i> 和 <i>c</i> 可见，<i>a</i> 不可见。
 </div>
 
-<dfn>Culling</dfn> is the process removing any part of the world that cannot be seen. In this case, it means removing those sprites that do not fall within the viewing volume. This is a very smart thing to do, and it makes even more sense for sprites, because not doing so would seriously screw things up because OAM couldn't cope with the possible range of **x**<sub>s</sub>.
+<dfn>剔除</dfn>（culling）是移除任何不可见的世界部分的过程。在这里，它意味着移除那些不在可视体内的精灵(对象)。这是件非常明智的事，对精灵(对象)来说更有意义，因为如果不这么做，OAM 将无法应付 **x**<sub>s</sub> 可能的取值范围，从而造成严重混乱。
 
-The first thing to do would be a distance check: if the object is too far away, it should not be seen. It's also a good idea to have a near-plane distance check. Then you have to test it for intersections with the viewport. Each sprite is bounded by a certain rectangle on the projection plane and if this is completely outside the viewport, the object should not be rendered.
+首先要做的是一次距离检查：如果对象太远，就不该被看到。做一个近平面距离检查也是个好主意。然后你必须测试它与视口是否相交。每个精灵(对象)在投影平面上由一个矩形界定，如果这个矩形完全在视口之外，该对象就不应被渲染。
 
-{\*@fig:img-vp-obj} shows a few examples of this. Objects _a_ and _b_ have already been projected onto the projection plane. Object _a_ is outside the viewport, and should be disabled. Object _b_ is partially visible and should be rendered. Object _c_ is not projected yet, but falls between the near and far plane and should at least be tested (and then found fully visible).
+{*@fig:img-vp-obj} 展示了几个这样的例子。对象 _a_ 和 _b_ 已经被投影到投影平面上。对象 _a_ 在视口之外，应当被禁用。对象 _b_ 部分可见，应当被渲染。对象 _c_ 尚未投影，但落在近平面和远平面之间，至少应当被测试（然后发现完全可见）。
 
-It's actually easier to do the view volume checks in 3D camera space instead of 2D projection space. The object rectangle can easily be calculated from **x**<sub>c</sub> = **C**<sup>T</sup>·**r**, the anchor **p**<sub>0</sub> and the size **s**. The viewport will have to be scaled by λ, and this gives us the following rests to perform:
+实际上，在 3D 相机空间中做可视体检查，比在 2D 投影空间中更容易。对象矩形可以很容易地从 **x**<sub>c</sub> = **C**<sup>T</sup>·**r**、锚点 **p**<sub>0</sub> 和大小 **s** 算出来。视口需要按 λ 缩放，这给了我们下面这些要做的测试：
 
 <div class="lblock">
   <table id="tbl:culltest" class="table-data">
     <caption align="bottom">
-      <b>{*@tbl:culltest}</b>: Object rect and culling tests in camera space. Note the signs!
+      <b>{*@tbl:culltest}</b>：相机空间中的对象矩形与剔除测试。注意符号！
     </caption>
     <tbody>
       <tr>
         <th>&nbsp;</th><th>Object position</th><th>Visible if</th>
       </tr>
       <tr>
-        <th> Depth </th>
+        <th> 深度 </th>
         <td> 
           <math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
             <mstyle displaystyle="true" scriptlevel="0">
@@ -2146,7 +2146,7 @@ It's actually easier to do the view volume checks in 3D camera space instead of 
         </td>
       </tr>
       <tr>
-        <th> Horizontal </th>
+        <th> 水平 </th>
         <td> 
           <math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
             <mstyle displaystyle="true" scriptlevel="0">
@@ -2218,7 +2218,7 @@ It's actually easier to do the view volume checks in 3D camera space instead of 
         </td>
       </tr>
       <tr>
-        <th> Vertical </th>
+        <th> 垂直 </th>
         <td>
           <math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
             <mstyle displaystyle="true" scriptlevel="0">
@@ -2297,9 +2297,9 @@ It's actually easier to do the view volume checks in 3D camera space instead of 
   </table>
 </div>
 
-If all these conditions are true, then the object should be visible. Now, please note the _signs_ of the tests, particularly in the vertical checks.
+如果所有这些条件都为真，那么该对象就应该是可见的。现在，请注意测试的_符号_，特别是在垂直检查中。
 
-### Animation {#ssec-obj-ani}
+### 动画 {#ssec-obj-ani}
 
 <div class="cpt_fr" style="width:200px;">
   <img src="img/mode7/psi_def.png" id="fig:img-psi-def" alt="view angle">
@@ -2307,9 +2307,9 @@ If all these conditions are true, then the object should be visible. Now, please
   <b>{*@fig:img-psi-def}</b>: Finding the view-angle &psi;.
 </div>
 
-Rotation animation, to be precise. As we saw in {@fig:img-m7-obj}, the sprite will show the same side regardless of where you are looking from. This is only logical, as the sprite is not actually a 3D entity. To make it _look_ a little more 3D, we need to have images of the sprite taken from different camera angles, and then pick the one we need depending on which angle we're looking from.
+准确地说，是旋转动画。正如我们在 {@fig:img-m7-obj} 中看到的，无论你从哪个角度看，精灵(对象)都会显示同一面。这很合逻辑，因为精灵(对象)并不是一个真正的 3D 实体。为了让它_看起来_更 3D 一点，我们需要有从不同的相机角度拍摄的精灵(对象)图像，然后根据我们所观察的角度，挑选需要的那一帧。
 
-First, finding the correct view angle, ψ. {\*@fig:img-psi-def} shows the general situation. The angle you need is the angle between the vector between the camera and the object (red, dashed) and the global looking direction of the object. In the figure, you can see the global direction angles for the camera and object: φ<sub>c</sub> and φ<sub>o</sub>, respectively. Also indicated is the angle between the camera direction and the sprite, α. If you look at these angles closely, you'll see that φ<sub>c</sub> + α + ψ = φ<sub>o</sub>. In other words:
+首先，找到正确的视角 ψ。{*@fig:img-psi-def} 展示了一般情形。你需要的角度是相机与物体之间向量（红色虚线）和物体全局朝向之间的夹角。图中可以看到相机和物体的全局方向角：分别为 φ<sub>c</sub> 和 φ<sub>o</sub>。还标出了相机方向与精灵(对象)之间的夹角 α。仔细观察这些角度，你会看到 φ<sub>c</sub> + α + ψ = φ<sub>o</sub>。换句话说：
 
 <table id="eq:psi">
   <tr>
@@ -2396,13 +2396,13 @@ First, finding the correct view angle, ψ. {\*@fig:img-psi-def} shows the genera
   </tr>
 </table>
 
-Whether the minus-sign inside the arctan() is necessary depends on how you define the terms all the terms. {\*@eq:psi} is the fully correct version, but if the arctan doesn't appeal to you, you'll be glad to know that in most cases the α-term can be safely ignored without anyone noticing.
+arctan() 里面的负号是否必要，取决于你如何定义所有项。{*@eq:psi} 是完全正确的版本，但如果你不喜欢反正切，你会很高兴地知道，在大多数情况下 α 项可以安全地忽略，而没人会发现。
 
-Now that we have our viewing angle, we need to use it somehow. Suppose you have _N_ frames of rotation, which divides the circle into equal parts each 2π/_N_ radians wide. To get the slice that ψ is in, we merely have to divide by the angle of each slice: *i* = ψ/(2π/_N_) = *N*·ψ/(2π). If you have defined your circle in power-of-two divisions (which we have) then this part is ridiculously easy: just use a right-shift. Once you have the frame-index, the rest should be easy. Mostly. There are some intricacies that that can fog things up, but those are implementation-dependent and will be saved for later.
+现在有了视角，我们需要以某种方式使用它。假设你有 _N_ 帧旋转动画，把圆分成相等的部分，每部分宽 2π/_N_ 弧度。为了得到 ψ 所在的切片，我们只需除以每个切片的角度：*i* = ψ/(2π/_N_) = *N*·ψ/(2π)。如果你用 2 的幂来划分圆（我们正是这么做的），这部分就简单得可笑：只需一个右移。一旦有了帧索引，剩下的应该就很简单了。大体如此。不过有一些错综复杂之处会把它搅浑，但这些取决于具体实现，留到以后再说。
 
-### Sprite sorting {#ssec-obj-sort}
+### 精灵(对象)排序 {#ssec-obj-sort}
 
-Disregarding priority bits for the moment, the order of objects on-screen is determined by the object number: a lower number will be in front of higher numbers. In 2D games, you can often ignore this because sprites will be on the same layer; in 3D games, you really, really can't. Take {@fig:img-obj-sort}, for example. The four thwomps here have a specific object order. In the left picture, the closest thwomp happens to have the lowest object and the visual ordering is correct. When viewed from the other side, however, (middle picture) things are a little different. There are two visual cues for depth: scaling (more distance is smaller) and occlusion (distance objects are obscured by closer objects). In the middle picture, these two conflict because the closest object has the _highest_ number, making the overall picture a little disconcerting. In the picture on the right, everything looks okay again, because steps were taken to ensure the correct object order.
+暂且不考虑优先级位，屏幕上对象的顺序由对象编号决定：编号小的在编号大的前面。在 2D 游戏中，你常常可以忽略这一点，因为精灵(对象)会在同一层上；在 3D 游戏中，你真的、真的不能忽略。以 {@fig:img-obj-sort} 为例。这里的四个 thwomp 有特定的对象顺序。在左图中，最近的 thwomp 恰好编号最小，视觉顺序是正确的。然而，从另一侧看时（中图），情况略有不同。有两个关于深度的视觉线索：缩放（越远越小）和遮挡（较远的物体被较近的物体遮住）。在中图中，这两点相互冲突，因为最近的物体有_最大_的编号，使整幅图有点令人不安。在右图中，一切又看起来正常了，因为采取了措施来确保正确的对象顺序。
 
 <table id="fig:img-obj-sort" class="bdr" style="width:512px; margin:10px auto;" border=0 cellpadding=2 cellspacing=2>
   <tr>
@@ -2412,14 +2412,14 @@ Disregarding priority bits for the moment, the order of objects on-screen is det
   </tr>
   <tr>
     <td colspan=3>
-      <b>{*@fig:img-obj-sort}</b>. Non-sorted objects look alright (left) from one angle, but not from the other way (middle). You need to sort them to get the correct order (right).
+      <b>{*@fig:img-obj-sort}</b>。未排序的对象从一个角度看还行（左），但从另一角度看就不行（中）。你需要对它们排序才能得到正确的顺序（右）。
     </td>
   </tr>
 </table>
 
-What needs to be done is sort the objects in OAM according to depth; a kind of [Z-buffer](https://en.wikipedia.org/wiki/Z-buffering) for objects. The depth of a sprite is simply _z_<sub>c</sub>, and we need to fill OAM with the sprite's object attributes in order of ascending _z_<sub>c</sub>. For good measure, it's probably a good idea to give hidden objects the maximum depth-value possible or to leave them out of the sorting process entirely.
+需要做的事情，是按深度对 OAM 中的对象排序；这有点像对象的 [Z-buffer](https://en.wikipedia.org/wiki/Z-buffering)。精灵(对象)的深度就是简单的 _z_<sub>c</sub>，我们需要按 _z_<sub>c</sub> 升序将精灵(对象)的属性填入 OAM。为稳妥起见，给隐藏对象赋予尽可能大的深度值，或者干脆把它们排除在排序过程之外，可能是个好主意。
 
-There are many possible strategies for sorting the objects. My own choice aright now would be to not sort the sprites or objects directly but to create an **index table**, which indicates the order the sprites' attributes should go into OAM. The pseudo-code for this is given below. Which algorithm you use to sort the keys doesn't really matter at this time, as long as it does the job. I'm sure that faster methods can be found, but probably at the expense of more code and I want to keep things relatively simple.
+排序对象有很多可能的策略。我自己目前的选择是不直接排序精灵(对象)或对象，而是创建一个**索引表**，指示精灵(对象)的属性应按什么顺序进入 OAM。其伪代码如下。至于你用哪种算法给键排序，此刻并不重要，只要它能完成任务。我相信可以找到更快的方法，但代价是更多的代码，而我想让事情相对简单。
 
 ```c
 // Pseudo code for sorting sprites for OAM
@@ -2444,17 +2444,17 @@ void spr_sort()
 }
 ```
 
-### Renormalization {#ssec-obj-norm}
+### 重归一化 {#ssec-obj-norm}
 
-I wouldn't be surprised if you've never heard of this term before. <dfn>Normalization</dfn> means that you scale a quantity to a user-friendly value – usually 1. You have already scaled the sprite by a factor λ, but that's not enough. In most cases, you have to scale it further, i.e _renormalize_ it. Here's why.
+如果你以前从没听说过这个术语，我一点都不会惊讶。<dfn>归一化</dfn>（Normalization）是指把一个量缩放成一个便于使用的值——通常是 1。你已经按因子 λ 缩放了精灵(对象)，但那还不够。在大多数情况下，你还必须进一步缩放它，即_重归一化_（renormalize）它。原因如下。
 
-By definition, the scaling factor λ will be one when _z_<sub>c</sub> = −*D*. Now consider what happens if you look at a closer object, say at _z_<sub>c</sub> = −½*D*. In this case, λ will be ½ and the object will be scaled by a factor of two. In other words, it'll already fill the double-size canvas. And higher scales are possible too: with the suggested values of *D* = 256 and *N* = 24, you could end up with scaling of 10! This will not do.
+按定义，当 _z_<sub>c</sub> = −*D* 时，缩放因子 λ 为 1。现在考虑当你看一个更近的物体时会发生什么，比如 _z_<sub>c</sub> = −½*D*。此时 λ 为 ½，该对象会被放大两倍。换句话说，它已经填满了双倍尺寸的画布。而且还可能得到更高的缩放：取建议值 *D* = 256 和 *N* = 24，你最终可能得到 10 倍的缩放！这可不行。
 
-It is possible to get around this by moving the near-plane further away. However, then you'll see object disappearing if they're still quite far off, which will look just as strange as seeing them clipped. A better solution is to give the objects an extra scaling factor. In `m7_ex` I have scaled the objects by an additional factor of ¼, so that a 32x32 sprite is actually only 8x8 ‘world’-pixels in size. This seems to work out quite nicely.
+可以通过把近平面移得更远来绕过这个问题。然而，那样的话，当物体还相当远的时候你就会看到它们消失，这看起来和看到它们被裁剪一样奇怪。更好的解决办法是给对象一个额外的缩放因子。在 `m7_ex` 中，我把对象额外缩放了 ¼，这样一个 32x32 的精灵(对象)实际上只有 8x8 的‘世界’像素大小。这似乎运作得相当好。
 
-This renormalization means that you're actually working with _two separate_ scaling factors: one for the coordinate transformation, and one for visual effects. It is the _visual_ scaling you need to use in positioning and culling the sprites, not the transformation scaling; the latter's influence stops once you've found the screen-position of the anchor.
+这个重归一化意味着你实际上是在使用_两个独立_的缩放因子：一个用于坐标变换，一个用于视觉效果。在定位和剔除精灵(对象)时，你需要使用的是_视觉_缩放，而不是变换缩放；后者的影响在你找到锚点的屏幕位置后就停止了。
 
-There's probably an official term for this process, but I wouldn't know what it is. I'm familiar with the process of renormalization from physics (a few Dutch professors got the Nobel Prize for this subject a few years back) and it seemed to fit. If you know the official term, I'd like to hear it.
+这个过程可能有官方术语，但我不知道是什么。我对重归一化的了解来自物理学（几年前几位荷兰教授因此获得了诺贝尔奖），而且它似乎很贴切。如果你知道官方术语，我很想听听。
 
 <div class="cblock">
   <table id="fig:img-obj-norm" class="bdr" width=512 border=0 cellpadding=4 cellspacing=0>
@@ -2465,25 +2465,25 @@ There's probably an official term for this process, but I wouldn't know what it 
     </tr>
     <tr>
       <td colspan=3>
-        <b>{*@fig:img-obj-norm}</b>. Object renormalization. Left: normal (ew, no!). Middle: &times;&frac12; (hmmm, no). Right: &times;&frac14; (yeah, that's it).
+        <b>{*@fig:img-obj-norm}</b>。对象重归一化。左：正常（呃，不行！）。中：&times;&frac12;（嗯，不行）。右：&times;&frac14;（对，就是这个）。
       </td>
     </tr>
   </table>
 </div>
 
-And with that, we've reached the end of the theory. Now to actually implement all of this.
+至此，我们到达了理论的终点。现在来真正地实现这一切。
 
-## Implementation {#sec-code}
+## 实现 {#sec-code}
 
-### Design considerations. {#ssec-code-design}
+### 设计考量 {#ssec-code-design}
 
-My aim here is not to merely dish out a couple of functions that can make mode 7 happen, but also provide something that can be easily modified if necessary. The code of the `m7_ex` demo is spread over 4 files: one for the things specific to the demo itself `m7_ex.c`; and three for mode 7 specific stuff, `mode7.h`, `mode7.c` and `mode7.iwram.c`. Yes, iwram functions too; some of these things are going to be computation extensive and I want them as fast as possible right off the bat. I'm also borrowing the object sorter from the [priority demo](lab.html##ssec-prio-objsort).
+我这里的目标不只是随便给出几个能让 mode 7 跑起来的函数，还要提供在必要时易于修改的东西。`m7_ex` 演示的代码分布在 4 个文件中：演示本身特有的部分在 `m7_ex.c`；mode 7 特有的部分在 `mode7.h`、`mode7.c` 和 `mode7.iwram.c`。是的，还有 iwram 函数；其中一些东西计算量很大，我想一开始就让它们尽可能快。我还会从[优先级演示](lab.html##ssec-prio-objsort)借用对象排序器。
 
-There are three main areas of interest here: the **camera**, **background stuff** and **sprites**. For each of these we will use a struct and/or array to keep their data so it's nice and OOPy. There will also be a sort of manager struct for the mode 7 stuff as a whole. And, of course, we need constants for the view volume, focus length and a few other items. A handful of functions will then operate on these items to give up what we need.
+这里有三个主要关注的领域：**相机**、**背景相关**和**精灵(对象)**。对每一项，我们都会用一个结构体（struct）和/或数组来保存其数据，这样很有面向对象（OOP）的风格。还会有一个管理器结构体来统管 mode 7 整体。当然，我们需要为视体、焦距和另外几项定义常量。然后，少量函数会操作这些项，给出我们需要的东西。
 
-#### Constants
+#### 常量
 
-There aren't too many constants. Most have to do with the viewport, the others with the focus and renormalization.
+常量不太多。大多与视口有关，其余与焦距和重归一化有关。
 
 ```c
 #define M7_D        256     //!< Focal length
@@ -2501,11 +2501,11 @@ There aren't too many constants. Most have to do with the viewport, the others w
 #define M7_FAR_BG    768        //!< Far plane (floor)
 ```
 
-#### Structs and variables {#ssec-code-class}
+#### 结构体与变量 {#ssec-code-class}
 
-Mode 7 would be a wonderful place to use classes, but since I'm working in C, not C++, I'm sticking to structs. Apart from the `BG_AFFINE` struct I presented in the [affine background](affbg.html) page, you need one struct for the camera and one struct for the mode 7 objects. I'm also using a mode 7 container struct to keep track of all the parts that go into the mode 7 functionality, so that you won't have loose global variables lying around the place.
+Mode 7 本该是用类的绝佳场所，但由于我用的是 C 而非 C++，我坚持使用结构体。除了我在[仿射背景](affbg.html)页面上给出的 `BG_AFFINE` 结构体，你还需要一个用于相机、一个用于 mode 7 对象的结构体。我还在使用一个 mode 7 容器结构体来跟踪构成 mode 7 功能的所有部分，这样你就不会有一堆松散的全局变量到处散落。
 
-You're free to create your own structs for these, but the ones I will use are given below. If you've been paying attention, most of the members should be familiar. Oh, the `POINT` and `VECTOR` structs are 2D and 3D vectors, of course.
+你可以自由地为自己创建这些结构体，但我将使用的那些如下。如果你一直留心，这些成员大多应该很熟悉。哦，`POINT` 和 `VECTOR` 结构体当然是 2D 和 3D 向量。
 
 ```c
 //! 3D sprite struct
@@ -2545,11 +2545,11 @@ typedef struct M7_LEVEL
 } M7_LEVEL;
 ```
 
-There's not much more I have to say about these structs. The `M7_SPRITE` has the attributes of its object as a member itself, rather than an index or pointer to any sort of buffer. The reason behind this is essentially “why the hell not”. Because I have to sort the objects anyway, using an extra buffer might not be worthwhile, so I chose this. I'm also keeping track of the position in camera space because I need it on more than one occasion, and a TILE pointer for graphics. The reason for this will become apparent when we implement animation.
+关于这些结构体，我没什么更多要说的了。`M7_SPRITE` 把其对象的属性作为成员本身，而不是索引或指向任何缓冲区的指针。这背后的理由本质上是“为什么不呢”。因为我无论如何都要对对象排序，使用额外的缓冲区可能不值得，所以我选择了这种方式。我还在跟踪相机空间中的位置（因为我不只一次需要它），以及一个指向图形的 TILE 指针。其原因在实现动画时会变得明显。
 
-The `M7_LEVEL` holds pointers to the main variables for mode 7 (the camera, affine array and sprites) as well as the horizon scanline needed to switch from backdrop to floor, and two variables containing the data of the bg control register, as this will be different for the backdrop and floor.
+`M7_LEVEL` 持有指向 mode 7 主要变量（相机、仿射数组和精灵(对象)）的指针，以及从远景切换到地面所需的地平线扫描线，还有两个保存 bg 控制寄存器数据的变量，因为这对远景和地面是不同的。
 
-Now we need these four variables using these structs. Because these are technically part of the demo itself, I've put them in `m7_ex.c` instead of the main mode 7 code, although that code does require an actual `m7_level` variable to exist for the HBlank interrupt. `SPR_COUNT` is the number of sprites, which is _definitely_ demo specific. There are 161 entries in `m7_bgaffs` rather than just 160 for the same reason as in the [DMA demo](dma.html#sec-demo): HBlank sets up the next line, rather than the current one, and having this is better (and faster) than the alternative with if/else blocks.
+现在我们需要用这些结构体定义这四个变量。由于它们在技术上是演示本身的一部分，我把它们放在 `m7_ex.c` 而非 mode 7 主代码中，不过那段代码确实需要一个实际的 `m7_level` 变量供 HBlank 中断使用。`SPR_COUNT` 是精灵(对象)的数量，这_绝对_是演示特有的。`m7_bgaffs` 中有 161 个条目而非仅仅 160 个，原因与[DMA 演示](dma.html#sec-demo)相同：HBlank 设置的是下一行而非当前行，而拥有它比用 if/else 块更好（也更快）。
 
 ```c
 M7_CAM m7_cam;
@@ -2559,26 +2559,26 @@ M7_SPRITE m7_sprites[SPR_COUNT];
 M7_LEVEL m7_level;
 ```
 
-:::tip Type and order of struct members
+:::tip 结构体成员的类型与顺序
 
-My usual advice is to use ints for your data types, but for structs this may not always be the best thing to do. Local variables may not use up memory, but structs do. And when you have arrays of structs, the extra space that word-sized members cost adds up quickly. So in that case feel free to use non-ints.
+我通常的建议是对数据类型使用 int，但对结构体来说这未必总是最好的。局部变量可能不占用内存，但结构体要。而且当你有结构体数组时，字长成员带来的额外空间会迅速累积。所以这种情况下，尽管使用非 int 类型。
 
-Having said that, when it's time to use those members it can pay to copy its data to a local 32bit variable, rather an using a byte or halfword member for all the calculations.
+话虽如此，当要使用这些成员时，把它的数据复制到一个局部的 32 位变量中，而不是对所有计算都使用字节或半字成员，可能是值得的。
 
-Also, and this is _very_ important, you won't be saving any space if you don't pay attention to the order of the members. An int will still require word-alignment, even when it comes right after a byte member. The compiler may add padding after bytes and halfwords to ensure the next member is correctly aligned. It'd be best if you ordered the members in such a way that there's as little padding as possible.
+另外，这_非常_重要：如果你不注意成员的顺序，你省不下任何空间。一个 int 仍然需要字对齐，即使它紧接在一个字节成员之后。编译器可能会在字节和半字成员之后添加填充，以确保下一个成员正确对齐。最好以填充尽可能少的方式来排列成员顺序。
 
 :::
 
-### Background functions {#ssec-code-bg}
+### 背景函数 {#ssec-code-bg}
 
-These are my four main background functions:
+下面是我的四个主要背景函数：
 
-- `void m7_prep_horizon(M7_LEVEL *level)`. Calculates the horizon scanline.
-- `IWRAM_CODE void m7_prep_affines(M7_LEVEL *level)`. Calculates the affine parameters for the floor, based on camera position and orientation..
-- `void m7_update_sky(const M7_LEVEL *level)`. Positions the backdrop.
-- `IWRAM_CODE void m7_hbl_floor()`. HBlank interrupt routine. Switches to mode 2 when necessary and copies affine parameters and creates fog effect.
+- `void m7_prep_horizon(M7_LEVEL *level)`：计算地平线扫描线。
+- `IWRAM_CODE void m7_prep_affines(M7_LEVEL *level)`：根据相机位置和朝向，计算地面的仿射参数。
+- `void m7_update_sky(const M7_LEVEL *level)`：放置远景。
+- `IWRAM_CODE void m7_hbl_floor()`：HBlank 中断例程。必要时切换到模式 2，并复制仿射参数、产生雾效。
 
-`m7_prep_horizon()` and ` m7_update_sky()` are simple implementations of {@eq:horz-line} and {@eq:psi}, respectively, so I can be brief with these.
+`m7_prep_horizon()` 和 `m7_update_sky()` 分别是 {@eq:horz-line} 和 {@eq:psi} 的简单实现，所以这两我可以简略些。
 
 ```c
 //! Calculate the horizon scanline
@@ -2606,19 +2606,19 @@ void m7_update_sky(const M7_LEVEL *level)
 }
 ```
 
-The horizon calculation makes use of a clipping far-plane, though this is not strictly necessary. If you want the horizon at infinity, remove the subtraction by the camera's height and use `M7_FAR_BG` = 1. Note the check for _v_<sub>y</sub> = 0. As _v_<sub>y</sub> = cos(θ), this will be true when looking straight up or straight down. The distinction is important because sees the sky (no affine bg) and one sees only floor (no backdrop). Technically these should be ±infinity, but as this is fixed-point, `INT_MIN/MAX` will have to do.
+地平线计算利用了裁剪远平面，不过这并非严格必要。如果你想要地平线在无穷远处，去掉减去相机高度的部分，并用 `M7_FAR_BG` = 1。注意对 _v_<sub>y</sub> = 0 的检查。由于 _v_<sub>y</sub> = cos(θ)，这在直视上方或直视下方时为真。区分很重要，因为一种情况看到天空（无仿射背景），另一种情况只看到地面（无远景）。严格来说，这些应该是 ±infinity，但由于这是定点数，`INT_MIN/MAX` 将不得不顶替。
 
-As for the backdrop placement: I'm taking a _lot_ of shortcuts here. A mathematically correct backdrop would use a background map 1720 pixels wide. It can be done, but mostly it's just annoying. Instead, I'm using a 512x256p regular background and use *P* = 1024 in the angle→scroll-offset conversion. This means the map shows up twice in one 360° rotation and that the _dx_ is just φ/64. Yes, the floor and backdrop field-of-view will be slightly out of sync, but you'll only notice if you know what to look for, so that's alright.
+至于远景的放置：我在这里走了_很多_捷径。一个数学上正确的远景会使用宽 1720 像素的背景地图。那可以做到，但多半就是烦人。相反，我用了一个 512x256 的常规背景，并在角度→滚动偏移转换中使用 *P* = 1024。这意味着地图在一个 360° 旋转中会出现两次，而且 _dx_ 就是 φ/64。是的，地面和远景的视场会略微不同步，但只有你知道该看哪里时才会注意到，所以没关系。
 
-Strictly speaking, the vertical offset should be bgHeight − horizon, but the bg-height can be ignored due to wrapping. The reason I'm also clamping the horizon to the size of the viewport is because the horizon scanline can become very large – the tan(θ) in it will approach infinity when looking up, remember? If you don't clamp it you'll scroll through the whole backdrop map a couple of times when panning up, which just looks awful.
+严格来说，垂直偏移应该是 bgHeight − horizon，但由于环绕，bg 高度可以被忽略。我把地平线钳制到视口大小的原因在于，地平线扫描线会变得非常大——里面的 tan(θ) 在向上看时会趋于无穷，记住了吗？如果不钳制它，你在向上平移时会把整个远景地图滚动好几遍，那看起来糟透了。
 
-#### Preparing the affine parameter table
+#### 准备仿射参数表
 
-Calculating the affine parameters happens in `m7_prep_affines()`. You could try to do this in the HBlank isr, but because it requires a division, it would simply take too long. Also, doing it in one spot is more efficient, as you only have to set-up the variables once. This routine carries out the calculations of {@eq:m7-sum}. It has to do quite a number of calculations for each scanline, including a division, so you can expect it to be rather costly; which is why I'm putting it in IWRAM right from the start.
+仿射参数的计算发生在 `m7_prep_affines()` 中。你可以尝试在 HBlank isr 中做这件事，但由于它需要一个除法，会花太长时间。而且，在一处做更高效，因为你只需设置一次变量。这个例程执行 {@eq:m7-sum} 的计算。它对每条扫描线都要做相当多的计算，包括一次除法，所以你可以预料它会相当昂贵；这也是我从一开始就把它放进 IWRAM 的原因。
 
-Now, you don't have to calculate things for every scanline: just the ones below the horizon. As for implementing {@eq:m7-sum} itself: it turns out that it works much better if you take the camera matrix apart again and work with sines and cosines of θ and φ, rather than the nine matrix entries. This next paragraph will explain how, but feel free to skip it and go onto the code.
+现在，你不必为每条扫描线都做计算：只算地平线以下的部分就行。至于实现 {@eq:m7-sum} 本身：事实证明，如果你把相机矩阵重新拆开，使用 θ 和 φ 的正弦和余弦来算，会比使用那九个矩阵元素好得多。下面这段会解释如何做，但你可以跳过它直接看代码。
 
-Remember that the camera matrix is **C** = **R**<sub>y</sub>(φ)·**R**<sub>x</sub>(θ); and that λ and **dx** are calculated via {@eq:m7-ofs}: **dx**′ = **a**<sub>cw</sub> + λ·**C**·**b**. You can break up **C** can combine it with **b** to form **b**′ = **R**<sub>x</sub>(θ)·**b**. This new vector takes care of the pitch entirely – it's as if we only had a rotation around the vertical axis, i.e., the case discussed in the previous chapter. With this pre-rotation, the code becomes simpler and faster.
+记住相机矩阵是 **C** = **R**<sub>y</sub>(φ)·**R**<sub>x</sub>(θ)；而 λ 和 **dx** 是通过 {@eq:m7-ofs} 算出的：**dx**′ = **a**<sub>cw</sub> + λ·**C**·**b**。你可以把 **C** 拆开，再与 **b** 结合，形成 **b**′ = **R**<sub>x</sub>(θ)·**b**。这个新向量完全处理了俯仰——就好像我们只绕垂直轴旋转一样，也就是上一章讨论的情形。有了这个预旋转，代码变得更简单、更快。
 
 ```c
 IWRAM_CODE void m7_prep_affines(M7_LEVEL *level)
@@ -2662,13 +2662,13 @@ IWRAM_CODE void m7_prep_affines(M7_LEVEL *level)
 }
 ```
 
-We begin by getting the scanline to begin calculating at (which may be nothing), and defining _lots_ of temporaries. Not all of the temporaries are necessary, but they make the code more readable. Names aside, the code within the loop is very similar to that of `hbl_mode7_c` in the [first mode 7 demo](mode7.html#ssec-order-code), except that in calculating λ we use a rotated _y_<sub>s</sub>-value, and in calculating the offsets a rotated _z_<sub>s</sub> (= −*D*) value. Annnd, that's it.
+我们先取得要开始计算的扫描线（可能什么都没有），并定义_很多_临时变量。并非所有临时变量都必要，但它们让代码更易读。撇开命名不说，循环内的代码与[第一个 mode 7 演示](mode7.html#ssec-order-code)中的 `hbl_mode7_c` 非常相似，只是我们在计算 λ 时用了旋转后的 _y_<sub>s</sub> 值，而在计算偏移时用了旋转后的 _z_<sub>s</sub>（= −*D*）值。就这样。
 
-The comments behind the calculations indicate the fixed-point count of the results, which in this case can be either .8f or .12f. Now hear this: it is **very** important that the scaled (co)sine of φ, `lcf` and `lsf`, use 12 bits of precision or more. I've tried 8, it's not pretty – the displacements are all off at close range. Secondly, note the order of multiplications and shifts in the displacements; it is also very important that these stay the way they are. Particularly the one with _L_: the multiplication by `M7_LEFT` **must** happen after the shift, trust me on this.
+计算后面的注释标出了结果的定点位数，本例中可能是 .8f 或 .12f。现在听好了：缩放后的 φ 的（余）弦 `lcf` 和 `lsf` 使用 12 位或更高的精度，这**非常**重要。我试过 8 位，那可不好看——近距离时位移全都错了。其次，注意位移中乘法和移位的顺序；这些顺序保持原样也非常重要。特别是涉及 _L_ 的那一个：与 `M7_LEFT` 的乘法**必须**发生在移位之后，相信我。
 
-The last interesting point is the line after the loop, which copies the parameters for scanline 0 to the back of the array to compensate for the HBlank-interrupt obiwan error.
+最后一个有趣的点是循环之后的那一行，它把扫描线 0 的参数复制到数组末尾，以补偿 HBlank 中断的 obiwan 错误。
 
-This function is probably as fast as you can make it in C, and it the compiler does its job pretty well so there is little to be gained by going to manual assembly. This does not mean it doesn't still take quite some time. The division alone costs something like 100 to 400 cycles (the cycle-count for BIOS division is roughly 90 + 13/significant bit). At one division per scanline, this can really add up. The best strategy to deal with this is to _not do it_ if you don't have to. If you use a fixed pitch angle, you can precalculate all the divisions and just look them up. If you must have a variable pitch, you can also go the trig way. Look back at {@fig:img-obj-sort}. If β is the angle between (0, *y*<sub>p</sub>, −*D*) and (0, 0, −*D*), then tan(β) = *y*<sub>p</sub>/_D_. With a good deal of trigonometry, you could rewrite the formula for λ to
+这个函数大概是用 C 能做到的最快了，而且编译器干得相当漂亮，所以转到手工汇编也没多少可赚的。这并不意味它仍然不花相当多的时间。仅一次除法就要花费大约 100 到 400 个周期（BIOS 除法的周期数大约是 90 + 13/有效位）。每条扫描线一次除法，累积起来相当可观。应对它的最佳策略是：如果没必要就_不要做_。如果你用固定的俯仰角，可以预计算所有除法并直接查表。如果你必须要可变的俯仰角，也可以走三角函数路线。回头看 {@fig:img-obj-sort}。如果 β 是 (0, *y*<sub>p</sub>, −*D*) 和 (0, 0, −*D*) 之间的夹角，那么 tan(β) = *y*<sub>p</sub>/_D_。通过大量三角学，你可以把 λ 的公式改写成
 
 <table id="eq:lambda-alt">
   <tr>
@@ -2735,24 +2735,24 @@ This function is probably as fast as you can make it in C, and it the compiler d
   </tr>
 </table>
 
-You can get β via an arctan LUT of 160 entries, one for each scanline (hey, you could even put that into _p_<sub>d</sub>!), and then use a 1/sine LUT. You have to be careful to use large enough LUTs, though. Since the arguments of LUTs are integers, β will be truncated, and you will lose a _lot_ of accuracy though this, especially near the horizon. Now, I haven't actually tried the trig-way yet, but I have done some basic tests in Excel which would suggest that with a 1/sine LUT of 512/circle, you'd get λ-errors well over 10% near the horizon, and errors around 1% everywhere else. With that in mind, I'd suggest 1024/circle at least. Or interpolating between LUT entries, which you can do with libtonc's `lu_lerp16()` and `lu_lerp32()` functions.
+你可以通过一个 160 项的 arctan 查找表（LUT）得到 β，每个扫描线一项（嘿，你甚至可以把它放进 _p_<sub>d</sub> 里！），然后再用一个 1/sin 的 LUT。不过你必须小心使用足够大的 LUT。由于 LUT 的参数是整数，β 会被截断，你会因此损失_很多_精度，尤其是在靠近地平线时。我还没真正试过三角函数路线，但我在 Excel 里做过一些基本测试，表明用一个 512/圆的 1/sin LUT，你在地平线附近的 λ 误差会远超 10%，而在其他地方误差约为 1%。鉴于此，我建议至少用 1024/圆。或者，在 LUT 项之间插值，你可以用 libtonc 的 `lu_lerp16()` 和 `lu_lerp32()` 函数。
 
-Aside from going triggy with it, you can probably speed up the division as well in a number of ways. But before you go and optimize this, ask yourself if you really need it first. Premature optimization is the root of all evil, after all.
+除了走三角路线，你可能还能用若干种方式加速除法。但在你跑去优化之前，先问问自己是否真的需要它。毕竟，过早优化是万恶之源。
 
-:::note Speed-ups for affine calculations
+:::note 仿射计算的加速
 
-Tried three optimizations recently. First, ARM/IWRAM, which brings the thing down to 23k-58k cycles. Then, a little refactoring that presented itself in a discussion with sgeos: the camera vectors can resolve to a smaller set of variables, saving 10-20%. Then, the trig thing, which can bring the whole thing down to 10-20k or even 7k-14k max, depending on whether you get cos(β) and 1/sin(θ+β) via large luts, or smaller luts and linear interpolation. Once you get the math, shifts, and signs in order, it works like a charm.
+最近试了三种优化。第一，ARM/IWRAM，把耗时降到了 23k−58k 周期。第二，在与 sgeos 讨论中浮现的一点重构：相机向量可以归约为更小的一组变量，节省 10−20%。第三，三角路线，能把整体降到 10−20k，甚至最多 7k−14k，取决于你是用大 LUT 得到 cos(β) 和 1/sin(θ+β)，还是用小 LUT 加线性插值。一旦你把数学、移位和符号理清，它就像魔法一样管用。
 
 :::
 
-#### The mode 7 HBlank interrupt routine
+#### Mode 7 的 HBlank 中断例程
 
-To keep things simple, nearly everything that has to happen during VDraw happens inside one HBlank isr called `m7_hbl_floor()`. Earlier versions of this demo used a system of VCount/HBlank interrupts, but that turned out to be more trouble than it's worth. This is also an IWRAM routine because it really needs to be as fast as possible. The interrupt service routine does the following things:
+为了简单起见，VDraw 期间几乎一切要发生的事都放在一个叫做 `m7_hbl_floor()` 的 HBlank isr 里。这个演示的早期版本使用了一套 VCount/HBlank 中断系统，但结果证明那比它的价值更麻烦。这也是一个 IWRAM 例程，因为它真的需要尽可能快。这个中断服务例程做以下事情：
 
-1.  **Check vcount for floor-range**. If this scanline is not part of the floor, return.
-2.  **Check vcount for horizon**. At reaching the horizon scanline the video mode should change and `REG_BG2CNT` should be set to the floor's settings.
-3.  **Copy affine parameters to `REG_BG_AFFINE[2]`**. Copy the _next_ scanline's parameters to `REG_BG_AFFINE[2]`, as we've already past the current scanline.
-4.  **Fogging**. Fade to orange in this case.
+1.  **检查 floor 范围的 vcount**。如果这条扫描线不属于地面，返回。
+2.  **检查地平线的 vcount**。到达地平线扫描线时，视频模式应改变，`REG_BG2CNT` 应设为地面的设置。
+3.  **复制仿射参数到 `REG_BG_AFFINE[2]`**。把_下一条_扫描线的参数复制到 `REG_BG_AFFINE[2]`，因为我们已经越过了当前扫描线。
+4.  **雾效**。这里渐隐到橙色。
 
 ```c
 // from tonc_core.h
@@ -2790,21 +2790,21 @@ IWRAM_CODE void m7_hbl_floor()
 }
 ```
 
-Points (3) and (4) could benefit from a bit more explanation. As mentioned several times now, the isr of any scanline _vc_ should set-up the parameters of _next_ scanline, which is why we're copying from `level.bgaff[vc+1]` rather than just `[vc]`. Scanline zero's uses the set from *vc* = 160, which is alright because we've copied zero's data to the last element in the array. As usual, struct copies ftw.
+第 (3) 和第 (4) 点可以从多一点解释中受益。正如现在已经说过好几次，任何扫描线 _vc_ 的 isr 都应该设置_下一条_扫描线的参数，这就是为什么我们从 `level.bgaff[vc+1]` 而不是 `[vc]` 复制。扫描线零使用来自 *vc* = 160 的那一组，这没问题，因为我们已经把零的数据复制到了数组的最后一个元素。像往常一样，结构体复制 ftw。
 
-For the fogging I use _p_<sub>b</sub> which filled with λ in `m7_prep_affines()` for this very reason. A scaled λ is not the most accurate model for fogging, but the effect looks well enough. Because the blending registers cap at 16, I need to make sure it doesn't wrap around at higher values.
+对于雾效，我使用 _p_<sub>b</sub>，它在 `m7_prep_affines()` 中填入 λ 正是为此。缩放后的 λ 并非雾效最精确的模型，但效果看起来足够好。由于混合寄存器上限为 16，我需要确保它在更高值时不会绕回。
 
-This _still_ leaves the question of what I'm actually blending with, as orange isn't part of the GBA's fade repertoire. At least, not _directly_. It is, however, quite possible to blend with the backdrop, which just shows bg-color 0. This color can be anything, including orange.
+这_仍然_留下了一个问题：我到底在和什么混合，因为橙色并不在 GBA 的渐隐 repertoire 里。至少，不是_直接_在。不过，与远景混合是相当可能的，而远景只显示 bg-color 0。这个颜色可以是任意颜色，包括橙色。
 
-### Sprites and objects {#ssec-code-spr}
+### 精灵(对象)与对象 {#ssec-code-spr}
 
-Sprite and object handling has been distributed over the following three functions:
+精灵(对象)与对象的处理分布在以下三个函数中：
 
-- `void update_sprites()`. This is the main sprite handler, which calls other functions to do positioning, sorting and animation.
-- `IWRAM_CODE void m7_prep_sprite(M7_LEVEL *level, M7_SPRITE *spr)`. This calculates the correct position and scale of the sprite.
-- `void kart_animate(M7_SPRITE *spr, const M7_CAM *cam)`. This selects the correct frame for rotating around the karts.
+- `void update_sprites()`：主精灵(对象)处理器，调用其他函数来做定位、排序和动画。
+- `IWRAM_CODE void m7_prep_sprite(M7_LEVEL *level, M7_SPRITE *spr)`：计算精灵(对象)正确的位置和缩放。
+- `void kart_animate(M7_SPRITE *spr, const M7_CAM *cam)`：为绕赛车旋转选择正确的帧。
 
-Only `m7_prep_sprite()` is actually part of the mode 7 functions; the others could very well differ for every mode 7 game you have in mind. The main sprite handler, `update_sprites()`, is pretty simple: it needs to call `m7_prep_sprite()` for each sprite and create the sprite's sorting key, sort all the sprites and copy the sorted attributes to OAM. It also calls `kart_animate()` for each kart-sprite for their animations; if I had animations for the thwomps or other sprites they'd probably go here as well.
+只有 `m7_prep_sprite()` 真正属于 mode 7 函数；其他的很可能因你心目中的每个 mode 7 游戏而异。主精灵(对象)处理器 `update_sprites()` 相当简单：它需要对每个精灵(对象)调用 `m7_prep_sprite()` 并创建精灵(对象)的排序键，对所有精灵(对象)排序，然后把排好序的属性复制到 OAM。它还会为每个赛车精灵(对象)调用 `kart_animate()` 来做动画；如果我对 thwomp 或其他精灵(对象)也有动画，它们大概也会放到这里。
 
 ```c
 void update_sprites()
@@ -2836,21 +2836,21 @@ void update_sprites()
 }
 ```
 
-Most of the code has to do with sorting the sprites, which was already described in the theory. The `pos2` member of the sprites is set by `m7_prep_sprite()` to contain the sprite's position in camera space. The sorting routine `id_sort_shell()` is the index-table sorter described in the [priority section](lab.html#sec-prio).
+大部分代码与排序精灵(对象)有关，这在理论中已经描述过了。精灵(对象)的 `pos2` 成员由 `m7_prep_sprite()` 设置，以包含其在相机空间中的位置。排序例程 `id_sort_shell()` 就是[优先级章节](lab.html#sec-prio)中描述的索引表排序器。
 
-If I had wanted to have more advanced animation or sprite things, they'd be put here as well. But I didn't, so I haven't.
+如果我想要更高级的动画或精灵(对象)功能，它们也会放在这里。但我没有，所以我也没放。
 
-#### Sprite positioning and scaling
+#### 精灵(对象)定位与缩放
 
-The function `m7_prep_sprite()` calculates the correct on-screen position for a sprite, sets up the affine matrix with the proper (renormalized) scales and hides the sprite if it falls outside the view volume.
+`m7_prep_sprite()` 函数计算精灵(对象)正确的屏幕位置，用恰当的（重归一化后的）缩放设置仿射矩阵，并在它落在视体之外时隐藏它。
 
-The first step is convert to the convert the world-position of the sprite to a vector in the camera space, using the first part of {@eq:obj-w2s}: **x**<sub>c</sub> = **C**<sup>T</sup>·**r**, with **r** being the position of the sprite relative to the camera: **r** = **x**<sub>w</sub>−**a**<sub>cw</sub>. This is put into variable `vc`, but with the signs of _y_ and _z_ switched! This makes subsequent calculations a little easier. This vector is also stored in `spr->pos2`, which is used in sorting elsewhere.
+第一步是把精灵(对象)的世界位置转换成相机空间中的向量，使用 {@eq:obj-w2s} 的第一部分：**x**<sub>c</sub> = **C**<sup>T</sup>·**r**，其中 **r** 是精灵(对象)相对于相机的位置：**r** = **x**<sub>w</sub>−**a**<sub>cw</sub>。这被放进变量 `vc` 中，但 _y_ 和 _z_ 的符号被交换了！这让后续计算稍微容易些。这个向量也被存进 `spr->pos2`，用于别处的排序。
 
-The second step is checking whether the sprite would actually be visible, using the conditions from {@tbl:culltest}, with one exception: the checks now use the _renormalized_ rectangle of the sprite. Leaving that part out could create artifacts for some orientations. To calculate the sprite rectangle I'm using the sizes of the object rectangle. It is possible to get a tighter fit if you'd also define a sprite rectangle indicating the visible pixels within the object frame, but that might be going a little too far here.
+第二步是检查精灵(对象)是否真的可见，使用来自 {@tbl:culltest} 的条件，只有一个例外：现在的检查使用的是精灵(对象)的_重归一化_矩形。漏掉那部分可能会在某些朝向下产生瑕疵。为了计算精灵(对象)矩形，我用了对象矩形的大小。如果你再定义一个指示对象帧内可见像素的精灵(对象)矩形，可以得到更紧的贴合，但那在这里可能有点过头了。
 
-Note that most of the code from the bounds checks on is done in a `do-while(0)` loop. This pattern is sort of a poor-man's `try/catch` block – I _could_ have used `goto`s here, but as they're considered harmful I decided against it. Anyway, an out-of-bounds ‘exception’ here would indicate that the sprite should be hidden, which is done in step (5).
+注意，从边界检查往后的大部分代码都放在一个 `do-while(0)` 循环里。这种模式有点像穷人的 `try/catch` 块——我_本可以_在这里用 `goto`，但由于它们被认为有害，我拒绝了。无论如何，一个越界的‘异常’在这里意味着该精灵(对象)应当被隐藏，这发生在第 (5) 步。
 
-If we've passed the bounds-checks, we need to set-up the affine matrix and calculate the object's position via the anchoring equation of {@eq:anchor}.
+如果我们通过了边界检查，就需要设置仿射矩阵，并通过 {@eq:anchor} 的锚定方程计算对象的位置。
 
 ```c
 //! Setup an object's attr/affine with the right attributes
@@ -2926,19 +2926,19 @@ IWRAM_CODE void m7_prep_sprite(M7_LEVEL *level, M7_SPRITE *spr)
 }
 ```
 
-#### Kart animation
+#### 赛车动画
 
-The basic theory for animation around a sprite is simple, namely {@eq:psi}: the viewing angle ψ is the difference between the global sprite angle φ<sub>o</sub>, and the camera angle φ<sub>c</sub> and the angle to the sprite in camera-space α: ψ = φ<sub>o</sub>−φ<sub>c</sub>−α. The angle translates to an animation frame to use and you're done.
+围绕一个精灵(对象)做动画的基本理论很简单，即 {@eq:psi}：视角 ψ 是全局精灵(对象)角 φ<sub>o</sub>、相机角 φ<sub>c</sub> 和相机空间中到精灵(对象)的角 α 之间的差：ψ = φ<sub>o</sub>−φ<sub>c</sub>−α。这个角度转换成要使用的动画帧，就完成了。
 
-In theory.
+理论上如此。
 
-The practice has a number of snares, especially the way SMK does it. First, look at {@fig:img-obj-frames}. These 12 frames are the ones that Super Mario Kart uses for Toad. The first complication is that this is only the right side of the rotation; the left side is done via mirroring. That's easy enough: just change the sign of _p_<sub>a</sub> of the view-angle is negative.
+实践中有不少陷阱，尤其是 SMK 的做法。首先，看 {@fig:img-obj-frames}。这 12 帧是超级马里奥赛车给 Toad 用的。第一个复杂之处是，这只有旋转的右半边；左半边通过镜像实现。那足够简单：只要把视角 _p_<sub>a</sub> 的符号取反即可。
 
-The second problem is the number of tiles. 12 frames for half a circle means 24 for the full rotation (well 22 actually, as we don't need to duplicate the front and back frames). At 4x4=16 tiles each, this gives 384 tiles for Toad alone (and only the rotation animation at that!) Multiply by 8 for the full set of characters and you're _way_ out of VRAM. This means that you can't load all the frames into VRAM in one go and use an object's tile-index for animation: you have to dynamically load frames you need. This is why the sprite struct had a `tiles` member, pointing to the full sprite sheet in ROM.
+实践中有不少陷阱，尤其是 SMK 的做法。首先，看 {@fig:img-obj-frames}。这 12 帧是超级马里奥赛车给 Toad 用的。第一个复杂之处是，这只有旋转的右半边；左半边通过镜像实现。那足够简单：只要把视角 _p_<sub>a</sub> 的符号取反即可。
 
-The third complication is that the frames aren't uniformly divided over the circle. If you look closely, the first 8 frames are for angles 0° through 90°, the remaining four for 90°-180°. The reason behind this is that most of the time you'll see the karts from the back, so it pays to have more frames for those. Now, in the theory we could calculate the animation frame quite nicely, namely _N_·ψ/2<sup>16</sup>. However, that relied on having _N_ equal slices, which we don't have anymore. Or do we?
+第二个问题是图块的数量。半圈 12 帧，意味着整圈 24 帧（嗯，实际上 22 帧，因为我们不需要重复正面和背面帧）。每帧 4x4=16 个图块，仅 Toad 就给出 384 个图块（而且这只是旋转动画！）。乘以 8 个完整角色集合，你就远远超出 VRAM 了。这意味着你不能一次性把所有帧载入 VRAM，再用对象的图块索引来做动画：你必须动态载入需要的帧。这就是为什么精灵(对象)结构体有一个 `tiles` 成员，指向 ROM 中完整的精灵(对象)表。
 
-Well no, we don't have equal slices anymore. But we can _make_ equal slices again, using a sort of mapping. {\*@fig:img-psi-lut} shows could the principle works. In the figure there are 12 main partitions (inside circle), with 0, 1, 10 and 11 covering more angular space than 2-9. However, we can also divide the circle into 16 parts (outer circle), and use the same frame for multiple entries. For example, slice-0 of the main sequence is now covered by slice-0 and slice-1 of the new sequence. While it's possible to use if/else blocks to the mapping, it's easier on everyone to just use a LUT for it. This actually takes care of two other problems I hadn't mentioned before, namely that mirroring would require some sort of reversal of the normal sequence, and the fact that the slices actually have to be offset by half a slice so that you don't have a slice-switch when looking exactly at the front or back, for example. A LUT solves all those problems in one go.
+第三个复杂之处是，帧并不是均匀分布在圆上的。如果仔细看，前 8 帧对应 0° 到 90° 的角度，剩下 4 帧对应 90°−180°。背后的原因是，大多数时候你是从背面看赛车，所以给那些角度更多帧是划算的。现在，在理论中我们可以很好地计算动画帧，即 _N_·ψ/2<sup>16</sup>。然而，那依赖于有 _N_ 个相等的切片，而我们已经没有了。还是有的吗？
 
 <div class="cblock">
   <table cellspacing=4>
@@ -2947,14 +2947,14 @@ Well no, we don't have equal slices anymore. But we can _make_ equal slices agai
         <div class="cpt" style="width:392px;">
           <img src="img/mode7/toad_frames.png" id="fig:img-obj-frames" alt="animation frames">
           <br>
-          <b>{*@fig:img-obj-frames}</b>: Toad's frames from different angles.
+          <b>{*@fig:img-obj-frames}</b>：Toad 不同角度的帧。
         </div>
       </td>
       <td>
         <div class="cpt" style="width:160px;">
           <img src="img/mode7/psi_lut.png" id="fig:img-psi-lut" alt="view LUT">
           <br>
-          <b>{*@fig:img-psi-lut}</b>: Using &psi; for 16-element LUT entry, instead of 12 non-equal partitions.
+          <b>{*@fig:img-psi-lut}</b>：用 &psi; 做 16 元素 LUT 条目，而非 12 个不等分区。
         </div>
       </td>
     </tr>
@@ -2991,19 +2991,19 @@ void kart_animate(M7_SPRITE *spr, const M7_CAM *cam)
 }
 ```
 
-The snippet above shows the kart's angle-LUT and animation routine. The LUT has 32 entries, with the first and last 7 using single chunks and the rest being doubled. Also note that the LUT is symmetric, which is required for the mirroring.
+嗯，不，我们不再有相等的切片了。但我们可以用某种映射_重新制造_相等的切片。{*@fig:img-psi-lut} 展示了原理如何运作。图中共有 12 个主分区（内圆），其中 0、1、10、11 覆盖的角度空间比 2−9 更大。不过，我们也可以把圆分成 16 份（外圆），并对多个条目使用同一帧。例如，主序列的切片-0 现在由新序列的切片-0 和切片-1 覆盖。虽然可以用 if/else 块来做这个映射，但对所有人来说，用个 LUT 更轻松。这实际上还解决了我之前没提到的另外两个问题，即镜像需要对正常序列做某种反转，以及切片实际上必须偏移半个切片，这样当你正好看正前或正后方时不会出现切片切换。一个 LUT 一举解决了所有这些问题。
 
-The routine itself isn't exactly pretty, but it gets the job done. It checks whether the sprite is visible first and bugs out if it's not: no point in doing work if we can't see its results. The sprite's in-camera angle, α, requires an arctan. I've added a switch in the menu so you can see the results with and without the α-correction, and I think you'll find that the difference is pretty small. Since I always use the same VRAM for each sprite, finding the destination of the tile-copy is easy; finding the source frame looks a little ugly, but it's just the ψ→slice conversion and the look-up, really.
+上面的片段展示了赛车的角-LUT 和动画例程。LUT 有 32 个条目，前 7 个和后 7 个使用单块，其余成对重复。还要注意 LUT 是对称的，这是镜像所必需的。
 
-### Rounding up: the main loop and other fluff {#ssec-code-misc}
+### 收尾：主循环及其他杂项 {#ssec-code-misc}
 
-The hard parts of mode 7 have more or less been covered now, with the possible exception of the main loop, which we'll get to in a moment. There is, of course, initialization of the registers, the sprites and mode 7 variables, loading of VRAM and input, but that's rather easy and tends to vary from game to game anyway. For those things, please see the actual code.
+这个例程本身并不算漂亮，但它把活干完了。它先检查精灵(对象)是否可见，不可见就退出：看不到结果就没必要干活。精灵(对象)的相机内角度 α 需要一个 arctan。我在菜单里加了一个开关，让你可以看到带与不带 α 校正的结果，我想你会发现差别相当小。由于我总是对每个精灵(对象)使用相同的 VRAM，找到图块复制的目标很容易；找到源帧看起来有点丑，但它其实只是 ψ→切片转换和查找而已。
 
-#### The main program flow
+#### 主程序流程
 
-In the snippet below you can see the `main()` function and its major branches. `init_main()` sets up the main mode 7 variables, `m7_level` through `m7_init()`, initializes the VBlank and HBlank interrupts and various other things. The main loop is quite short. The function `input()` does both the movement of the camera and menu.
+在下面的片段里，你可以看到 `main()` 函数及其主要分支。`init_main()` 设置主要的 mode 7 变量，通过 `m7_init()` 初始化 `m7_level`，初始化 VBlank 和 HBlank 中断以及其它一些东西。主循环相当短。`input()` 函数负责相机的移动和菜单。
 
-After that come the actual mode 7 functions. `m7_prep_horizon()` has to come first, but the order of the rest is pretty arbitrary. I would suggest calling `m7_prep_affines()` last, though: it's the most costly function here, but it'd be alright to let it run into VDraw time. Not that that happens here (I've clocked the main loop to end around scanline 170-210), but it'd be okay if it did.
+在下面的片段里，你可以看到 `main()` 函数及其主要分支。`init_main()` 设置主要的 mode 7 变量，通过 `m7_init()` 初始化 `m7_level`，初始化 VBlank 和 HBlank 中断以及其它一些东西。主循环相当短。`input()` 函数负责相机的移动和菜单。
 
 ```c
 int main()
@@ -3033,47 +3033,47 @@ int main()
 }
 ```
 
-#### Movement in 3D
+#### 3D 中的运动
 
-This is the last thing I want to cover: how to move things in 3D. To be precise: how to do different methods of motion in 3D; which I'm sure people might want to know.
+然后是真正的 mode 7 函数。`m7_prep_horizon()` 必须最先调用，其余的顺序相当任意。不过我建议最后调用 `m7_prep_affines()`：它是这里最昂贵的函数，但让它跑到 VDraw 时间里也没关系。这里倒不会发生这种事（我计时过主循环大约在扫描线 170−210 结束），但即便发生也没问题。
 
-3D movement is actually much the same as 2D movement, except with an extra dimension. The reason why people sometimes find it difficult is that they think in terms of angles, when what they _should_ be thinking in is vectors. Vector-based movement (or vector-based anything) usually makes things much easier than with angles and trigonometry. This is also why the theory of this chapter has been using vectors and matrices.
+这是我想讲的最后一件事：如何在 3D 中移动物体。准确地说：如何在 3D 中做不同方式的移动；我相信有人会想知道。
 
-Here I'll look into three different modes of camera movements: one using the world coordinate system, one using the camera system, and one somewhere in between so that it stays parallel to the ground. But first, let's take a look at what moving in a certain direction actually _means_.
+3D 运动其实和 2D 运动非常相似，只是多了一个维度。人们有时觉得它难，是因为他们按角度思考，而他们_应该_按向量思考。基于向量的运动（或任何基于向量的东西）通常比用角度和三角学简单得多。这也是本章理论一直在使用向量和矩阵的原因。
 
-Every object in 3D space has its own little coordinate space, the <dfn>local frame</dfn>. This is defined as a set of 3 vectors, denoting the directions of the local _x_, _y_ and _z_ directions. In the case of the camera, I named these **u**, **v** and **w**, respectively. The local matrix is just another way of writing down this set of vectors. Movement is usually defined as steps along these vectors.
+这里我将研究三种不同的相机运动模式：一种使用世界坐标系，一种使用相机坐标系，还有一种介于两者之间，使其始终与地面平行。不过首先，我们来看看沿某个方向移动实际上_意味着_什么。
 
-As an example of this, consider your head to be the camera and use arrows to indicate the local axes: **u** would stick out of your right ear, **v** out of the top of your head and **w** out the back. A step right would be along the **u** direction, and one forward along −**w**. A general movement could be written as _x_ steps right, _y_ steps up, and _z_ steps back. _x_, _y_ and _z_ are used as _multipliers_ for the direction vectors, and the final displacement in global space is **dx** = _x_·**u** + _y_·**v** + _z_·**w**.
+3D 空间中的每个物体都有自己的小坐标系，即<dfn>局部坐标系</dfn>（local frame）。它被定义为一组 3 个向量，表示局部 _x_、_y_ 和 _z_ 方向。对相机而言，我分别称它们为 **u**、**v** 和 **w**。局部矩阵只是写下这组向量的另一种方式。运动通常被定义为沿这些向量的步进。
 
-And where matrices come in. Those three multipliers can be written a vector **r** = (_x_, *y*, *z*), which is the distance vector in _local_ space. The three directions formed a matrix **C**, The definition of **dx** given above is nothing else than the long way of writing down **dx** = **C**·**r**. The matrix multiplication is just shorthand for “scale the vectors of **C** by the elements of **r** and add them all up”. Note that this procedure would work for any object, in any orientation. All you need to do is find the correct local matrix.
+举个例子，把你的头当作相机，用箭头表示局部轴：**u** 从你的右耳伸出，**v** 从头顶伸出，**w** 从脑后伸出。向右一步就是沿 **u** 方向，向前一步沿 −**w**。一个一般性的运动可以写成 _x_ 步向右、_y_ 步向上、_z_ 步向后。_x_、_y_、_z_ 被用作方向向量的_乘数_，而全局空间中的最终位移是 **dx** = _x_·**u** + _y_·**v** + _z_·**w**。
 
-In my case, I construct vector **r** in `input()`, based on various buttons. At this point it doesn't really mean anything yet. Each of the movement methods has its own set of directions and hence its own matrix that has to be applied to **r**; I have functions that can perform them and add the results to the camera position. All of these can be found in {@tbl:motion} and the code below it.
+在我的情况下，我在 `input()` 中基于各个按键构造向量 **r**。此时它还没有真正的含义。每种运动方式都有自己的方向集合，因此也有自己必须施加到 **r** 上的矩阵；我有能执行它们并把结果加到相机位置的函数。这些都可以在 {@tbl:motion} 及其下方代码中找到。
 
-The ‘level’ (that is, level to the ground) is probably the most common for camera systems for ground-based objects, though using the local system might make sense for flying objects. Experiment with them and see what you like.
+‘level’（即与地面齐平）对地面物体的相机系统可能是最常见的，不过对飞行物体使用局部系统可能更有意义。试试它们，看看你喜欢哪种。
 
 <div class="cblock">
   <table id="tbl:motion" class="table-data">
     <caption align="bottom">
-      <b>{*@tbl:motion}</b>: Movement methods and their associated transformations to world-space. New position of an object is given by <b>x</b><sub>w</sub> += <b>v</b><sub>w</sub>.
+      <b>{*@tbl:motion}</b>：运动方法及其到世界空间的相应变换。对象的新位置由 <b>x</b><sub>w</sub> += <b>v</b><sub>w</sub> 给出。
     </caption>
     <tbody>
       <tr>
-        <th>Method</th>
-        <th>Function</th>
-        <th>Transformation</th>
+        <th>方法</th>
+        <th>函数</th>
+        <th>变换</th>
       </tr>
       <tr>
-        <td>Global frame</td> 
+        <td>全局坐标系</td> 
         <td><code>m7_translate_global()</code></td>
         <td><b>dx</b> = <b>I</b> · <b>r</b> = <b>r</b>
       </tr>
       <tr>
-        <td>Local (camera) frame</td> 
+        <td>局部（相机）坐标系</td> 
         <td><code>m7_translate_local()</code></td>
         <td><b>dx</b> = <b>C</b>(&theta;, &phi;) · <b>r</b>
       </tr>
       <tr>
-        <td>Level: local but parallel to ground</td> 
+        <td>Level：局部但平行于地面</td> 
         <td><code>m7_translate_level()</code></td>
         <td><b>dx</b> = <b>R</b><sub>y</sub>(&phi;) · <b>r</b>
       </tr>
@@ -3105,18 +3105,18 @@ void m7_translate_level(M7_CAM *cam, const VECTOR *dir)
 }
 ```
 
-If you're not really familiar with matrices they may seem bright and scary, but they can be a lifesaver once you get used to them a bit. There is a _reason_ why large 3D systems use them non-stop; doing everything by raw trig is hard, very hard. Matrices allow you to work within whatever coordinate system is most natural to the task at hand, and then transform to whatever system you need in the end. If you have any work related to geometry, learning more about the basics of linear algebra (the rules for vector and matrix use) is well worth the effort.
+‘level’（即与地面齐平）对地面物体的相机系统可能是最常见的，不过对飞行物体使用局部系统可能更有意义。试试它们，看看你喜欢哪种。
 
-:::note Side note : centering on a sprite
+:::note 旁注：以精灵(对象)为中心
 
-As an example of how easy matrices can make life, consider the issue of centering the camera on a given sprite and then rotating around it. You have the camera matrix **C**, the distance you want to view from, _Z_ and presumably the sprite position, **x**<sub>w</sub>. What you need to do is: move the camera to the sprite's position, then take _Z_ steps back. In other words **a**<sub>cw</sub> = **x**<sub>w</sub>+**C**·(0, 0, _Z_), which boils down to **a**<sub>cw</sub> = **x**<sub>w</sub>+Z**w**,
+作为矩阵能让生活变得多轻松的一个例子，考虑把相机对准某个精灵(对象)为中心、然后绕它旋转的问题。你有相机矩阵 **C**、你想观察的距离 _Z_，以及（大概）精灵(对象)的位置 **x**<sub>w</sub>。你需要做的是：把相机移到精灵(对象)的位置，然后后退 _Z_ 步。换句话说 **a**<sub>cw</sub> = **x**<sub>w</sub>+**C**·(0, 0, _Z_)，这归结为 **a**<sub>cw</sub> = **x**<sub>w</sub>+Z**w**，
 
-Once you know the camera matrix, positioning it practically writes itself.
+一旦你知道了相机矩阵，摆放它几乎不费吹灰之力。
 
 :::
 
-## Concluding remarks {#sec-conc}
+## 结语 {#sec-conc}
 
-It's done, finally! This chapter's text explained the most important elements of a mode 7 game: calculation of the affine parameters, adding a horizon and backdrop, positioning, sorting _and_ animating 3D sprites and as a bonus how to use create a distance fogging effect. In the preceding text, I've used stuff from just about every subject described in the rest of Tonc, and not just the easy parts. If you're here and understood all or most of the above, congratulations.
+如果你对矩阵不太熟悉，它们可能看起来既耀眼又可怕，但一旦有点习惯，它们能成为救星。大型 3D 系统一刻不停地使用它们是有_原因_的；事事都靠原始三角学来做，很难，非常难。矩阵让你能在最自然的任务坐标系内工作，然后再变换到你最终需要的系统。如果你有任何与几何相关的工作，多学一点线性代数（向量和矩阵使用的规则）的基础知识，是非常值得的。
 
-But still I've omitted a few things that would make it a little better. Getting rid of all those divisions in the λ calculations, for instance. Or getting around the 32 affine object limitation or placing shadows for the sprites on the floor. Nor have I shown how to correctly allow for loopings, instead of clamping the pitch at straight up or down. These things are relatively easy to grasp, conceptually, but implementing them would require a lot more code. If you understood this text, I'm sure you can figure it out on your own.
+终于做完了！本章的文字解释了 mode 7 游戏最重要的元素：仿射参数的计算、加入地平线与远景、3D 精灵(对象)的定位、排序_以及_动画，外加一个如何做距离雾效的彩蛋。在前面的文字里，我用到了 Tonc 其余部分几乎每一个主题的内容，而且不只是简单的部分。如果你读到这里并理解了我们上面的大部分或全部内容，恭喜你。

@@ -1,40 +1,40 @@
-# 22. Tonc's Text Engine
+# 22. Tonc 的文本引擎
 
 <!-- toc -->
 
-## Introduction {#sec-intro}
+## 简介 {#sec-intro}
 
-The [other page on text](text.html) described how you could get text on backgrounds and objects. It worked, but there were several limitations. For instance, it was limited to 8×8 fonts, didn't support all video modes and had no formatted text capabilities.
+[文本篇](text.html)讲述了如何在背景和对象上显示文本。它能用，但有几个局限。例如，它仅限于 8×8 字体，不支持所有视频模式，也没有格式化文本的能力。
 
-Tonc's Text Engine (TTE) remedies many of these shortcomings. In this chapter I'll describe the goals and basic design of the system and some of the implementation details. In particular, I'll describe how to build writers for use of the different kinds of surfaces. In some cases, I'll optimize the living hell out of them because it is possible for a glyph renderer to take multiple scanlines for a single character if you don't pay attention. And yes, this will be done in assembly.
+Tonc 的文本引擎（TTE）弥补了其中的许多不足。在本章中，我将描述该系统的目标和基本设计，以及一些实现细节。特别地，我会说明如何为不同种类的表面构建写入器（writer）。在某些情况下，我会把性能优化到极致，因为如果不够注意的话，一个字形渲染器在渲染单个字符时可能会占用多条扫描线的时间。是的，这部分将用汇编来完成。
 
-I'll also show how you can add some basic scripting to change cursor positions, colors and even fonts dynamically. A few years ago, Wintermute changed the standard C library in devkitARM to make the stdio routines accessible for GBA and NDS. I'll also show how you can make use of this.
+我还会展示如何添加一些基本的脚本功能，以动态改变光标位置、颜色甚至字体。几年前，Wintermute 修改了 devkitARM 中的标准 C 库，使 stdio 例程可用于 GBA 和 NDS。我也会展示如何利用这一点。
 
-And, of course, there will be demos. Oh, will there be demos. There are about 10 of them in fact, so I'm going to do things a little bit differently than before: there will be one project containing a menu with all the examples. Not all examples will be shown here because that'd just be too much.
+当然，还会有演示程序。哦，肯定会有很多演示程序。事实上大概有 10 个，所以我打算采用与以往稍有不同的方式：会有一个包含所有示例的菜单项目。并非所有示例都会在这里展示，因为那样就太多了。
 
-Lastly, it is expected that by now you have a decent knowledge of GBA programming, so I'm going to keep the amount of GBA-specific exposition to a minimum. When you see functions used that haven't been covered already, turn to GBATEK, the project's code or libtonc's code for details.
+最后，假定你此时已对 GBA 编程有相当的了解，所以我会把 GBA 特有的说明降到最低。当你看到使用到尚未介绍过的函数时，请查阅 GBATEK、项目代码或 libtonc 的代码以获取细节。
 
-## Basic design {#sec-design}
+## 基本设计 {#sec-design}
 
-### TTE Goals {#ssec-design-goals}
+### TTE 的目标 {#ssec-design-goals}
 
-The following list has the things I most wanted in TTE:
+TTE 中最想要具备的东西列在下面：
 
-- **A comprehensive and extensible set of glyph writers, usable for all occasions**. Well _almost_ all occasions. The old system worked for regular backgrounds, bitmap modes and objects, I'm now extending that set to affine backgrounds and tile-rendering. If what you need isn't present in the standard set, you can easily create your own writer and use that one instead. The writer will accept [UTF-8](https://en.wikipedia.org/wiki/UTF-8) strings, meaning you're not limited to 256 characters.
-- **Fonts: arbitrary widths and heights and variable width characters**. Instead of being limited to 8x8@1 glyphs; the standard writers in TTE are able to use fonts of any width and height (within reason: no screen-filling glyphs please) and variable width fonts (again, within reason: VWF for tilemaps makes little sense). In principle, there are possibilities to use arbitrary bitdepths as well, but the standard renderers are limited to 1bpp.
-- **A simple writer-interface independent of surface details**. For the old system I had `m3_puts()`, `se_puts()`, `obj_puts()` and such. This worked, but it meant you had to use something different for the different modes. In TTE, there are different initializers for the different modes to set up the system, and a single string writer `tte_write()` that just works.
-- **Scripting for text parameters**. By that I mean that you can control parameters like position and output color by the strings themselves. The functionality for this is pretty basic, but it works well enough. Note: this is _not_ a full dialog system! That said, it should be possible to build one around it.
-- **`printf()` support**. For rather obvious reasons.
+- **一套全面且可扩展的字形写入器集合，适用于各种场合**。嗯，几乎是各种场合。旧系统适用于常规背景、位图模式和对象，我现在把这套集合扩展到仿射背景和图块渲染。如果你需要的标准集合里没有的东西，你可以轻松创建自己的写入器并使用它。该写入器会接受 [UTF-8](https://en.wikipedia.org/wiki/UTF-8) 字符串，意味着你不限于 256 个字符。
+- **字体：任意宽度和高度以及变宽字符**。不再局限于 8x8@1 的字形；TTE 中的标准写入器能够使用任意宽度和高度的字体（合理范围内：拜托不要有占满屏幕的字形），以及变宽字体（同样在合理范围内：用于图块映射的 VWF 意义不大）。原则上，也有使用任意位深的可能性，但标准渲染器仅限于 1bpp。
+- **与表面细节无关的简单的写入器接口**。对于旧系统，我有 `m3_puts()`、`se_puts()`、`obj_puts()` 等等。这能工作，但意味着你得为不同的模式使用不同的函数。在 TTE 中，不同模式有不同的初始化函数来搭建系统，还有一个统一的字符串写入器 `tte_write()`，直接就能用。
+- **文本参数的脚本化**。我的意思是，你可以通过字符串本身来控制位置、输出颜色等参数。这方面的功能相当基础，但足够好用。注意：这_不是_一个完整的对话框系统！话虽如此，在其基础上构建一个应该是可行的。
+- **`printf()` 支持**。原因相当明显。
 
-### Structures and main components {#ssec-design-items}
+### 结构与主要组件 {#ssec-design-items}
 
-All the relevant information for TTE is kept gathered in three structs: a <dfn>text context</dfn>, `TTC`; a <dfn>font description</dfn>, `TFont`; and a <dfn> graphic surface description</dfn>, `TSurface`.
+TTE 的所有相关信息都集中保存在三个结构体中：一个 <dfn>文本上下文</dfn>（text context）`TTC`；一个 <dfn>字体描述</dfn>（font description）`TFont`；以及一个 <dfn>图形表面描述</dfn>（graphic surface description）`TSurface`。
 
-The `TTC` struct contains the main parameters for the engine: information about the surface were rendering to, cursor positions, font information, color attributes and a few other things. It also contains two callbacks for drawing and erasing glyphs.
+`TTC` 结构体包含引擎的主要参数：关于渲染目标的表面、光标位置、字体信息、颜色属性以及一些其他内容。它还包含两个用于绘制和擦除字形的回调。
 
-The `TFont` struct has a pointer to the glyph data, glyph/cell dimensions and a few other things. There are also pointers to width and height tables to allow variable width and height fonts. I've hacked a `TFont` creator into [usenti](http://www.coranac.com/projects/#usenti) a while back so that I could easily create these things from standard fonts, but you can also make your own from scratch.
+`TFont` 结构体有一个指向字形数据、字形/单元格尺寸以及一些其他内容的指针。还有指向宽度和高度表的指针，以支持变宽和变高字体。我前些时候把一个 `TFont` 创建器加进了 [usenti](http://www.coranac.com/projects/#usenti)，这样我就能从标准字体轻松生成这些东西，但你也可以从零开始自己做。
 
-The `TSurface` struct actually has nothing to do with text. Instead, it's a struct describing the kind of surface we're rendering on. This can be bitmaps, tiles, tilemaps or whatever. Tonclib has basic pixel, line and rectangle routines for dealing with these surfaces, so I might as well use them.
+`TSurface` 结构体实际上与文本无关。相反，它是一个描述我们所渲染到的表面种类的结构体。这可以是位图、图块、图块映射（tilemap）或其他任何东西。Tonclib 有处理这些表面的基本像素、直线和矩形例程，所以我不如干脆用它们。
 
 ```c{#cd-tte-types}
 //# From tonc_tte.h : main TTE types.
@@ -104,41 +104,41 @@ typedef struct TSurface
 } TSurface;
 ```
 
-#### TFont details
+#### TFont 细节
 
 <div class="cpt_fr" style="width:128px;">
   <img src="img/tte/verdana9.png" id="fig:img-verdana9" width="128" alt="">
   <br>
-  <b>{*@fig:img-verdana9}</b>: Verdana 9 character sheet
+  <b>{*@fig:img-verdana9}</b>: Verdana 9 字符表
 </div>
 
-{\*@fig:img-verdana9} shows a character sheet that `TFont` can use. The sheet is a matrix of <dfn>cell</dfn>s and each cell contains a character. The `cellW/H` members are the dimensions of these cells; `cellSize` is the number of bytes per cell.
+{\*@fig:img-verdana9} 展示了一个 `TFont` 可以使用的字符表。该表是 <dfn>单元格</dfn>（cell）的一个矩阵，每个单元格包含一个字符。`cellW/H` 成员是这些单元格的尺寸；`cellSize` 是每个单元格的字节数。
 
-Each cell has one glyph, but the actual glyphs can be smaller than the cells (white vs magenta parts). This does waste a bit of memory, but it also has several benefits. One of the benefits is that you can use `cellSize` to quickly find the address of any given glyph. Second, because I want by fonts to be usable for both bitmaps _and_ tiles, my glyph boxes would have to be multiples of 8 anyway. Additionally, this particular font will be 1bpp, meaning that even with the wasted parts I'll still have a very low memory footprint (3.5kB).
+每个单元格有一个字形，但实际字形可以比单元格小（白色与洋红色部分）。这确实会浪费一点内存，但也有几个好处。好处之一是你可以使用 `cellSize` 快速找到任意给定字形的地址。其次，因为我希望我的字体能同时用于位图和图块，我的字形框无论如何都必须是 8 的倍数。此外，这种特定字体将是 1bpp，意味着即使有浪费的部分，我仍然会有非常低的内存占用（3.5kB）。
 
-For fixed-width or fixed-height fonts, members `charW` and `charH` denote the actual character width and height. For fonts of variable widths, the `widths` member points to the a byte-array containing the widths of the glyphs and something similar is true for the `heights`. `charOffset` is the (ASCII) character the data starts at. Font sheets often start at a space (' '), so this tends to be 32. `charCount` is the number of characters and can be used if you need to copy the whole sheet to VRAM (like in the case of tile-mapping).
+对于定宽或定高字体，成员 `charW` 和 `charH` 表示实际的字符宽度和高度。对于变宽字体，`widths` 成员指向一个包含字形宽度的字节数组，对 `heights` 也类似。`charOffset` 是数据起始的（ASCII）字符。字体表通常从空格（' '）开始，所以这通常为 32。`charCount` 是字符的数量，当需要将整张表复制到 VRAM（如图块映射的情况）时可以使用。
 
-Please note that how the data in a `TFont` is used depends almost entirely on the glyph renderer. Most renderers that come with libtonc expect this format:
+请注意，`TFont` 中的数据如何使用几乎完全取决于字形渲染器。libtonc 附带的大多数渲染器都期望这种格式：
 
-- Bitpacked to **1 bpp**, for size reasons. And for rendering speed too, actually, since memory loads are expensive.
-- Tiled-by-glyph. The data for each glyph is contingent with `cellSize` bytes between each glyph. This is similar to how 1D object work with one important difference:
-- the tiles in each glyph are **column-major** (tile 1 is under tile 0). This in contrast to objects, which tend to be [row-major](https://en.wikipedia.org/wiki/Row-major_order) (tile 1 is to the right of tile 0). I will refer to this format as **tile-strips**. The reason behind this choice will be given later.
+- 为了节省空间，按 **1 bpp** 位打包。实际上也是为了渲染速度，因为内存读取开销很大。
+- 按字形分块（Tiled-by-glyph）。每个字形的数据以每个字形之间 `cellSize` 字节为间隔连续存放。这类似于 1D 对象的工作方式，但有一个重要区别：
+- 每个字形中的图块是**列主序**（column-major）的（图块 1 在图块 0 下方）。这与对象相反，对象往往是[行主序](https://en.wikipedia.org/wiki/Row-major_order)（图块 1 在图块 0 右侧）。我将这种格式称为**图块条**（tile-strips）。这个选择背后的原因将在后面给出。
 
-There are exceptions to this, but most renderers presented here will use this format. If you want to make your own renderers, you're free to use any format for the data you think is appropriate.
+对此有例外，但这里展示的大多数渲染器都会使用这种格式。如果你想制作自己的渲染器，你可以自由使用你认为合适的数据格式。
 
-#### TTC details
+#### TTC 细节
 
-The text context, `TTC`, contains the most important data of the system. Starting at the top: the surface, `dst`. This defines the surface we're rendering to. The most relevant items there are its memory address, **pitch**: the number of bytes per scanline. The pitch is a _very_ important parameter for rendering, more important than the width and height in fact. The surface also has palette members, which can be used to access its colors. Much like the `TFont` members, how this data is used largely depends on the renderer.
+文本上下文 `TTC` 包含系统中最重要的数据。从顶部开始：表面 `dst`。它定义了我们要渲染到的表面。那里最相关的项是它的内存地址、**pitch**：每条扫描线的字节数。pitch 是一个_非常_重要的参数，实际上比宽度和高度更重要。该表面也有调色板成员，可用于访问其颜色。和 `TFont` 成员很像，这些数据如何使用在很大程度上取决于渲染器。
 
-The members `cursorX/Y` are for the current cursor position. The `margin` rectangle indicates which part of the screen should be used for text. If the cursor exceeds the right margin, it will be moved to the left margin and one line down. The margins are also used for screen-clears and returning to the top of the page.
+成员 `cursorX/Y` 用于当前光标位置。`margin` 矩形指明屏幕上哪一部分应用于文本。如果光标超出右边距，它会被移到左边距并下移一行。边距也用于清屏和返回页面顶部。
 
-The `cattr` table is something special. Its entries are <dfn>color attribute</dfn>s. Parameters for ink (foreground color), shadow, paper (background color) are put here, along with a ‘special’ field which is very much context-specific. Note that these color attributes do not necessarily represent colors. In modes 3 and 5 they're colors, but for mode 4 and tile writers they're color indices. There's probably a nicer name for this than ‘color attribute’, but sodomy non sapiens.
+`cattr` 表是特殊的。它的条目是<dfn>颜色属性</dfn>（color attribute）。前景色（ink，即文字颜色）、阴影（shadow）、背景色（paper）的参数放在这里，外加一个非常依赖上下文的‘特殊’（special）字段。注意，这些颜色属性不一定表示颜色。在模式 3 和 5 中它们是颜色，但对于模式 4 和图块写入器，它们是颜色索引。可能有个比‘颜色属性’更好的名字，但 sodomy non sapiens（此处为原文俚语，意为懒得多想）。
 
-Rendering glyphs and erasing (parts of) the screen is done through the callbacks `drawgProc` and `eraseProc`. The idea is that you initialize the system with the routines appropriate for your text format and TTE uses them to do the actual writing. I should point out that using callbacks for rendering a single glyph can have a significant overhead, especially for the simpler kinds of text like tilemaps.
+通过回调 `drawgProc` 和 `eraseProc` 来渲染字形和擦除（部分的）屏幕。思路是你用适合自己文本格式的程序初始化系统，TTE 用它们来做实际写入。我应该指出，为渲染单个字形使用回调会带来显著的开销，特别是对于像图块映射这种较简单的文本。
 
-### Main TTE variables and functions. {#ssec-design-writer}
+### TTE 的主要变量和函数 {#ssec-design-writer}
 
-The state of the TTE system is kept in a `TTC` variable accessible through `tte_get_context()`. All changes to the system go through there. In _some_ cases, it is useful to have two sets of state and switch between them when appropriate (like when you have two screens. Y hello thar, NDS). For that you can use `tte_set_context)` to redirect the pointer.
+TTE 系统的状态保存在可通过 `tte_get_context()` 访问的 `TTC` 变量中。对系统的所有更改都通过它进行。在某些_情况下_，拥有两套状态并在适当时候切换是有用的（比如当你有两个屏幕时。你好啊，NDS）。为此你可以使用 `tte_set_context)` 来重定向指针。
 
 ```c {#cd-ttc-funcs}
 TTC __tte_main_context;
@@ -156,7 +156,7 @@ void tte_set_context(TTC *tc)
 }
 ```
 
-To print characters, you can use `tte_putc()` and `tte_write()`.
+要打印字符，你可以使用 `tte_putc()` 和 `tte_write()`。
 
 ```c {#cd-tte-putc}
 //! Get the glyph index of character \a ch.
@@ -237,73 +237,73 @@ int tte_write(const char *text)
 }
 ```
 
-I've omitted the code for a few things here, the idea should be clear. First, read a character. Then, check whether it's a special character (new line, tab, formatting command) and if so, act accordingly. Because `tte_write()` supports UTF-8, we also check for that and decode the string for a full UFT-8 character. After that's all done, we pass the character on to `tte_putc()`, which translates it to a glyph index, draws the glyph and advances the cursor.
+这里我省略了若干东西的代码，思路应该很清楚。首先，读一个字符。然后，检查它是否是特殊字符（换行、制表符、格式化命令），如果是，则相应处理。因为 `tte_write()` 支持 UTF-8，我们也要检查它并解码字符串以获得完整的 UFT-8 字符。完成这些之后，我们把字符传给 `tte_putc()`，它把字符转换为字形索引，绘制字形并推进光标。
 
-Note: the way described here is _a_ method of doing things; it's not _the_ method, because that doesn't actually exist. Several steps done here may be overkill for the kind of text you had in mind. For example, getting from the character to the glyph index is done by the font's character offset and a potential character look-up table, neither of which is strictly necessary. Likewise, wrapping at the edges may already be done in the string itself with newline characters. On the other hand, you might like more complex wrapping, text alignment, scrolling, and who knows what else. If you want these things, creating your own routine shouldn't be too difficult.
+注意：这里描述的方法是_一种_做事方式；它不是_唯一的_方法，因为唯一的方法实际上并不存在。这里做的若干步骤对于你心目中的文本可能属于过度设计。例如，从字符到字形索引的转换是通过字体的字符偏移和可能的字符查找表完成的，两者都不是严格必需的。同样，边缘换行可能已经通过字符串本身的换行符完成了。另一方面，你可能想要更复杂的换行、文本对齐、滚动等等。如果你想要这些东西，创建自己的例程应该不太难。
 
-### On nomenclature {#ssec-design-names}
+### 关于命名 {#ssec-design-names}
 
-Some terms I use in TTE have a very specific meaning. Because the differences between terms can be subtle, it is important to define the term explicitly. Additionally, TTE uses several acronyms and abbreviations that need to be clarified.
+TTE 中我使用的一些术语有非常特定的含义。由于术语之间的差异可能很微妙，明确界定术语很重要。此外，TTE 使用了几个需要澄清的首字母缩写和缩写。
 
-- **char(acter) vs glyph index**. ‘Character’ refers to the ASCII character; the ‘glyph index’ is the corresponding index in the font. For example, ‘A’ is character 65, but if the font starts at a space (' ', ASCII 32) the ‘A’ is glyph index 65−32=33. As a rule, variables named `ch` are characters and `gid` means glyph index. The input of the renderers is the glyph index, and not the character.
+- **字符（char/character）vs 字形索引（glyph index）**。‘字符’指 ASCII 字符；‘字形索引’是字体中对应的索引。例如，‘A’是字符 65，但如果字体从空格（' '，ASCII 32）开始，‘A’的字形索引就是 65−32=33。作为规则，名为 `ch` 的变量是字符，`gid` 表示字形索引。渲染器的输入是字形索引，而不是字符。
 
-- **Surface**. Surface is the term I'm using to describe whatever I'm manipulating to show text. This is usually VRAM, but can be other things as well, like OBJ_ATTRs for object text.
+- **表面（Surface）**。表面是我用来描述用来显示文本的任何被操作对象的术语。这通常是 VRAM，但也可以是其他东西，比如用于对象文本的 OBJ_ATTR。
 
-- **Pitch**. The pitch is actually a common term in graphics, but since graphics terms may not be so common, it's worth repeating. Technically, the <dfn>pitch</dfn> is the number of scanlines between rows. I'm extending it a little to mean the _characteristic major distance_ for matrices. Matrices are 2D entities, and they'll have adjacent elements in one direction and a larger distance for the other. These usually are _x_ and _y_, respectively, but not always. The _minor_ distance will be referred to as <dfn>stride</dfn>.
+- **Pitch**。Pitch 其实是图形学中的常见术语，但既然图形学术语可能并不那么常见，值得重复一遍。从技术上讲，<dfn>pitch</dfn> 是行之间的扫描线数量。我把它稍微扩展为表示矩阵的_特征主距离_（characteristic major distance）。矩阵是二维实体，它们在一个方向上相邻元素距离近，而在另一个方向上距离大。通常分别是 _x_ 和 _y_，但不总是。_次要_距离将被称为 <dfn>stride</dfn>（步幅）。
 
-- **Color vs color attribute**. The ‘color’ is the real 5.5.5 BGR color; the ‘color attribute’ is whatever the renderer will use on the surface. This can be a color, but it can also be a palette index or something else entirely. The interpretation is up to the renderer.
+- **颜色 vs 颜色属性**。‘颜色’是真正的 5.5.5 BGR 颜色；‘颜色属性’是渲染器将在表面上使用的任何东西。它可以是颜色，但也可以是调色板索引或完全不同的东西。解释权在渲染器。
 
-- **Render/Text family**. This is a conceptual group-name for a specific kind of text. {\*@tbl:tte-family} gives an overview of the families available. This largely corresponds to the `TSurface` types.
+- **Render/Text 族（family）**。这是针对特定文本的概念性组名。{\*@tbl:tte-family} 给出了可用族的概览。这在很大程度上对应于 `TSurface` 类型。
 
-- **Renderer types**. Within each family there can be different renderers for different kinds of fonts and effects. For example, when rendering to an 8bpp bitmap (the bmp8 family), you can have different renderers for different font bitdepths (1bpp or 8bpp, for example) or glyph layouts (bitmapped or tiled). They can render some pixels transparently, or apply anti-aliasing. Or any combination of those. The point is there are a _lot_ of options here.
+- **渲染器类型（Renderer types）**。在每个族内部，针对不同的字体和效果可以有不同渲染器。例如，当渲染到 8bpp 位图（bmp8 族）时，你可以为不同的字体位深（比如 1bpp 或 8bpp）或字形布局（位图化或分块）使用不同渲染器。它们可以将某些像素渲染为透明，或应用抗锯齿。或者这些的任何组合。重点是这里选项_很多_。
 
-  Because I really don't like names that span a whole line, I will use abbreviations in the renderer's name to indicate what it does; see {@tbl:tte-drawg} for what they mean. For the most part, the renderers will be for fonts with arbitrary width and height, with a 1bpp tile-stripped glyphs, with they will draw them transparently and re-coloring of pixels. This is indicated by `*_b1cts`.
+  因为我真的不喜欢占满整行的名字，我会在渲染器名字中使用缩写来表明它的作用；这些缩写的含义见 {@tbl:tte-drawg}。在大多数情况下，渲染器将用于任意宽度和高度的字体，采用 1bpp 的图块条（tile-stripped）字形，并将它们以透明方式绘制并对像素重新着色。这由 `*_b1cts` 表示。
 
 <div class="lblock">
   <table id="tbl:tte-family" class="table-data">
     <caption align="bottom">
-      <b>{*@tbl:tte-family}</b>: TTE render family indicators and initializers. 4bpp Tiles can be row or column major (<code>crh4r</code> or <code>chr4c</code>).
+      <b>{*@tbl:tte-family}</b>: TTE 渲染族指示符与初始化函数。4bpp 图块可以是行主序或列主序（<code>crh4r</code> 或 <code>chr4c</code>）。
     </caption>
     <tr>
-      <th width=25%>Family</th>	
-      <th>prefix</th> 
-      <th>Initializer</th>		
+      <th width=25%>族（Family）</th>	
+      <th>前缀（prefix）</th> 
+      <th>初始化函数（Initializer）</th>		
     </tr>
     <tr>
-	    <td>Regular tilemap (mode 0/1)</td>	
+	    <td>常规图块映射（模式 0/1）</td>	
       <td>se</td>
 	    <td>
         void tte_init_se(int bgnr, u16 bgcnt, SCR_ENTRY se0, u32 colors, u32 bupofs, const TFont *font, fnDrawg proc);
       </td>
     </tr>
     <tr>
-	    <td>Affine tilemap (mode 1/2)</td>
+	    <td>仿射图块映射（模式 1/2）</td>
       <td>ase</td>
 	    <td>
         void tte_init_ase(int bgnr, u16 bgcnt, u8 ase0, u32 colors, u32 bupofs, const TFont *font, fnDrawg proc);
       </td>
     </tr>
     <tr>
-	    <td>4bpp Tiles (modes 0/1/obj)</td>	
+	    <td>4bpp 图块（模式 0/1/obj）</td>	
       <td>chr4<i>(c/r)</i></td>
 	    <td>
         void tte_init_chr4<i>(c/r)</i>(int bgnr, u16 bgcnt, u32 cattrs, u32 colors, const TFont *font, fnDrawg proc);
       </td>
     </tr>
     <tr>
-	    <td>8bpp bitmap (mode 4)</td>
+	    <td>8bpp 位图（模式 4）</td>
       <td>bmp8</td>
 	    <td>
         void tte_init_bmp(int vmode, const TFont *font, fnDrawg proc);
       </td>
     </tr>
     <tr>
-	    <td>16bpp bitmap (mode3/5)</td>
+	    <td>16bpp 位图（模式 3/5）</td>
       <td>bmp16</td>
 	    <td>void tte_init_bmp(int vmode, const TFont *font, fnDrawg proc);</td>
     </tr>
     <tr>
-	    <td>objects</td>
+	    <td>对象（objects）</td>
       <td>obj</td>
 	    <td>
         void tte_init_obj(OBJ_ATTR *dst, u32 attr0, u32 attr1, u32 attr2, u32 colors, u32 bupofs, const TFont *font, fnDrawg proc);
@@ -315,102 +315,102 @@ Some terms I use in TTE have a very specific meaning. Because the differences be
 <div class="lblock">
   <table id="tbl:tte-drawg" class="table-data">
     <caption align="bottom">
-      <b>{*@tbl:tte-drawg}</b>: Render type summary.
+      <b>{*@tbl:tte-drawg}</b>: 渲染类型摘要。
     </caption>
     <tr>
-      <th>Code</th>
-      <th>Description</th>
+      <th>代码（Code）</th>
+      <th>描述（Description）</th>
     </tr>
     <tr>
       <td>b<i>x</i></td>
-      <td><b>B</b>itdepth of source font. (<code>b1</code> = 1 bpp)</td>
+      <td><b>位</b>深（bitdepth）的源字体。（<code>b1</code> = 1 bpp）</td>
     </tr>
     <tr>
       <td>w<i>x</i></td>
-      <td>Specific <b>w</b>idth (<code>w8</code> = width 8)</td>
+      <td>特定的<strong>宽</strong>度（<code>w8</code> = 宽 8）</td>
     </tr>
     <tr>
       <td>h<i>x</i></td>
-      <td>Specific <b>h</b>eight (<code>h8</code> = height 8)</td>
+      <td>特定的<strong>高</strong>度（<code>h8</code> = 高 8）</td>
     </tr>
     <tr>
       <td>c</td>
       <td>
-        Re-<b>c</b>oloring. Color attributes are applied to the pixels in some way.
+        重新<strong>着</strong>色（re-<b>c</b>oloring）。颜色属性以某种方式应用到像素上。
       </td>
     </tr>
     <tr>
       <td>t/o</td>
-      <td><b>T</b>ransparent or <b>o</b>paque paper pixels.</td>
+      <td><strong>透</strong>明（<b>T</b>ransparent）或<strong>不</strong>透明（<b>o</b>paque）的背景像素。</td>
     </tr>
     <tr>
       <td>s</td>
-      <td>Glyphs are in tile-<b>s</b>trip format.</td>
+      <td>字形采用图块<strong>条</strong>（tile-<b>s</b>trip）格式。</td>
     </tr>
   </table>
 </div>
 
-Lastly, a note on some of the abbreviations I use in the rendering code. A number of terms come up again and again, and I've taken to use a shorthand notation for these items. The basic format is `fooX` where `foo` is the relevant bitmap/surface and `X` is a one-letter code for things like width, height, data and others. Yes, the use of single-letter names is frowned upon and I don't advocate their use in general, but I've found that in this particular case, if used judiciously, they have helped me read my own code.
+最后，关于我在渲染代码中使用的一些缩写的说明。一些术语会反复出现，我已经习惯用简写记号表示这些项。基本格式是 `fooX`，其中 `foo` 是相关的位图/表面，`X` 是表示宽度、高度、数据等事物的单字母代码。是的，使用单字母名字不受待见，我也一般不提倡这样用，但我发现，在这个特定情况下，如果使用得当，它们确实帮我读懂了自己的代码。
 
 <div class="lblock">
   <table id="tbl:tte-brevs" class="table-data">
     <caption align="bottom">
-       <b>{*@tbl:tte-brevs}</b>: Abbreviations used in rendering code.
+       <b>{*@tbl:tte-brevs}</b>: 渲染代码中使用的缩写。
     </caption>
     <tr> 
-      <th>Term</th>
-      <th>Meaning</th>
+      <th>术语（Term）</th>
+      <th>含义（Meaning）</th>
     </tr>
     <tr>
       <td><code>fooW</code></td>
-      <td>Width of <code>foo</code></td>
+      <td><code>foo</code> 的宽度</td>
     </tr>
     <tr>
       <td><code>fooH</code></td>
-      <td>Height of <code>foo</code></td>
+      <td><code>foo</code> 的高度</td>
     </tr>
     <tr>
       <td><code>fooB</code></td>
-      <td>Bitdepth of <code>foo</code></td>
+      <td><code>foo</code> 的位深</td>
     </tr>
     <tr>
       <td><code>fooP</code></td>
-      <td>Pitch of <code>foo</code></td>
+      <td><code>foo</code> 的 pitch</td>
     </tr>
     <tr>
       <td><code>fooD</code></td>
-      <td>Primary data-pointer for <code>foo</code></td>
+      <td><code>foo</code> 的主数据指针</td>
     </tr>
     <tr>
       <td><code>fooL</code></td>
-      <td>Secondary data-pointer for <code>foo</code></td>
+      <td><code>foo</code> 的次级数据指针</td>
     </tr>
     <tr>
       <td><code>fooS</code></td>
-      <td>Size of <code>foo</code></td>
+      <td><code>foo</code> 的大小</td>
     </tr>
     <tr>
       <td><code>fooN</code></td>
-      <td>Number/count of <code>foo</code></td>
+      <td><code>foo</code> 的数量/计数</td>
     </tr>
   </table>
 </div>
 
-## Tilemapped text {#sec-map}
+## 图块映射文本 {#sec-map}
 
-### Regular tilemap text {#ssec-map-reg}
+### 常规图块映射文本 {#ssec-map-reg}
 
-Tilemapped text is the easiest to implement, because you don't really have to render anything at all. You simply load up all the font's tiles into a charblock and place screen-entries for the actual text.
+图块映射文本最容易实现，因为你其实不必渲染任何东西。你只需把字体的所有图块载入一个字符块（charblock），并为实际文本放置屏幕条目（screen-entry）。
 
-The initializer for regular tilemaps is `tte_init_se()`. It's identical to [`txt_init_se()`](text.html#cd-txt-init-se) except for the two extra parameters at the end: `font` and `proc`. These represent the font to use and the renderer that does the surface manipulation. Every initializer in TTE has those two parameters. It's safe to pass NULL to them if you're not sure what to use; in that case, the default option for that family will be used.
+常规图块映射的初始化函数是 `tte_init_se()`。它与 [`txt_init_se()`](text.html#cd-txt-init-se) 完全相同，除了末尾多了两个参数：`font` 和 `proc`。它们分别表示要使用的字体和负责表面操作的渲染器。TTE 中的每个初始化函数都有这两个参数。如果你不确定用什么，可以安全地把它们传 NULL；那样会使用该族的默认选项。
 
-If `font` is NULL, you'll get the default font. This is either [`system8Font`](text.html#img-tonc-font) for fixed-width occasions or `verdana9Font` ({@fig:img-verdana9}) when variable width is suitable. These can also be referenced via `fwf_default` and `vwf_default`, respectively.
+如果 `font` 是 NULL，你会得到默认字体。对于定宽场合，这是 [`system8Font`](text.html#img-tonc-font)；当变宽合适时，这是 `verdana9Font`（{@fig:img-verdana9}）。它们也可以分别通过 `fwf_default` 和 `vwf_default` 引用。
 
-Each family also has a default renderer, #defined as _`foo`_`_drawg_default`, where _foo_ is the family prefix. The default renderers are the general routines, suitable for all character widths and heights (fixed or variable fonts). Of course, this does mean that they will be slower than routines written to work with a specific glyph size. This is particularly true for tilemapped text, and for that reasons specific `_w8h8` and `_w8h16` versions are available there as well.
+每个族也有一个默认渲染器，定义为 _`foo`_`_drawg_default`，其中 _foo_ 是族前缀。默认渲染器是通用例程，适用于所有字符宽度和高度（定宽或变宽字体）。当然，这确实意味着它们会比针对特定字形大小编写的例程慢。对于图块映射文本尤其如此，因此那里也提供了特定的 `_w8h8` 和 `_w8h16` 版本。
 
-The initializers tend to be long and boring, so I won't waste too much space on them here. Basically, they clear out the text context, assign some sensible values to the margins and surface variables, set up the font, the renderer and the eraser. They also fill some of the palette and color attributes.
+初始化函数往往又长又无聊，所以我不会在这里浪费太多篇幅。基本上，它们清空文本上下文，给边距和表面变量赋予合理的值，设置字体、渲染器和擦除器。它们还填充一些调色板和颜色属性。
 
-The code I'll show in this chapter will mostly be about the renderers themselves. Below you can see the code for the default screen-entry writer, `se_drawg_s()`, and the one specific for 8×8 fonts, `se_drawg_w8h8`
+本章展示的代码将主要是关于渲染器本身。下面你可以看到默认屏幕条目写入器 `se_drawg_s()` 的代码，以及专门针对 8×8 字体的 `se_drawg_w8h8`
 
 ```c {#cd-se-drawg .proglist}
 //! Character-plot for reg BGs, any sized, vertically tiled font.
@@ -452,17 +452,17 @@ void se_drawg_w8h8(uint gid)
 }
 ```
 
-Let's start with the simpler one: `se_drawg_w8h8()`. An 8×8 glyph on a GBA tilemap simply means write a single screen-entry to the right place. The right place here is derived from the cursor position and the surface data (`tc->dst`). The ‘special’ color attribute is used as a modifier to the glyph index for things like palette swapping.
+让我们从更简单的一个开始：`se_drawg_w8h8()`。GBA 图块映射上的一个 8×8 字形，简单地意味着向正确的位置写入一个屏幕条目。这里的正确位置由光标位置和表面数据（`tc->dst`）推导而来。‘特殊’颜色属性用作字形索引的修饰符，用于调色板切换之类的事情。
 
-Note that the routine just handles plotting the glyph. Transforming from ASCII to glyph index and repositioning the cursor is all done elsewhere.
+注意，该例程只处理字形绘制。从 ASCII 到字形索引的转换以及光标的重新定位都在别处完成。
 
-The more generalized routine, `se_drawg_s()` is a little more complex. It still starts by getting a pointer to the glyph's destination, `dstD`, and pitch (the distance to the next line), `dstP`. **All** renderers start with something like this. All renderers also retrieve the character's width and height – unless the sizes are specified in advance. The names I use for rendering are always the same, so you should be able to tell what means what even when the formulas for initializing them can be a tad icky.
+更通用的例程 `se_drawg_s()` 稍微复杂一点。它仍然以获得到字形目标的指针 `dstD` 和 pitch（到下一行的距离）`dstP` 开始。**所有**渲染器都以类似方式开始。所有渲染器也检索字符的宽度和高度——除非尺寸是预先指定的。我用于渲染的名字始终相同，所以即使初始化它们的公式可能有点讨厌，你也应该能分辨出各自的含义。
 
-Anyway, after getting the pointer and pitch, the tile-index for the top-left of the glyph is calculated and put this into `se`. After that, we loop over the different tiles of the glyph in both directions. Note that the order of the loop is column-major, not row-major, because that's the way the default fonts were ordered.
+总之，在拿到指针和 pitch 之后，计算出字形左上角的图块索引，并放入 `se`。之后，我们在两个方向上遍历字形的各个图块。注意循环顺序是列主序而非行主序，因为默认字体就是那样排序的。
 
-As it happens, column-major rendering tends to be more efficient for text, because glyphs are usually higher than they are wide. Also, for tilemap text `charW` and `charH` tend to be small – often 1 or 2. This means that it is extremely inefficient to use loops; we'll see how inefficient in the ["Profiling the renderers" subsection](#ssec-misc-profile).. Unrolling them, like `se_drawg_w8h8()` and `se_drawg_w8h16()` do, gives a much better performance.
+碰巧的是，列主序渲染往往对文本更高效，因为字形通常比它们高比宽。同时，对于图块映射文本，`charW` 和 `charH` 往往很小——通常是 1 或 2。这意味着使用循环极其低效；我们在[“分析渲染器性能”小节](#ssec-misc-profile)中就会看到究竟有多低效。像 `se_drawg_w8h8()` 和 `se_drawg_w8h16()` 那样把它们展开，会带来好得多的性能。
 
-### Regular tilemap example {#ssec-test-se4}
+### 常规图块映射示例 {#ssec-test-se4}
 
 ```c {#cd-test-se4 .proglist}
 void test_tte_se4()
@@ -503,7 +503,6 @@ void test_tte_se4()
     tte_write("#{cx:0x3000}o#{cx:0x4000}r#{cx:0x5000}s");
     tte_write("#{cx:0} provided by \\#{cx:#}.");
 
-
     // --- (4) Init for 8x16 font and print something ---
     GRIT_CPY(&tile_mem[0][256], cyber16Glyphs); // Load tiles
     tte_set_font(&cyber16Font);                 // Attach font
@@ -516,56 +515,56 @@ void test_tte_se4()
 }
 ```
 
-The code above demonstrates a few of the things you can do with TTE for tilemaps. The call to `tte_init_se()` initializes the system to display text on BG 0, using charblock 0 and screenblock 31 and to use the default font and renderer. Parameter five is the bit-unpack offset; by setting it to 14, all the 1-valued pixels in the font move to 14+1=15, the last index in a palette bank. I'm also setting a few other colors so that the palette will look like {@fig:img-test-se4}b.
+上面的代码演示了你可以对图块映射使用 TTE 做的几件事。对 `tte_init_se()` 的调用把系统初始化为在 BG 0 上显示文本，使用字符块 0 和屏幕块 31，并使用默认字体和渲染器。第五个参数是位解包偏移（bit-unpack offset）；把它设为 14，字体中所有值为 1 的像素就会移到 14+1=15，即调色板 bank 中的最后一个索引。我还设置了几种其他颜色，使调色板看起来像 {@fig:img-test-se4}b。
 
-In step 3, I print some text with `tte_write()`. The different colors are done by using `#{cx:`_`num`_`}` in the string, which sets the special color-attribute to _num_. More on these kinds of commands in the ["Scripting, console IO and other niceties" section](#sec-misc).. Since the `se`-renderers add this value to the glyph index for the final output, it can be used for palette swapping.
+在第 3 步，我用 `tte_write()` 打印一些文本。不同的颜色是通过在字符串中使用 `#{cx:`_`num`_`}` 实现的，它会把特殊颜色属性设为 _num_。关于这类命令的更多内容见[“脚本、控制台 IO 和其他便利功能”一节](#sec-misc)。由于 `se` 渲染器把这个值加到字形索引上作为最终输出，它可以用于调色板切换。
 
-Step 4 demonstrates how to load up and use a second font. The `cyber16Font` is a rendition of the 8×16 font used in ye olde SNES game, Cybernator (see {@fig:img-cyber16}). This font was exported as 4bpp data so I can just copy it into VRAM directly, but I do need to use an offset because I want to keep the old font as well. The charblock now has two sets of glyphs (see {@fig:img-test-se4}c).
+第 4 步演示了如何加载并使用第二种字体。`cyber16Font` 是经典 SNES 游戏 Cybernator 中使用的 8×16 字体的一个再现（见 {@fig:img-cyber16}）。这个字体被导出为 4bpp 数据，所以我可以直接把它复制到 VRAM，但我确实需要使用一个偏移，因为我想保留旧字体。字符块现在有两套字形（见 {@fig:img-test-se4}c）。
 
 <div class="cblock">
   <table width=60%>
     <tr valign="bottom">
       <td>
 	      <div class="cpt_fl" style="width:128px;">
-	        <img src="img/tte/cyber16.png" id="fig:img-cyber16" alt="Cybernator font: 8&times;16.">
+	        <img src="img/tte/cyber16.png" id="fig:img-cyber16" alt="Cybernator 字体：8&times;16。">
           <br>
-	        <b>{*@fig:img-cyber16}</b>: Cybernator font: 8&times;16.
+	        <b>{*@fig:img-cyber16}</b>: Cybernator 字体：8&times;16。
 	      </div>
       </td>
       <td>
 	      <div class="cpt" style="width:240px;">
-	        <img src="img/tte/test_tte_se4.png" id="fig:img-test-se4" alt="test_tte_se4">
+	        <img src="img/tte/test_tte_se4.png" id="fig:img-test-se4" alt="test_tte_se4 输出">
           <br>
-	        <b>{*@fig:img-test-se4}a</b>: <code>test_tte_se4</code> output.
+	        <b>{*@fig:img-test-se4}a</b>: <code>test_tte_se4</code> 输出。
 	      </div>
       </td>
     </tr>
     <tr valign="top">
       <td>
 	      <div class="cpt" style="width:128px;">
-	        <img src="img/tte/tte_se4_pal.png" alt="Palette for <code>test_tte_se4</code>.">
+	        <img src="img/tte/tte_se4_pal.png" alt="调色板（<code>test_tte_se4</code>）。">
           <br>
-	        <b>{*@fig:img-test-se4}b</b>: Palette.
+	        <b>{*@fig:img-test-se4}b</b>: 调色板。
 	      </div>
       </td>
       <td>
 	      <div class="cpt" style="width:256px;">
-	        <img src="img/tte/tte_se4_tiles.png" alt="VRAM Tiles for <code>test_tte_se4</code>.">
+	        <img src="img/tte/tte_se4_tiles.png" alt="<code>test_tte_se4</code> 的 VRAM 图块。">
           <br>
-	        <b>{*@fig:img-test-se4}c</b>: Tileset.
+	        <b>{*@fig:img-test-se4}c</b>: 图块集。
 	      </div>
       </td>
     </tr>
   </table>
 </div>
 
-In principle, all I need to do to use a different font is to select it with `tte_set_font()`, but since the tiles are at an offset, I also need to adjust the special color attribute. The value of 0x4100 is used here to account for the offset (0x0100) as well as the palette-bank (0x4000). I'm also selecting a different renderer for the occasion, although that's mostly for show here because the default renderer can handle 8×16 fonts just as well. After that, I just call `tte_write()` again to print a new string in using the new font.
+原则上，使用不同字体我所需做的就是用 `tte_set_font()` 选择它，但由于图块处于偏移位置，我还需要调整特殊颜色属性。这里使用值 0x4100 来考虑偏移（0x0100）和调色板 bank（0x4000）。我还为这个场合选择了另一种渲染器，尽管这里主要是为了展示，因为默认渲染器同样能处理 8×16 字体。之后，我只需再次调用 `tte_write()` 用新字体打印一个新字符串。
 
-### Affine tilemap text {#ssec-map-affine}
+### 仿射图块映射文本 {#ssec-map-affine}
 
-Text for affine tilemaps works almost the same as for regular tilemaps; you just have to remember the differences between the two kinds of backgrounds, like map size and available bitdepth. The functions' prototypes are the same, except that `se` is replaced by `ase`.
+仿射图块映射的文本与常规图块映射几乎一样；你只需记住两种背景之间的差异，比如地图大小和可用位深。函数的原型相同，只是 `se` 被 `ase` 替换。
 
-Internally, the only real difference is in what the renderers are to output, namely bytes instead of halfwords. And here we run into that quaint little fact of VRAM again: you can't write single bytes to VRAM. This means that the renderers will be a little more complicated. But only a little: simply call a byte-plotting routine for the screen-entry placement. Because affine maps are essentially 8bpp bitmap surfaces, I can use the standard plotter for 8bpp bitmap surfaces: `_sbmp8_plot()`. Aside from this one difference, the `ase_` renderers are identical to the `se_` counterparts.
+在内部，唯一的真正区别是渲染器要输出什么，即字节而非半字（halfword）。这里我们再次遇到 VRAM 那个古怪的小事实：你不能向 VRAM 写入单个字节。这意味着渲染器会稍微复杂一点。但也只是稍微：只需为屏幕条目放置调用一个字节绘制例程。因为仿射地图本质上是 8bpp 位图表面，我可以使用 8bpp 位图表面的标准绘制器：`_sbmp8_plot()`。除了这一处差异，`ase_` 渲染器与 `se_` 对应物相同。
 
 ```c {#cd-ase-drawg .proglist}
 
@@ -595,7 +594,7 @@ void ase_drawg_s(int gid)
 }
 ```
 
-The demo for affine map text is `text_tte_ase()`. The idea is simple here: set up the text for a 256×256 pixel map, write some text onto it and rotate the background to illustrate that it is indeed an affine background. The center of rotation is the “o” at the center of the screen. To place it there, I've used the `#{P:x,y}` code; this sets the cursor to the absolute position given by (x, y). The other string is also positioned on the map in this manner.
+仿射地图文本的演示是 `text_tte_ase()`。这里的思路很简单：为一个 256×256 像素的地图设置文本，把一些文本写上去，并旋转背景以说明它确实是一个仿射背景。旋转中心是屏幕中央的‘o’。要把它放在那里，我使用了 `#{P:x,y}` 代码；这把光标设为 (x, y) 给定的绝对位置。另一个字符串也以这种方式放置在地图上。
 
 ```c {#cd-test-ase .proglist}
 void test_tte_ase()
@@ -611,7 +610,7 @@ void test_tte_ase()
         0,                      // Tile offset (special cattr)
         CLR_YELLOW,             // Ink color
         0xFE,                   // BUP offset (on-pixel = 255)
-        NULL,                   // Default font (sys8)
+        NULL,                  // Default font (sys8)
         NULL);                  // Default renderer (ase_drawg_s)
 
     // Write something
@@ -638,13 +637,13 @@ void test_tte_ase()
 
 <div class="cpt" style="width:240px;">
   <img src="img/tte/test_tte_ase.png" id="fig:img-test-ase"
-    alt="<code>test_tte_ase</code>."><br>
-  <b>{*@fig:img-test-ase}</b>: <code>test_tte_ase</code>.
+    alt="<code>test_tte_ase</code>。"><br>
+  <b>{*@fig:img-test-ase}</b>: <code>test_tte_ase</code>。
 </div>
 
-## Bitmapped text {#sec-bmp}
+## 位图文本 {#sec-bmp}
 
-Bitmap text rendering is a little different from map text and can range in difficulty from easy to insane, depending on your wishes. At its core, though, it's always the same process: loop over all pixels and draw them on the destination surface. For example, a generic glyph renderer that draws pixels transparently could look something like this.
+位图文本渲染与地图文本略有不同，根据需求难度可以从简单到疯狂不等。不过其核心始终是同一个过程：遍历所有像素并把它们画到目标表面。例如，一个透明地绘制像素的通用字形渲染器可能看起来像这样。
 
 ```c {.proglist}
 // Pseudo code for a general glyph printer.
@@ -668,11 +667,11 @@ void foo_drawg(uint gid)
 }
 ```
 
-Here, _`foo`_ can mean any rendering family. `foo_plot()` is a general pixel plotter and `font_get_pixel()` a pixel retriever. The implementations of those functions depend on the specifics of the font and surface, but the glyph renderer doesn't need to know about that.
+这里，_`foo`_ 可以表示任何渲染族。`foo_plot()` 是通用的像素绘制器，`font_get_pixel()` 是像素读取器。这些函数的实现取决于字体和表面的具体细节，但字形渲染器不需要知道这些。
 
-### Basic bmp16 to bmp16 glyph printer {#ssec-bmp16-base}
+### 基本的 bmp16 到 bmp16 字形打印器 {#ssec-bmp16-base}
 
-This next function is an example of a 16bpp font to 16bpp bitmap printer.
+下一个函数是一个把 16bpp 字体打印到 16bpp 位图的例子。
 
 ```c {#cd-bmp16-drawg .proglist}
 //! Glyph renderer from bmp16 glyph to bmp16 destination.
@@ -704,15 +703,15 @@ void bmp16_drawg(uint gid)
 }
 ```
 
-Blocks 1a and 1b set up the main variables to use in the loop. The most important are the source and destination pointers, `srcD` and `dstD`, and their pitches, `srcP` and `dstP`. Notice that the source pitch, `srcP`, is the not the character width, but the cell width, because the fonts are organized on a cell-grid. The code at point 2 selectively copies pixels from the font to the surface.
+块 1a 和 1b 设置了循环中要使用的主要变量。最重要的是源和目标指针 `srcD` 和 `dstD`，以及它们的 pitch `srcP` 和 `dstP`。注意源 pitch `srcP` 不是字符宽度，而是单元格宽度，因为字体是按单元格网格组织的。第 2 点的代码有选择地把像素从字体复制到表面。
 
-#### Intermezzo : considerations for performance
+#### 插曲：关于性能的考量
 
-You may wonder why `bmp16_drawg()` doesn't follow the pattern in the earlier `foo_drawg()` more closely. The answer is, of course, performance. And before anyone quotes Knuth on me: not every effort to make your code fast is premature optimization. When you can improve the speed of the code without spending too much effort of a loss of readability, there's not much reason not to.
+你可能会想，为什么 `bmp16_drawg()` 没有更贴近前面 `foo_drawg()` 的模式。答案当然是性能。在有人拿 Knuth 的话来怼我之前：并非每次让代码变快的努力都是过早优化。当你能在不花太多力气、也不损失可读性的情况下提高代码速度时，没有太多理由不去这么做。
 
-In this case, the optimizations I've applied here fall into two categories: local variables and pointer arithmetic. These techniques – that every C programmer _should_ know – managed to boost the speed by a factor of 5.
+在这种情况下，我在这里应用的优化分为两类：局部变量和指针算术。这些——每个 C 程序员_都_应该知道的——技术把速度提升了 5 倍。
 
-Let's start with pointers. I'm using pointer to my advantage in two places here. First, instead of using the font-data pointer and destination pointer directly, I create pointers `srcD` and `dstD` and direct them the top-lefts of the glyph and where it will be rendered to. Short-circuiting the accesses like this means that I don't have to apply extra offsets to get to where I want to go in the loop. This will be both faster and in fact more readable as well, because the loops won't contain any non-essential expressions.
+从指针开始。我在这里两处利用指针为自己谋利。首先，我没有直接使用字体数据指针和目标指针，而是创建了指针 `srcD` 和 `dstD`，并把它们指向字形左上角和将被渲染到的位置。像这样短路访问意味着我不必在循环中施加额外偏移就能到达想去的地方。这既更快，实际上也更具可读性，因为循环里不会含有任何非必要表达式。
 
 ```c {.proglist}
 //# Example of a more standard bitmap copier.
@@ -721,13 +720,13 @@ for(iy=0; iy < charH; iy++)
         dstD[iy*dstP + ix]= srcD[iy*srcP+ix];
 ```
 
-A second point here is using incremental offsets instead of the `y*pitch+x` form (see above). I suppose this is mostly a matter of preference, but avoiding the wholly unnecessary multiplications does matter.
+第二点是使用增量偏移而非 `y*pitch+x` 形式（见上）。我想这主要是一个偏好问题，但避免完全不必要的乘法确实重要。
 
-The second optimization is local variables. By this I mean loading variables that reside in memory (globals and struct members) or oft-used function results in local temporaries. This may seem like a silly thing to point out, but the amount of time you can save with this is actually quite high.
+第二个优化是局部变量。我的意思是将驻留在内存中的变量（全局变量和结构成员）或频繁使用的函数结果载入局部临时变量。这看起来像是要指出的蠢事，但你用这种方式能节省的时间其实相当高。
 
-Consider the use of `tte_get_glyph_width()` here. I _know_ the width of a glyph won't change during the loop, so calling a function to get the width in the loop-condition itself is just stupid. Another example of this would be calling `strlen()` when looping over all characters in a string. For those who do this: NO! Bad programmer, bad! Save the value in a local variable and use that instead.
+考虑这里 `tte_get_glyph_width()` 的用法。我_知道_字形宽度在循环中不会改变，所以在循环条件本身里调用函数来获取宽度简直蠢。另一个例子是在遍历字符串中所有字符时调用 `strlen()`。对这么做的人：不！坏程序员，坏！把值保存在局部变量里，改用它。
 
-The other point is to pre-load things like globals and struct/class members if you use them more than once. Consider the following code. It's the same as the one given before, only now I have not loaded character height and the pitches into local temporaries.
+另一点是，如果你多次使用全局变量和结构/类成员，就预先载入它们。考虑下面的代码。它和前面给出的相同，只是现在我还没有把字符高度和 pitch 载入局部临时变量。
 
 ```c {.proglist}
 //# Another bitmap-copy example. DO NOT USE THIS !!!
@@ -736,43 +735,43 @@ for(iy=0; iy < font->charH; iy++)
         dstD[iy*tc->dst.pitch/2 + ix]= srcD[iy*font->cellW + ix];
 ```
 
-The result: the speed of the function was **halved**! I expected it to be slower, but that this innocuous-looking modification would actually cost me a factor two was quite a surprise to me.
+结果：函数速度被**减半**！我预期它会变慢，但这个看似无害的修改居然让我付出了两倍代价，着实让我吃惊。
 
-So yes, spam your code width locals for loop-invariant, memory-based quantities. This avoids them being loaded from memory every time. As a bonus, the loops themselves win contain less text and be more generalized, making it more reusable.
+所以是的，对你的循环不变量、基于内存的量，尽管用局部变量填充代码。这避免了它们每次都从内存载入。作为额外好处，循环本身会包含更少的文本而更具通用性，从而更可复用。
 
-Both the pointer work and pre-loading variables are actually the job of the compiler's optimizer, but the current version of GCC doesn't do these very well or at all. Also, sometimes it _can't_ do this optimization. When functions are called between memory dereferences, the compiler has to reload the data because those functions may have changed their contents. Obviously, this wouldn't happen for locals.
+指针运算和预载入变量其实都是编译器优化器的工作，但当前版本的 GCC 做得不好，或者根本不做。而且有时它_不能_做这种优化。当内存解引用之间调用了函数时，编译器不得不重新加载数据，因为那些函数可能改变了其内容。显然，对于局部变量这不会发生。
 
-:::tip Use local variables for struct members and globals
+:::tip 用局部变量保存结构成员和全局变量
 
-Struct members and global variables live in memory, not CPU registers. Before the CPU can use their data, they have to be loaded from memory into registers first, and this often happen more times then necessary. Since memory access (especially ROM access) is slower than register access, this can really bog down an algorithm if the thing is used more than once. You can avoid this needless work by creating local variables for them.
+结构成员和全局变量存在于内存中，而非 CPU 寄存器。在 CPU 能使用它们的数据之前，必须先把它们从内存载入寄存器，而这往往发生的次数比必要的多。由于内存访问（尤其是 ROM 访问）比寄存器访问慢，如果某东西被使用超过一次，这真的会拖慢算法。你可以通过为它们创建局部变量来避免这种无用功。
 
-Aside from the speed-boost, local variables can use shorter names, resulting in shorter and more readable code in the parts that actually do the work. It's win-freakin'-win, baby.
+除了提速，局部变量可以使用更短的名字，从而在实际工作的部分得到更短、更可读的代码。简直是双倍胜利，宝贝。
 
 :::
 
-### Glyph and surface formats {#ssec-srf-format}
+### 字形与表面格式 {#ssec-srf-format}
 
-The renderer described above assumes that the glyphs are in formatted as 16-bpp bitmaps. However, TTE's default fonts are in a 1-bpp tilestrip format, so I'll have to use something else. Before I go into the details of that function, I'd like to discuss the different glyph formats and why I'm using tile-strips instead of just plain bitmaps.
+上面描述的渲染器假设字形被格式化为 16-bpp 位图。然而，TTE 的默认字体是 1-bpp 图块条（tile-strip）格式，所以我得用别的东西。在深入这个函数的细节之前，我想讨论不同的字形格式，以及为什么我使用图块条而不是普通位图。
 
-When I say glyph formats, what I really mean is the order in which pixels are accessed. Three key variations exist.
+当我说字形格式时，我真正指的是像素被访问的顺序。存在三个关键变体。
 
-- **Linear** or **bitmap** layout. This is a simple, row-major matrix. This gives you two loops; one for _y_ and one for _x_.
-- **Tiled**. In particular: 8×8 tiled. This is the standard GBA tile format where each group of 8×8 pixels form a row-major matrix, and then the tiles themselves are part of a larger row-major matrix again. Going through this required **four** loops: two for each matrix.
-- **Tile-strips**. This also uses 8×8 tiles, but this time the tiles ordered in a column-major order. In other words, tile 1 comes below tile 0 instead of to the right. This has the rather nice property that the rows in successive tiles are consecutive. It eliminates the break in the _y_ direction, resulting in only 3 loops and has simpler code to boot.
+- **线性**（Linear）或**位图**（bitmap）布局。这是一个简单的行主序矩阵。这给你两个循环；一个给 _y_，一个给 _x_。
+- **分块**（Tiled）。特别是：8×8 分块。这是标准 GBA 图块格式，其中每 8×8 像素的一组形成一个行主序矩阵，然后这些图块本身再次是一个更大的行主序矩阵的一部分。遍历这个需要**四个**循环：每个矩阵两个。
+- **图块条**（Tile-strips）。这也使用 8×8 图块，但这次图块按列主序排列。换句话说，图块 1 在图块 0 下方，而不是右侧。这有一个相当不错的性质：连续图块中的行是连续的。它消除了 _y_ 方向上的断裂，结果只有 3 个循环，而且代码更简单。
 
-{\*@fig:img-src-loops} shows these three layouts, including the loop structure and the order in which the pixels are traversed for 1bpp fonts. The case is a little bit different because of the bit-packing: 1 bpp means 8 pixels per byte. As a result, the bitmap-_x_ loops have to be broken up into groups of 8, so that the bitmap format now uses three nests of loops instead of just two. There is no difference for the tiled formats, as those are grouped by 8 pixels anyway. Not only that, if you were to calculate the total loop-overhead for commonly used glyph sizes it turns out that this arrangement actually works particularly well for tile-strips. This is left as an exercise for the reader (hint: count the number of comparisons).
+{\*@fig:img-src-loops} 展示了这三种布局，包括循环结构和 1bpp 字体中像素被遍历的顺序。情况由于位打包而略有不同：1 bpp 意味着每字节 8 个像素。结果，位图 _x_ 循环必须被打断为 8 个一组，所以位图格式现在使用三层嵌套循环而不是两层。对于分块格式没有区别，因为它们本来就按 8 个像素分组。不仅如此，如果你去计算常用字形大小的总循环开销，你会发现这种排列实际上对图块条特别好。这作为练习留给读者（提示：数一数比较的次数）。
 
 <div class="cblock">
   <div class="cpt" style="width:600px;">
-    <img src="img/tte/src_loops.png" id="fig:img-src-loops" width=600 alt="Pixel traversal in glyphs for bitmap, tile and tile-strip formats. ">
+    <img src="img/tte/src_loops.png" id="fig:img-src-loops" width=600 alt="位图、图块和图块条格式中字形的像素遍历。">
     <br>
-    <b>{*@fig:img-src-loops}</b>: Pixel traversal in glyphs for 1-bpp bitmap, tile and tile-strip formats. The numbers indicate the loops and their nestings.
+    <b>{*@fig:img-src-loops}</b>: 1-bpp 位图、图块和图块条格式中字形的像素遍历。数字表示循环及其嵌套。
   </div>
 </div>
 
-### bmp16_drawg_b1cts : 1- to 16-bpp with transparency and coloring {#ssec-bmp16-std}
+### bmp16_drawg_b1cts：1 到 16 bpp，带透明与着色 {#ssec-bmp16-std}
 
-The next routine takes 1-bpp tile-strip glyphs and turns them into output suitable for 16-bpp bitmap backgrounds. The output will use the ink attribute for color and it will only draw a pixel if the bit was 1 in the source data, giving us transparency. The three macros at the top declare and define the basic variables, comparable to step 1a in `bmp16_drawg()`.
+下一个例程接收 1-bpp 图块条字形，并把它们转换为适合 16-bpp 位图背景的输出。输出将使用 ink 属性作为颜色，并且只有在源数据中该位为 1 时才绘制像素，从而实现透明。顶部的三个宏声明并定义了基本变量，与 `bmp16_drawg()` 中的第 1a 步类似。
 
 <pre><code class="language-c hljs">
 void bmp16_drawg_b1cts(uint gid)
@@ -806,15 +805,15 @@ void bmp16_drawg_b1cts(uint gid)
 }
 </code></pre>
 
-The routine starts by calls to three macros: `TTE_CHAR_VARS()`, `TTE_CHAR_VARS` and `TTE_DST_VARS()`. These declare and define most of the relevant local variables, similar to step 1a in `bmp16_drawg()`. Note that two of the arguments here are datatype identifiers for the source and destination pointers, respectively. `srcD` and `srcL` will initially point to the start of the source data. The other pointers, `dstD` and `dstL`, point to the start _of the scanline_ in the destination area. They haven't been corrected for the _x_-position just yet; that's done right after it.
+该例程以对三个宏的调用开始：`TTE_CHAR_VARS()`、`TTE_CHAR_VARS` 和 `TTE_DST_VARS()`。它们声明并定义了大多数相关的局部变量，类似于 `bmp16_drawg()` 中的第 1a 步。注意这里的两个参数是源和目标指针的数据类型标识符。开始时 `srcD` 和 `srcL` 会指向源数据的开头。其他指针 `dstD` 和 `dstL` 指向目标区域中_扫描线_的起点。它们还没有针对 _x_ 位置做修正；这正是紧随其后的事情。
 
-The reason I'm using two pairs of pointers here (a main _data_ pointer, `fooD` and a _line_ pointer `fooL`) is because of the pointer arithmetic. The data-pointer stays fixed and the line-pointer moves around in the inner loop.
+这里我使用两对指针（一个主_数据_指针 `fooD` 和一个_行_指针 `fooL`）的原因，是指针算术。数据指针保持固定，行指针在内层循环中移动。
 
-The tile-strip portion of {@fig:img-src-loops} illustrates how the routine moves over all the pixels. Because it's for a 1-bpp bitpacked font and because there are 8 pixels per tile-line, we can get an entire line's worth of pixels in one byte-read. Rendering transparently gives us a nice chance for optimization as well: if the tile-line is empty (i.e., `raw`==0), we have no more visible pixels in that line and we can move on to the next. A glance at the verdana 9 font in {@fig:img-verdana9}, will tell you that you may be able to skip 50% of the pixels because of this.
+{\*@fig:img-src-loops} 的图块条部分说明了该例程如何遍历所有像素。因为它用于 1-bpp 位打包字体，并且每个图块行有 8 个像素，我们可以用一次字节读取得到一整行的像素。透明渲染也给了我们一个很好的优化机会：如果图块行是空的（即 `raw`==0），我们就没有更多可见像素在该行，可以移动到下一行。看一眼 {@fig:img-verdana9} 中的 verdana 9 字体，你会明白由于这个原因你可能可以跳过 50% 的像素。
 
-### bmp8_drawg_b1cts : 1 to 8 bpp with transparency and coloring {#ssec-bmp8-std}
+### bmp8_drawg_b1cts：1 到 8 bpp，带透明与着色 {#ssec-bmp8-std}
 
-The 8 bpp counterpart of the previous function is called `bmp8_drawg_b1cts()`, and is given below. The code is very similar to the 16 bpp function, but because the pixels are now bytes there are a few differences in the details.
+上一函数的 8 bpp 对应物叫做 `bmp8_drawg_b1cts()`，如下给出。代码与 16 bpp 函数非常相似，但由于像素现在是字节，细节上有一些区别。
 
 <pre><code class="language-c hljs">void bmp8_drawg_b1cts(uint gid)
 {
@@ -850,7 +849,7 @@ The 8 bpp counterpart of the previous function is called `bmp8_drawg_b1cts()`, a
 
 </code></pre>
 
-The only real difference with `bmp16_drawg_b1cts` is in the inner-most loop. The no-byte-write issue for VRAM means that we need to write two pixels in one pass. To do this, I retrieve and unpack two bits into two bytes and use them to create the new pixels and the pixel masks. The first line in the inner loop does the unpacking. It transforms the bit-pattern _`ab`_ into `0000 000`_`a`_` 0000 000`_`b`_. Both bytes in this halfword are now 0 or 1, depending on whether _a_ and _b_ were on or off. By multiplying with `ink` and 255, you can get the colored pixels and the appropriate mask for insertion.
+与 `bmp16_drawg_b1cts` 唯一真正的区别在于最内层循环。VRAM 不可写字节的问题意味着我们需要一次写入两个像素。为此，我取出两个位并解包成两个字节，用它们创建新像素和像素掩码。内层循环的第一行做解包。它把位模式 _`ab`_ 转换成 `0000 000`_`a`_` 0000 000`_`b`_`。这个半字中的两个字节现在都是 0 或 1，取决于 _a_ 和 _b_ 是开还是关。通过乘以 `ink` 和 255，你可以得到着色像素和用于插入的适当掩码。
 
 <pre><code class="language-sh hljs"># 2-bit to 2-byte unpacking.
 0000 0000  hgfe dcb<b>a</b>    p  = raw (start)
@@ -859,39 +858,39 @@ The only real difference with `bmp16_drawg_b1cts` is in the inner-most loop. The
 0000 000<b>b</b>  0000 000<b>a</b>    p &amp;= ~0xFE;
 </code></pre>
 
-Preparing the right halfword is only part of the work. If `cursorX` (i.e., `x0`) is odd, then the glyph should be plotted to an odd starting location as well. However, the destination pointer `dstL` is halfword pointer and these must always be halfword aligned. To take care of this, note that unpacking the pattern ‘`abcd efgh`’ to an odd boundary is equivalent to unpacking ‘`a bcde fgh`**`0`**’ to an even boundary. This is exactly what the extra shift by `odd` is for.
+准备好正确的半字只是工作的一部分。如果 `cursorX`（即 `x0`）是奇数，那么字形也应该被绘制到一个奇数的起始位置。然而，目标指针 `dstL` 是半字指针，这些必须总是半字对齐的。为了处理这个，注意把模式‘`abcd efgh`’解包到奇数边界，等价于把‘`a bcde fgh`**`0`**’解包到偶数边界。这正是额外按 `odd` 移位的目的。
 
-### Example : sub-pixel rendering {#ssec-bmp-demo}
+### 示例：子像素渲染 {#ssec-bmp-demo}
 
-For the demo of this section, I'd like to use a technique called [<dfn>sub-pixel rendering</dfn>](https://en.wikipedia.org/wiki/Subpixel_rendering). This is a method for effectively tripling the horizontal resolution for rendering by ‘borrowing’ colors from other pixels.
+对于本节的演示，我想用一种叫做[<dfn>子像素渲染</dfn>](https://en.wikipedia.org/wiki/Subpixel_rendering)的技术。这是一种通过‘借用’其他像素的颜色来有效三倍化水平渲染分辨率的方法。
 
-Consider the letter ‘A’ as shown in {@fig:img-subpx}a. As you know, each pixel is composed of three colors: red, green and blue. These are the sub-pixels. The letter on the sub-pixel grid looks like {@fig:img-subpx}b. Notice how the colors are still grouped by pixels, which on the sub-pixel grid gives very jagged edges. The trick to sub-pixel rendering is to shift groups of sub-pixels left or right, resulting in smoother edges ({@fig:img-subpx}c). Now combine the pixels to RGB colors again to get {@fig:img-subpx}d. Zoomed in as it is in {@fig:img-subpx}, sub-pixel rendering may not look like much, but when used in the proper size the effects can be quite stunning.
+考虑 {@fig:img-subpx}a 中所示的字母‘A’。如你所知，每个像素由三种颜色组成：红、绿、蓝。这些是子像素。子像素网格上的字母看起来像 {@fig:img-subpx}b。注意颜色仍然按像素分组，这在子像素网格上给出了非常锯齿状的边缘。子像素渲染的技巧是左右移动子像素组，从而得到更平滑的边缘（{@fig:img-subpx}c）。现在再次把像素组合成 RGB 颜色得到 {@fig:img-subpx}d。像在 {@fig:img-subpx} 中那样放大后，子像素渲染可能看起来不怎么样，但在适当大小使用时效果会相当惊人。
 
 <div class="cblock">
   <div class="cpt" style="width:576px;">
-    <img src="img/tte/subpx.png" id="fig:img-subpx" alt="Subpixel rendering. Left: ">
+    <img src="img/tte/subpx.png" id="fig:img-subpx" alt="子像素渲染。左图：">
     <br>
-    <b>{*@fig:img-subpx}</b>: Subpixel rendering.
-    <b>a</b>: &lsquo;A&rsquo; on 8&times;8 grid.
-    <b>b</b>: as left, in R,G,B sub-grid.
-    <b>c</b>: shifting rows to distribute sub-pixels evenly.
-    <b>d</b>: new color distribution in pixels (black/white inverted).
+    <b>{*@fig:img-subpx}</b>: 子像素渲染。
+    <b>a</b>: 8&times;8 网格上的‘A’。
+    <b>b</b>: 同上，在 R、G、B 子网格上。
+    <b>c</b>：移动行以均匀分布子像素。
+    <b>d</b>：像素中新的颜色分布（黑/白反转）。
   </div>
 </div>
 
-Sub-pixel rendering isn't useful for everything. Because it muddles the concept of pixel and color a little, it's only useful for gray-scale images. This does make it great for text, of course. Secondly, the order in which the sub-pixels are ordered also matters. The process shown in **{@fig:img-subpx}** will work for RGB-ordered screens, but would fail quite spectacularly when the pixels are BGR-ordered. Going into all the gritty details it too much to do here, so I'll refer you to [http://www.grc.com/ctwhat.htm](https://www.grc.com/ctwhat.htm), which explains the concept in more detail and gives a few examples too.
+子像素渲染并非对一切都管用。因为它稍微混淆了像素和颜色的概念，它只适用于灰度图像。这当然使它非常适合文本。其次，子像素的排列顺序也很重要。**{@fig:img-subpx}** 所示的过程适用于 RGB 排列的屏幕，但当像素是 BGR 排列时会相当惨烈地失败。深入所有肮脏细节在这里篇幅太多，所以我让你参考 [http://www.grc.com/ctwhat.htm](https://www.grc.com/ctwhat.htm)，它更详细地解释了这一概念并给了几个例子。
 
 <div class="cpt_fr" style="width:128px;">
-  <img src="img/tte/yesh1.png" id="fig:img-yesh" width=128 alt="4&times;8 subpixel font">
+  <img src="img/tte/yesh1.png" id="fig:img-yesh" width=128 alt="4&times;8 子像素字体">
   <br>
-  <b>{*@fig:img-yesh}</b>: 4&times;8 subpixel font
+  <b>{*@fig:img-yesh}</b>: 4&times;8 子像素字体
 </div>
 
-JanoS ([http://www.haluz.org/yesh/](http://www.haluz.org/yesh/)) has created nice 4×8 sub-pixel font for use on GBA and NDS (see {@fig:img-yesh}). A width of 4 is really tiny; it's impossible to have glyphs of that size with normal rendering and still have readable text. With sub-pixel rendering, however, it still looks good and now you can have many more characters on the screen than usual.
+JanoS ([http://www.haluz.org/yesh/](http://www.haluz.org/yesh/)) 为 GBA 和 NDS 创建了一个不错的 4×8 子像素字体（见 {@fig:img-yesh}）。宽度 4 真的很小；用常规渲染不可能有那种大小的字形还能保持文本可读。然而用子像素渲染，它看起来仍然不错，现在你可以在屏幕上容纳比平时多得多的字符。
 
-The output of the demo can be seen in {@fig:img-test-bmp16}. Because sub-pixel rendering is so closely tied to the hardware you're viewing with, it will probably look crummy on most screens or paper. You really have to see it on a GBA screen for the full effect.
+演示的输出可以在 {@fig:img-test-bmp16} 看到。因为子像素渲染与你所观看的硬件紧密相连，在大多数屏幕或纸张上它可能看起来很糟。你真的得在 GBA 屏幕上才能看到完整效果。
 
-In this particular case, I've converted the font to work with `bmp16_drawg()`: a 16bpp font in bitmap layout. Creating an 8-bit version would not be very hard either. A 1-bpp bitpacked font would of course be impossible because the font has more than two colors. To make sub-pixel fonts look right, you'll actually need a lot of colors: one for each combination of R,G,B, and with difference shades of each. That said, JanoS has managed to reduce the amount of colors to 20 here without too much loss in quality. If anyone wants it, I also have a 15-color version to use with 4bpp fonts.
+在这个特定情况下，我把字体转换成了能与 `bmp16_drawg()` 配合使用的格式：一个位图布局的 16bpp 字体。创建一个 8 位版本也不会很难。当然，1-bpp 位打包字体是不可能的，因为该字体有超过两种颜色。要让子像素字体看起来正确，你实际上需要很多颜色：R、G、B 的每种组合，以及各自的明暗变化。话虽如此，JanoS 在不损失太多质量的情况下把颜色数量减少到了 20。如果有人想要，我也有一个 15 色的版本用于 4bpp 字体。
 
 ```c {#cd-tte-test-bmp16 .proglist}
 //! Testing a bitmap renderer with JanoS' sub-pixel font.
@@ -922,25 +921,25 @@ void test_tte_bmp16()
 
 <div class="lblock">
   <div class="cpt" style="width:240px;">
-    <img src="img/tte/test_tte_bmp16.png" id="fig:img-test-bmp16" alt="Sub-pixel rendering demo">
+    <img src="img/tte/test_tte_bmp16.png" id="fig:img-test-bmp16" alt="子像素渲染演示">
     <br>
-    <b>{*@fig:img-test-bmp16}</b>: Sub-pixel rendering demo
+    <b>{*@fig:img-test-bmp16}</b>: 子像素渲染演示
   </div>
 </div>
 
-## Object text {#sec-obj}
+## 对象文本 {#sec-obj}
 
-Object text is useful if you want the characters to move around a bit, or if you simply don't have any room on a background. There are a few possibilities for object text. The most obvious one is to load all the characters into object VRAM and set the tile-indices of the objects to use the right tiles. This is what the TTE object system uses.
+对象文本在你希望字符稍微移动一下，或者你背景上实在没有空间时很有用。对象文本有几种可能。最明显的一种是把所有字符载入对象 VRAM，并把对象的图块索引设为使用正确的图块。这就是 TTE 对象系统所用的方式。
 
-In many ways, this kind of object text is similar to tilemap text. The tiles are loaded up front and you change the relevant mapping entries (in this case `attr2` of the objects) to the right number. Of course, there are some notable differences as well.
+在许多方面，这种对象文本类似于图块映射文本。图块是预先载入的，你改变相关的映射条目（在这里是对象的 `attr2`）到正确的编号。当然，也有一些显著差异。
 
-For one thing, the positions of the characters must be written to the objects. But not only that, the objects also need to know how big they're supposed to be, and whether they have any other interesting qualities like rotation and palettes. For that reason, I've chosen to use the color attributes 0, 1 and 2 to store the object attributes 0, 1 and 2.
+其一，字符的位置必须写入对象。但不仅如此，对象还需要知道它们应该多大，以及是否有任何其它有趣的属性，比如旋转和调色板。因此，我选择使用颜色属性 0、1 和 2 来存储对象属性 0、1 和 2。
 
-Another problem is which objects to use and how many. This last one could present a big problem, actually, because you may also want to use objects for normal sprites and it would be a really bad idea if they were suddenly overridden by the text system.
+另一个问题是用哪些对象以及用多少。最后一个实际上可能带来大问题，因为你也可能想用对象做普通精灵，如果它们突然被文本系统覆盖，那会是个很糟糕的主意。
 
-For the latter issue, I use (or perhaps abuse) the `dst` member of the context. Each glyph is represented by an object, so I'll need an object array, but I'm doing it with a little twist. I'm going to start at the _end_ of the array, so that the lower objects can still be used for sprites as normal. Essentially, I'm using OAM as an empty-descending stack. In this arrangement, `dst.data` points to the top of the stack (i.e., the last element in the array), `dst.pitch` is the index to the current object, and `dst.width` is the length of the stack.
+对于后一个问题，我使用（或者也许是滥用）上下文的 `dst` 成员。每个字形由一个对象表示，所以我需要一个对象数组，但我用了一点小技巧。我将从数组的_末尾_开始，这样较低的对象仍能像平常一样用于精灵。本质上，我把 OAM 当作一个空降序栈来用。在这种安排中，`dst.data` 指向栈顶（即数组中的最后一个元素），`dst.pitch` 是当前对象的索引，`dst.width` 是栈的长度。
 
-The default plotter of objects is `obj_drawg`. Remember, `dst.pitch` is used as an index here and `dst.data` is the top of the stack, so a _negative_ index is used to get the current object. After that, the coordinates and the correct glyph index are merged with the color attributes to create the final object.
+对象的默认绘制器是 `obj_drawg`。记住，`dst.pitch` 在这里用作索引，`dst.data` 是栈顶，所以用一个_负_索引来获取当前对象。之后，坐标和正确的字形索引与颜色属性合并，创建最终的对象。
 
 ```c {#cd-obj-drawg .proglist}
 //! Glyph-plotter using objects.
@@ -962,29 +961,29 @@ void obj_drawg(uint gid)
 }
 ```
 
-And, yes, I know that this use of the `dst` member is somewhat … unorthodox; but it wasn't used here anyway so why not. I am considering using something more proper, but not just yet. Also, remember that this system assumes that the font is already loaded into VRAM and that this can take up a _lot_ of the available tiles. Using the verdana 9 font, that'd be 2\*240 = 480 tiles. That's nearly half of object VRAM. A safer alternative would be to load the necessary tiles dynamically, but that would require more resource management.
+而且，我知道这种 `dst` 成员的用法有点……不正统；但它在这里反正没被用到，所以为什么不呢。我正考虑用更规范一点的东西，但还不是现在。另外，记住这个系统假定字体已经载入 VRAM，而这会占用_很多_可用图块。使用 verdana 9 字体的话，那将是 2\*240 = 480 个图块。几乎是对象 VRAM 的一半。更安全的替代方案是动态载入所需图块，但那需要更多资源管理。
 
-:::warning TTE object text is ugly
+:::warning TTE 的对象文本很丑
 
-The way object text is handled in TTE works, but it the implementation is not exactly pretty. The way I'm using `TTC.dst` here is, well, bad. There is a good chance I'll clean it up a bit later, or at the very least hide the implementation better.
+TTE 中处理对象文本的方式能工作，但实现并不怎么漂亮。我在这里使用 `TTC.dst` 的方式，嗯，很糟。我很可能会稍后清理一下，或者至少把实现隐藏得更好。
 
 :::
 
-### Example: letters. Onna path {#ssec-obj-demo}
+### 示例：字母。沿路径 {#ssec-obj-demo}
 
-The defining characteristic of objects is that they're separate from backgrounds; they can move around the screen independently. Object text is most likely used for text that is dynamic or has to travel along some sort of path. In this case, I'll make them fly on a parameterized path called a [Lissajous curve](https://en.wikipedia.org/wiki/Lissajous_curve) (see {@fig:img-test-obj}).
+对象的定义是它们与背景分离；它们可以在屏幕上独立移动。对象文本最有可能用于动态文本，或者必须沿某种路径移动。在这种情况下，我会让它们沿着一个参数化路径飞行，叫做 [Lissajous 曲线](https://en.wikipedia.org/wiki/Lissajous_curve)（见 {@fig:img-test-obj}）。
 
 <div class="cpt_fr" style="width:240px;">
-  <img src="img/tte/test_tte_obj.png" id="fig:img-test-obj" alt="Object text on a path.">
+  <img src="img/tte/test_tte_obj.png" id="fig:img-test-obj" alt="沿路径的对象文本。">
   <br>
-  <b>{*@fig:img-test-obj}</b>: Object text on a path.
+  <b>{*@fig:img-test-obj}</b>: 沿路径的对象文本。
 </div>
 
-The code is given below. After initializing the usual suspects, `tte_init_obj()` is called. The object stack starts at the back of OAM, which is also what the system defaults to if `NULL` passed as the first parameter. The next three are the object attributes. Because I want to use the default variable width font, verdana 9, the attributes should be set to 8×16 objects. The bitdepth of the tiles will always be 4 to keep the number of used tiles within limits. The rest of the initialization should be easy to understand.
+代码在下面给出。在初始化了惯常的嫌疑人之后，调用 `tte_init_obj()`。对象栈从 OAM 的末尾开始，如果第一个参数传 NULL，这也是系统默认的做法。接下来三个是对象属性。因为我想用默认的变宽字体 verdana 9，属性应设为 8×16 对象。图块的位深总是 4，以把所用图块数量控制在限度内。初始化的其余部分应该容易理解。
 
-Making the string itself is done at step 2. Note that the string also set the paper color attribute (which corresponds to obj.attr2) to 0x1000 to make the “omg” red. After these few lines, the text handling itself is complete.
+字符串本身的制作在第 2 步完成。注意字符串还把背景颜色属性（对应 obj.attr2）设为 0x1000 以让‘omg’变红。这几行之后，文本处理本身就完成了。
 
-In step 3, the coordinates on the path are calculated. The `t` parameter indicates the how far along the path we are. It is used to calculate the coordinates of each letter – the first one using `t` itself, and the rest are essentially time-delayed. Don't be distracted by the magic numbers: the only reason for their values is to make the effect look alright. Try tweaking them a little to see what they do exactly.
+在第 3 步，计算路径上的坐标。`t` 参数指示我们沿路径走了多远。它用于计算每一个字母的坐标——第一个使用 `t` 本身，其余本质上是时间延迟的。别被那些魔数分了神：它们取值的唯一原因就是让效果看起来还行。试着稍微调整它们，看看它们究竟做什么。
 
 ```c {#cd-test-obj .proglist}
 // Object text demo
@@ -1039,38 +1038,38 @@ void test_tte_obj()
 }
 ```
 
-## Rendering to tiles {#sec-chr}
+## 渲染到图块 {#sec-chr}
 
-Using tilemaps for text is nice, but will only work if the dimensions of the glyphs are multiples of 8. There are a few drawbacks in terms of readability: narrow characters such as ‘i’ will seem either overly wide, or be surrounded by many empty pixels. Also, you can't put many characters on a line because there are only so many tiles.
+用图块映射做文本不错，但只有在字形尺寸是 8 的倍数时才有效。在可读性方面有几个缺点：‘i’这样的窄字符会显得要么过宽，要么被许多空白像素包围。而且，因为图块数量有限，一行放不下很多字符。
 
-Variable-width fonts (<dfn>vwf</dfn>; also known as proportional fonts) solve this problem. Using variable-width fonts on bitmaps is quite easy, as shown in the ["Bitmapped text" section](#sec-bmp).. However, using it in tilemap modes is a little trickier: how do you draw on a tilemap where the tiles are 8×8 in size?
+变宽字体（<dfn>vwf</dfn>；也称比例字体）解决了这个问题。在位图上使用变宽字体相当容易，如[“位图文本”一节](#sec-bmp)所示。然而，在图块映射模式中使用它要棘手一点：你怎么在图块为 8×8 大小的图块映射上绘制？
 
-Well, you don't. Not exactly. The key is not to draw to the map, but to the tiles that the map shows.
+嗯，你不直接那么做。不完全是。关键不是绘制到地图，而是绘制到地图所显示的图块上。
 
-### Basic tile rendering {#ssec-chr-base}
+### 基本图块渲染 {#ssec-chr-base}
 
-The usual way to work with tilemaps is that you load up a tileset, and then select the ones you want to show up on the screen by filling the tilemap. In those circumstances, the tileset is often static, with the map being updated for things like scrolling. Rendering to tiles reverses that procedure.
+使用图块映射的通常方式是载入一个图块集（tileset），然后通过填充图块映射来选择你想在屏幕上显示的那一些。在那些情况下，图块集往往是静态的，地图被更新用于滚动之类的事情。渲染到图块颠倒了这个流程。
 
-First, you need to set up a map where each entry points to a unique tile. This essentially forms a graphical surface out of the tiles, which you can then draw to like any other. The most obvious way to do this is to simply fill up the screenblock with consecutive numbers (see {@fig:img-chr4-map}a). However, a better way to map the tiles is by mapping tiles in column-major order (see {@fig:img-chr4-map}b) , for the same reason I chose it for the glyph format: the words in a column of tiles are consecutive.
+首先，你需要搭建一个地图，其中每个条目指向一个唯一图块。这本质上用图块构成了一个图形表面，然后你可以像对其他表面一样绘制到它上面。最明显的方法是简单地用连续数字填满屏幕块（见 {@fig:img-chr4-map}a）。然而，更好地映射图块的方式是按列主序映射图块（见 {@fig:img-chr4-map}b），理由与我选择它作为字形格式相同：一列图块中的字是连续的。
 
 <div class="cblock" id="fig:img-chr4-map">
   <table border=0 cellpadding=4 cellspacing=0 width=70%>
     <tr>
       <td>
         <img src="img/tte/chr4r_map.png" alt="">
-        <b>{*@fig:img-chr4-map}a</b>. Row-major tile indexing.
+        <b>{*@fig:img-chr4-map}a</b>. 行主序图块索引。
       </td>
       <td>
         <img src="img/tte/chr4c_map.png" alt="">
-        <b>{*@fig:img-chr4-map}b</b>. Column-major tile indexing.
+        <b>{*@fig:img-chr4-map}b</b>. 列主序图块索引。
       </td>
     </tr>
   </table>
 </div>
 
-Preparing the map is the easy part; the problem is knowing which part of which tile to edit to plot a pixel. First, you need to split the coordinates into tile coordinates and pixel-in-tile coordinates. This comes down to division and modulo by 8, respectively. Note that in column-major mode you only need to do this for the _x_ coordinate. With this information, you can find the right word. The horizontal in-tile coordinate tells you which nybble in the word to update and at that point it's the usual bitfield insertion.
+准备地图是容易的部分；问题是要知道编辑哪个图块的哪一部分来绘制一个像素。首先，你需要把坐标拆成图块坐标和图块内像素坐标。这分别相当于除以 8 和模 8。注意在列主序模式下，你只需对 _x_ 坐标做这个。有了这些信息，你可以找到正确的字。水平的图块内坐标告诉你更新字中的哪个 nybble，此时就是通常的位域插入。
 
-Tonclib has routines for drawing onto 4bpp, column-major tiles (referred to as <dfn>chr4c</dfn> mode). The plotter and the map preparation functions are given below, along with a demonstration routine to explain their use.
+Tonclib 有用于绘制到 4bpp 列主序图块（称为 <dfn>chr4c</dfn> 模式）的例程。绘制器和地图准备函数在下面给出，还有一个演示例程来解释它们的用法。
 
 ```c {#cd-chr4c-test .proglist}
 //# From tonc_schr4c.c
@@ -1139,38 +1138,38 @@ void test_chr4()
 }
 ```
 
-The pixel plotter starts by finding the tile-column that the desired pixel is in. The column-index is simply _x_/8; this is multiplied by the pitch to get a pointer to the top of the column. Note that pitch is used a little different than usual. Normally, it denotes the number of bytes to the next scanline, but in this case it's used as the byte-offset to next tile-column. For a column-major mode, this comes down to the *height*×*bpp*\*8/8, but all that is done in `srf_init()`. Once you have the right tile, the pixel you want is in the _x_%8<sup>th</sup> nybble, meaning the required shift for the insertion is _x_%8\*4. After that, it's just a matter of inserting the color. <span class="mini">(For the curious: I'm casting _x_ to unsigned int first because division and modulo will then be optimized to shifts/masks properly.)</span>
+像素绘制器首先找到目标像素所在的图块列。列索引简单地是 _x_/8；乘以 pitch 得到指向列顶部的指针。注意 pitch 的用法与平时略有不同。通常它表示到下一扫描线的字节数，但在这里它被用作到下一个图块列的字节偏移。对于列主序模式，这归结为 *height*×*bpp*\*8/8，但这些都在 `srf_init()` 里完成了。一旦有了正确的图块，你想要的像素就在第 _x_%8<sup>th</sup> 个 nybble 中，意味着插入所需的移位是 _x_%8\*4。之后，只需插入颜色即可。<span class="mini">（好奇的话：我先把 _x_ 转换成无符号 int，因为这样除法和模运算会被正确地优化成移位/掩码。）</span>
 
-The `schr4c_prep_map()` function just initializes the map in the order given in {@fig:img-chr4-map}b. Well, almost.I'm also adding a value to each screen-entry like I usually do for palettes and tile-offsets.
+`schr4c_prep_map()` 函数只是按 {@fig:img-chr4-map}b 中给出的顺序初始化地图。嗯，差不多。我还像通常对调色板和图块偏移那样，给每个屏幕条目加上一个值。
 
-The output of `test_chr4()` can be seen in {@fig:img-chr4-test}a. It's a white rectangle with red, green and blue lines, as expected. {\*@fig:img-chr4-test}b is a picture taken from VBA's tile viewer, showing how the contents of the surface. Doesn't quite look what's on the screen, does it? Still, if you look closely, you can figure out how it works. Each set of 20 tiles forms one tile-column on the screen (indicated by yellow blocks). When you place these tiles on top of each other, you'll see the picture of {@fig:img-chr4-test}a emerge.
+`test_chr4()` 的输出可以在 {@fig:img-chr4-test}a 看到。如预期，它是一个带有红、绿、蓝线条的白色矩形。{\*@fig:img-chr4-test}b 是从 VBA 的图块查看器截取的图，展示了表面的内容。看起来和屏幕上的不太一样，是吧？不过，如果你仔细看，你能弄清楚它怎么工作。每组 20 个图块在屏幕上构成一个图块列（以黄色块标示）。当你把这些图块叠在一起时，就会看到 {@fig:img-chr4-test}a 的图片浮现。
 
 <div class="cblock">
   <table width=60% id="fig:img-chr4-test">
     <tr valign="top">
       <td>
 	      <div class="cpt" style="width:80px;">
-	        <img src="img/tte/chr4_test.png" alt="Output of chr4_test">
+	        <img src="img/tte/chr4_test.png" alt="chr4_test 的输出">
           <br>
-	        <b>{*@fig:img-chr4-test}a</b>: chr4_test() output
+	        <b>{*@fig:img-chr4-test}a</b>: chr4_test() 输出
 	      </div>
       </td>
       <td>
 	      <div class="cpt" style="width:289px;">
-	        <img src="img/tte/chr4_test_tiles.png" alt="Output of chr4_test">
+	        <img src="img/tte/chr4_test_tiles.png" alt="chr4_test 的输出">
           <br>
-	        <b>{*@fig:img-chr4-test}b</b>: chr4_test() tiles. The yellow blocks indicate tiles of a single column.
+	        <b>{*@fig:img-chr4-test}b</b>: chr4_test() 的图块。黄色块标示属于同一列的图块。
 	      </div>
       </td>
     </tr>
   </table>
 </div>
 
-### Text rendering on tiles {#ssec-chr-drawg}
+### 图块上的文本渲染 {#ssec-chr-drawg}
 
-#### Version 1 : pixel by pixel
+#### 版本 1：逐像素
 
-The easiest way to render glyphs to tiles is to follow the template from the ["Bitmapped text" section](#sec-bmp).. This is done in the function below.
+渲染字形到图块最简单的方式是遵循[“位图文本”一节](#sec-bmp)的模板。这是在下面的函数中完成的。
 
 ```c {#cd-chr4-drawg-b1cts-a .proglist}
 //! Simple version of chr4 renderer.
@@ -1199,17 +1198,17 @@ void chr4_drawg_b1cts_base(uint gid)
 }
 ```
 
-Now, you may think that this runs pretty slowly thanks to all the recalculations in `schr4c_plot()`. And you'd be right, but in truth, it's not as bad as I originally thought. It is possible to speed it up by simply inlining things, but the real gain comes from drawing pixels in parallel.
+现在，你可能认为由于 `schr4c_plot()` 中所有的重复计算，这运行得相当慢。你是对的，但事实上，它没我最初想的那么糟。通过简单地内联，是有可能加速的，但真正的收益来自并行绘制像素。
 
-#### Version 2 : 8 pixels at once.
+#### 版本 2：一次 8 像素
 
-Instead of plotting pixel individually, you can also plot multiple pixels simultaneously. The `bmp8_drawg_b1cts()` renderer we saw earlier did this: it unpacked 2 pixels and drew together. In the case of 4bpp tiles, you can unpack the source byte into one (32bit) word and plot _eight_ pixels at once. The only downside is that you'll probably have to split it over two tiles.
+与其逐个绘制像素，你也可以同时绘制多个像素。我们之前看到的 `bmp8_drawg_b1cts()` 渲染器就是这样做的：它解包 2 个像素并一起绘制。在 4bpp 图块的情况下，你可以把源字节解包成一个（32 位）字，并一次绘制_八_个像素。唯一的缺点是你可能得把它分到两个图块上。
 
-The next function is TTE's main glyph renderer for tiles, and it is a doozy. There are two stages for the rendering in the inner loop: bit unpacking the source byte, `raw` and splitting the prepared pixel `px` into two adjacent tiles. These correspond to steps 3 and 4, respectively.
+下一个函数是 TTE 用于图块的主要字形渲染器，它是个大家伙。内层循环中渲染有两个阶段：解包源字节 `raw`，以及把准备好的像素 `px` 拆分到相邻的图块上。它们分别对应第 3 步和第 4 步。
 
-Normally, the bitunpack is done in a loop, but sometimes it's faster to do it in other ways. For details, see my document on [bit tricks](https://www.coranac.com/documents/bittrick/#sec-bup). The first five lines of step 3 do the unpacking. For example, it turns a binary `0001 1011` into a hexadecimal `0x00011011`. This is then multiplied by 15 and `ink` to give the pixel mask `pxmask` and the colored pixels `px`, respectively.
+通常，位解包是在循环中完成的，但有时用其他方式做更快。细节见我关于[位技巧](https://www.coranac.com/documents/bittrick/#sec-bup)的文档。第 3 步的前五行做解包。例如，它把二进制 `0001 1011` 变成十六进制 `0x00011011`。然后乘以 15 和 `ink`，分别给出像素掩码 `pxmask` 和着色像素 `px`。
 
-Step 4 distributes the word with the pixels over two tiles if necessary. In step 1, left and right shifts were prepared to supply the bit offsets for this procedure. Now, for larger glyphs this will mean that certain destination words are used twice, but this can't be helped (actually it can, but the procedure is ugly and possibly not worth it). An alternative to this is using the destination once and read (and unpack/color) the source twice; however, as VRAM is considerably faster than ROM I doubt this would be beneficial.
+第 4 步在必要时把带像素的字分配到两个图块上。在第 1 步，准备了左移和右移来提供这个过程的位偏移。现在，对于更大的字形，这意味着某些目标字会被使用两次，但这没办法（其实可以，但过程很丑而且可能不值得）。另一种做法是使用目标一次，并读取（以及解包/着色）源两次；然而，由于 VRAM 比 ROM 快得多，我怀疑这会更有利。
 
 <pre><code class="language-c hljs">//! Render 1bpp fonts to 4bpp tiles; col-major order.
 void chr4c_drawg_b1cts(uint gid)
@@ -1265,15 +1264,15 @@ void chr4c_drawg_b1cts(uint gid)
 }
 </code></pre>
 
-`chr4c_drawg_b1cts()` is pretty fast. It certainly is faster than the earlier version by about 33%. It's actually even faster than the bmp8 renderer, but only by a slim margin.
+`chr4c_drawg_b1cts()` 相当快。它肯定比早期版本快约 33%。它实际上甚至比 bmp8 渲染器还快，但只是微弱优势。
 
-Of course, you can always go one better. The various shifts and conditionals make it perfect for ARM code, rather than Thumb. And to make sure it goes exactly according to plan, I'm doing this in assembly.
+当然，你总能更上一层楼。各种移位和条件判断使它非常适合 ARM 代码，而非 Thumb。而且为确保它完全按计划进行，我用汇编来做。
 
-#### Version 3: ARM asm
+#### 版本 3：ARM 汇编
 
-The next function is `chr4_drawg_b1cts_fast()`, the ARM assembly equivalent of version 2. There's an almost one-to-one correspondence between the C and asm loops, so just loop to the C version for the explanation.
+下一个函数是 `chr4_drawg_b1cts_fast()`，即版本 2 的 ARM 汇编等价物。C 循环和 asm 循环几乎是一一对应的，所以请参考 C 版本了解说明。
 
-Speed-wise, the asm version is _much_ better than the C version. Even in ROM, which is _very_ bad for ARM code, it is still faster than the Thumb version. There are one or two tiny details by which you can speed this thing up, but by and large this should be it for fonts of arbitrary dimensions. Of course, if you have fixed sizes for your font and do not require recoloring or transparency, things will be a little different.
+就速度而言，asm 版本比 C 版本_好得多_。即使在 ROM 中——这对 ARM 代码_非常_不利——它仍然比 Thumb 版本快。有一两个小小的细节可以再加速它，但大体上对于任意尺寸的字体这就应该是它了。当然，如果你的字体尺寸固定，并且不需要重新着色或透明，情况会略有不同。
 
 ```armasm {#cd-chr4c-drawg-b1cts-fast .proglist}
 // Include TTC/TFont member offsets plz.
@@ -1402,11 +1401,11 @@ chr4c_drawg_b1cts_fast:
 @ EOF
 ```
 
-### Multi-color and shaded fonts. {#ssec-chr4-drawg-b4}
+### 多色与带阴影的字体 {#ssec-chr4-drawg-b4}
 
-Bitpacked fonts will give you monochrome glyphs. If you want more colors – for shading or anti-aliasing – you'll need to use more bits. The code for this is nearly identical to the 1bpp bitpacked version; the most important differences being a different source datatype and an alternative method for finding the right mask. Oh, and you won't have to unpack the bits anymore, of course.
+位打包字体会给你单色字形。如果你想要更多颜色——用于阴影或抗锯齿——你需要使用更多位。这里的代码与 1bpp 位打包版本几乎相同；最重要的区别是不同的源数据类型和寻找正确掩码的替代方法。哦，当然，你不再需要解包位了。
 
-The following snippet shows how you can make a transparency mask out of a word of 4bit pixels. Essentially, you mask all the bits of a nybble together and mask out the other bits of that nybble. This gives 0 if the whole nybble was empty, or 1 is it wasn't. This can then again be multiplied by 15 to give the proper mask.
+下面的片段展示了如何从一个 8 个 4 位像素的字创建透明掩码。本质上，你把 nybble 的所有位做掩码，并屏蔽掉该 nybble 的其他位。如果整个 nybble 为空，得到 0；否则得到 1。然后这又乘以 15 给出适当的掩码。
 
 ```c {.proglist}
 // Create pixel mask from 8x 4 bits
@@ -1423,14 +1422,14 @@ pxmask *= 15;
 <div class="cpt_fr" style="width:128px;">
   <img src="img/tte/verdana9_b4.png" id="fig:img-verdana9-b4" width="128" alt="">
   <br>
-  <b>{*@fig:img-verdana9-b4}</b>: Verdana 9, with shade.
+  <b>{*@fig:img-verdana9-b4}</b>: Verdana 9，带阴影。
 </div>
 
-#### Shaded characters
+#### 带阴影的字符
 
-No, not shad*y* characters; shad*ed* characters. What you'll often see in games is that the text has either an outline or a bit of shading on one side. While it is possible to create shading with a 1bpp font, it's easier to simply build it into the font itself (see {@fig:img-verdana9-b4}). Because this means more colors than 1bpp can handle, you may be tempted to use a 2bpp font here. However, unless you are _really_ stressed for memory, it's more convenient to use 4bpp here as well.
+不，不是阴*郁*（shad*y*）的字符；是带阴*影*（shad*ed*）的字符。你常在游戏中看到的是文本一侧有轮廓或一点阴影。虽然有可能用 1bpp 字体创建阴影，但更简单的是直接把它构建进字体本身（见 {@fig:img-verdana9-b4}）。因为这意味着比 1bpp 能处理的颜色更多，你可能会想在这里使用 2bpp 字体。然而，除非你真的_非常_缺内存，用 4bpp 在这里同样更方便。
 
-At that point, you can follow the procedure described earlier. But by cleverly using the bits that make up the shading, you can allow the shadow color to be variable as well. For example, you can designate bit 0 as the 'ink' bit, bit 1 as the 'shadow' bit and if necessary bit 2 as the 'paper' bit. Then `raw&0x11111111` gives the 'ink' mask, and `(raw>>1)&0x11111111` gives the 'shadow' mask; these can then be used to apply colors and to create the full mask. The following is a demonstration of how this can be done. Note that each line here corresponds exactly to one ARM instruction, so this should be an efficient method. Well, in ARM code anyway.
+到那时，你可以遵循前面描述的流程。但通过巧妙地利用构成阴影的位，你也可以让阴影颜色可变。例如，你可以指定位 0 为‘ink’位，位 1 为‘shadow’位，必要时位 2 为‘paper’位。那么 `raw&0x11111111` 给出‘ink’掩码，`(raw>>1)&0x11111111` 给出‘shadow’掩码；然后它们可以用于应用颜色并创建完整掩码。下面是一个如何做的演示。注意这里的每一行正好对应一条 ARM 指令，所以这应该是高效的方法。嗯，在 ARM 代码里是这样的。
 
 ```c {.proglist}
 // Use bits 0 and 1 from each nybble to create masks and apply colors.
@@ -1446,7 +1445,7 @@ px      = px * ink;             // Color with ink
 px     += raw* shadow;          // Add shadow pixels
 ```
 
-The `chr4c_drawg_b4cts()` renderer uses this method to color both the ink and shadow pixels. It's essentially `chr4c_drawg_b4cts()` except for the things in bold and the removal of the bit unpacking. Also note the ‘no-pixel’ condition here. If `pxmask` is zero, there's nothing to do; and so we won't.
+`chr4c_drawg_b4cts()` 渲染器使用这个方法给 ink 和 shadow 像素都着色。它本质上就是 `chr4c_drawg_b4cts()`，除了加粗部分以及去掉了位解包。还要注意这里的‘无像素’条件。如果 `pxmask` 为零，就无事可做；所以我们不做什么。
 
 <pre><code class="language-c hljs">//! 4bpp font, tilestrips with ink/shadow coloring.
 void chr4c_drawg_b4cts(uint gid)
@@ -1500,36 +1499,36 @@ void chr4c_drawg_b4cts(uint gid)
 }
 </code></pre>
 
-### Tips for fast tile rendering {#ssec-chr4-tips}
+### 快速图块渲染的技巧 {#ssec-chr4-tips}
 
-I've done a fair bit of profiling for these tile renderers and think I have a decent knowledge of which techniques will be efficient and which won't. These are some of my observations.
+我对这些图块渲染器做了不少性能分析，并认为自己相当了解哪些技术高效、哪些不高效。以下是我的一些观察。
 
-- **Profile**. Before conjuring up tricky routines, make sure the original simple version warrants optimizing _and_ that the clever routine is actually faster.
-- **Render transparently**. Now, you'd think that this would be slower, but it may not be. The thing about transparent text is that there are much less foreground pixels then there are background pixels, so the number of pixels to render is lower as well.
-- **Don't buffer**. My first trials had separate stages for unpacking/coloring and inserting into VRAM. It put the prepared pixels into an IWRAM buffer, then copied that to VRAM. If I recall correctly, combining the loops and tossing the buffer saved me 30%.
-- **Parallelize**. The road to getting the right data is long. It helps if you don't have to travel it that much. That said, if you have many empty pixels, drawing 8 of them at once may be a waste of effort. This will depend on the font.
-- **ARM code is teh r0xx0rz**. There are lots of shifts, masks and quantities in these routines. This makes them particularly apt for ARM code instead of Thumb. In fact, even in ROM with its 16-bit bus, the ARM versions beat out the Thumb-compiled ones. Having said that …
-- **Do not let GCC use constant masks in ARM**. There is an unfortunate bug in the ARM optimizer concerning ANDing literals (like 0x11111111). Instead of emitting a simple `ldr`+`and` pair, it will get clever and avoid the load by splitting the mask out over multiple byte-size masks. So instead of one instruction in the inner-loop, you now have four. Perhaps even more, depending on how many extra registers this takes. Note, this _only_ happens for constants and only for ARM-compiled code. A work-around is to have the mask in a global variable to be loaded before the loops. This is in part why I've hand-assembled some of the routines.
-- **Code for special case if you can**. If you only have one font and don't require things like coloring, you can code for that case only and potentially save much time. Using constants for source and destination dimensions instead of using the ones in memory will also help a little.
-- **Use column-major accessing**. The routines presented above require extra code to move from one tile-row to another. If you use the tiles in a column-major layout, you won't have to do this.
+- **分析性能（Profile）**。在想出复杂的例程之前，确保原始的简单版本确实值得优化_而且_聪明的例程确实更快。
+- **透明渲染**。现在，你可能会认为这会较慢，但也许不会。透明文本的关键在于前景像素比背景像素少得多，所以要渲染的像素数量也更少。
+- **不要缓冲**。我的首次尝试有用于解包/着色和插入 VRAM 的分离阶段。它把准备好的像素放进一个 IWRAM 缓冲区，然后复制到 VRAM。如果我没记错，合并循环并丢开缓冲区为我节省了 30%。
+- **并行化**。得到正确数据的路很长。如果你不必走那么多趟，会很有帮助。话虽如此，如果你有很多空像素，一次画 8 个可能是浪费力气。这取决于字体。
+- **ARM 代码是 r0xx0rz（极品）**。这些例程中有很多移位、掩码和数量。这使它们特别适合 ARM 代码而非 Thumb。事实上，即使在带有 16 位总线的 ROM 中，ARM 版本也击败了 Thumb 编译的版本。话虽如此……
+- **不要让 GCC 在 ARM 中使用常量掩码**。ARM 优化器在处理与字面量（如 0x11111111）做 AND 时有一个不幸的 bug。它不会发出简单的 `ldr`+`and` 对，而是会变聪明，通过把掩码拆成多个字节大小掩码来避免加载。所以内层循环里你不是一条指令，而是四条。可能更多，取决于这占用了多少额外寄存器。注意，这_只_对常量发生，且_只_对 ARM 编译的代码发生。一个变通办法是把掩码放在一个会在循环前载入的全局变量中。这也是我把一些例程手工汇编的部分原因。
+- **如果可以，为特殊情况编码**。如果你只有一种字体，并且不需要着色之类的东西，你可以只针对那种情况编码，并可能节省大量时间。对源和目标的尺寸使用常量而非内存中的值也会有点帮助。
+- **使用列主序访问**。上面给出的例程需要额外代码才能从一个图块行移动到另一个。如果你以列主序布局使用图块，就不必这么做。
 
-Please apply the standard disclaimer to this list. I've found these techniques to work for my cases, but they won't apply to every case. For example, other systems (\*cough\* NDS) will have different CPU architectures and memory characteristics, and that would affect the speed.
+请对这份清单应用标准免责声明。我发现这些技术对我的案例有效，但它们不会适用于每个案例。例如，其他系统（*咳* NDS）会有不同的 CPU 架构和内存特性，那会影响速度。
 
-### Colored text on a dialog window. {#ssec-chr4-demo}
+### 对话框窗口上的彩色文本 {#ssec-chr4-demo}
 
 <div class="cpt_fr" style="width:240px;">
-  <img src="img/tte/test_tte_chr4.png" id="fig:img-test-chr4" alt="Text on tiles.">
+  <img src="img/tte/test_tte_chr4.png" id="fig:img-test-chr4" alt="图块上的文本。">
   <br>
-  <b>{*@fig:img-test-chr4}</b>: Text on tiles.
+  <b>{*@fig:img-test-chr4}</b>: 图块上的文本。
 </div>
 
-The situation depicted in {@fig:img-test-chr4} should be familiar. The key point here is that there is a background map, and a dialog box with text in it. This text is static, but the position in the top-left corner is continually updated as you scroll along the map.
+{@fig:img-test-chr4} 中描绘的情况应该很熟悉。这里的关键点是有一个背景地图，以及一个里面有文本的对画框。这个文本是静态的，但左上角的位置会随着你沿地图滚动而不断更新。
 
-The core function for this demo is `test_tte_chr4()`. The first thing it does is call `tte_init_chr4c()` to initialize the text system for chr4c-mode. The third argument is the offset for map-entries: `0xF000` meaning it uses sub-palette 15. The fourth is a word for the color attributes: 13 for the ink, 15 for the shadow and 0 for the others. For this demonstration, I'm using the 4bpp version of verdana9 (see {@fig:img-verdana9-b4}) and the fast assembly version to render the glyphs.
+这个演示的核心函数是 `test_tte_chr4()`。它做的第一件事是调用 `tte_init_chr4c()` 为 chr4c 模式初始化文本系统。第三个参数是地图条目的偏移：`0xF000` 意味着它使用子调色板 15。第四个是颜色属性的字：ink 为 13，shadow 为 15，其余为 0。对于这个演示，我使用 verdana9 的 4bpp 版本（见 {@fig:img-verdana9-b4}）以及快速汇编版本来渲染字形。
 
-Step 2 loads the background map and the dialog box. Note that the dialog box is copied to the tiles that the text is rendered to. When the text is printed, this will show that the glyphs indeed are rendered transparently. This does more or less mean that I can't use the standard eraser, because that'd wipe the box as well.
+第 2 步载入背景地图和对话框。注意对话框被复制到文本渲染到的图块上。当文本被打印时，这会表明字形确实是透明渲染的。这多少意味着我不能使用标准擦除器，因为那也会擦掉对话框。
 
-The dialog text is drawn in step 3. The `ci` and `cs` tags set the ink and shadow color attributes, respectively. This makes the string “arrows” use colors 1 and 2 (well, 0xF1 and 0xF2), and so forth.
+对话框文本在第 3 步绘制。`ci` 和 `cs` 标签分别设置 ink 和 shadow 颜色属性。这让字符串“arrows”使用颜色 1 和 2（嗯，0xF1 和 0xF2），等等。
 
 <pre><code class="language-c hljs">//! Set up a rectangle for text, with the non-text layers darkened for contrast.
 void win_textbox(uint bgnr, int left, int top, int right, int bottom, uint bldy)
@@ -1616,28 +1615,28 @@ void test_tte_chr4()
 }
 </code></pre>
 
-I'll close off this section with a word on the text box. If you look carefully, you'll see that it's semi-transparent. Or, to be precise, the text and the box itself are at normal intensity, but the background that it covers is darker than usual. Two things are necessary for this nice, little effect.
+我用一句话结束本节，关于文本框。如果你仔细看，你会看到它是半透明的。或者，准确地说，文本和框本身是正常亮度，但它所覆盖的背景比平常暗。这个漂亮的小效果需要两件事。
 
-- An inside and outside window must be defined. Both windows should contain all layers, but the inner window must be set to use blending (WIN_BLD). This enables blending for the inside only.
-- The blending mode should be set to fade-to-black (BLD_BLACK) for all layers except the background with the text box.
+- 必须定义内部和外部窗口。两个窗口都应包含所有层，但内部窗口必须设为使用混合（WIN_BLD）。这使混合仅对内部启用。
+- 混合模式应设为淡出到黑色（BLD_BLACK），用于除带文本框的背景之外的所有层。
 
-This is what `win_textbox()` is for. The function also sets the margins so that the text would wrap nicely inside the box.
+这正是 `win_textbox()` 的用途。该函数还设置边距，使文本能在框内恰当换行。
 
-## Scripting, console IO and other niceties {#sec-misc}
+## 脚本、控制台 IO 与其他便利功能 {#sec-misc}
 
-### TTE formatting commands {#ssec-misc-tags}
+### TTE 格式化命令 {#ssec-misc-tags}
 
-The TTE context contains members that control positioning, colors, fonts as well as a few other things. There are two approaches to changing these parameters. The first is to hard code changes in the state through direct member access or functions like `tte_set_ink()`. This works nice and fast, but isn't very flexible. The second is to use <dfn>formatting tags</dfn> in the strings themselves – the system parses the string for these tags and interprets them accordingly. This is basically a form of scripting.
+TTE 上下文包含控制位置、颜色、字体以及其他一些东西的成员。有两种方法更改这些参数。第一种是通过直接成员访问或像 `tte_set_ink()` 这样的函数，把改动硬编码进状态。这又好又快，但不够灵活。第二种是在字符串本身使用<dfn>格式化标签</dfn>——系统为这些标签解析字符串并相应解释。这基本上是一种脚本形式。
 
-The tags that TTE uses look like this:
+TTE 使用的标签看起来像这样：
 
 ```
 #{`_`tag0`_`:`_`args`_`; `_`tag1`_`:`_`args`_`}
 ```
 
-The code itself is starts with \``#{`' and ends with \``}`'. Each command consists of a tag, followed by a colon and comma-separated arguments when appropriate. Multiple commands can be separated by a semi-colon. For example, \``#{es; P:10,16}`' would clear the screen and set the cursor to (10, 16).
+代码本身以 \``#{`' 开始，以 \``}`' 结束。每个命令由一个标签、一个冒号以及适当时用逗号分隔的参数组成。多个命令可以用分号分隔。例如，\``#{es; P:10,16}`' 会清屏并把光标设到 (10, 16)。
 
-Now, I could show you how to parse this, but the parser currently in use for this is, well, let's just say it's long and very ugly. Essentially, it's a massive switch-block (sometimes a _double_ switch-block) with stuff like this:
+现在，我可以展示如何解析这个，但目前用于此的解析器，嗯，我们直说吧，又长又非常丑。本质上，它是一个巨大的 switch 块（有时是_双重_ switch 块），带着像这样的东西：
 
 <pre><code class="language-c hljs">char *tte_cmd_default(const char *str)
 {
@@ -1674,121 +1673,125 @@ Now, I could show you how to parse this, but the parser currently in use for thi
 }
 </code></pre>
 
-Like I said, ugly; but it'll have to do for now. The incoming pointer points to the first character past the '`#{`'. The command tags are all single or double-lettered; the switch looks for a recognized letter and acts accordingly.
+正如我说的，丑；但暂时只能将就。传入的指针指向 '`#{`' 之后的第一个字符。命令标签都是单字母或双字母；switch 寻找一个被识别的字母并相应行动。
 
-One of the tags is '`X`', which sets the absolute X-coordinate of the cursor. The `tc->cursorX` will be set to the argument if it is present, or to the left margin if it is not. Note the use of [`strtol()`](https://en.cppreference.com/w/c/string/byte/strtol) here. This is a very interesting function. Not only does it work for both decimal and hex strings, but through the second argument you can retrieve a pointer to right after the number in the string. Alternatives would be `sscanf()` or `atoi()`, but `strtol()` is nicer.
+其中一个标签是 '`X`'，它设置光标的绝对 X 坐标。如果有参数，`tc->cursorX` 会被设为该参数；否则设为左边距。注意这里 [`strtol()`](https://en.cppreference.com/w/c/string/byte/strtol) 的使用。这是一个非常有趣的函数。它不仅适用于十进制和十六进制字符串，而且通过第二个参数，你可以检索到字符串中数字之后位置的指针。替代方案是 `sscanf()` 或 `atoi()`，但 `strtol()` 更好。
 
-After handling a tag, it'll look for more tags, or exit if the end delimiter or end of string is found.
+处理一个标签后，它会寻找更多标签，或者如果找到结束分隔符或字符串结尾就退出。
 
-{\*@tbl:tte-cmd} shows the available tags. Note that they are case-sensitive and some items can do more than one thing, depending on the number of parameters.
+{\*@tbl:tte-cmd} 展示了可用的标签。注意它们是大小写敏感的，某些条目根据参数数量可以做不止一件事。
 
 <div class="cblock">
   <table id="tbl:tte-cmd" class="table-data" width= 70%>
     <caption align="bottom">
-      <b>{*@tbl:tte-cmd}</b>: Available TTE formatting tags.
+      <b>{*@tbl:tte-cmd}</b>: 可用的 TTE 格式化标签。
     </caption>
     <tr>
-      <th>Code</th>
-      <th>Description</th>
+      <th>代码（Code）</th>
+      <th>描述（Description）</th>
     </tr>
     <tr>
       <td>P </td>
-      <td>Reset position to top-left margin. </td>
+      <td>重置位置到左上边距。 </td>
     </tr>
     <tr>
       <td>Pr </td>
-      <td>Restore cursor position (see also <code>Ps</code>). </td>
+      <td>恢复光标位置（另见 <code>Ps</code>）。 </td>
     </tr>
     <tr>
       <td>Ps </td>
-      <td>Save cursor position. </td>
+      <td>保存光标位置。 </td>
     </tr>
     <tr>
       <td>P: <i>x</i>,<i>y</i> </td>
-      <td>Set cursor to coordinates (<i>x</i>,&nbsp;<i>y</i>). </td>
+      <td>把光标设到坐标 (<i>x</i>,&nbsp;<i>y</i>)。 </td>
     </tr>
     <tr>
       <td>X </td>
-      <td>Reset <code>cursorX</code> to left margin.</td>
+      <td>把 <code>cursorX</code> 重置到左边距。</td>
     </tr>
     <tr>
       <td>X: <i>x</i> </td>
-      <td>Set <code>cursorX</code> to <i>x</i>. </td>
+      <td>把 <code>cursorX</code> 设为 <i>x</i>。 </td>
     </tr>
     <tr>
       <td>Y </td>
-      <td>Reset <code>cursorY</code> to top margin. </td>
+      <td>把 <code>cursorY</code> 重置到上边距。 </td>
     </tr>
     <tr>
       <td>Y: <i>y</i> </td>
-      <td>Set <code>cursorY</code> to <i>y</i>. </td>
+      <td>把 <code>cursorY</code> 设为 <i>y</i>。 </td>
     </tr>
     <tr>
       <td>c[ispx]:&nbsp;<i>cattr</i> </td>
       <td>
-        Set ink (<code>ci</code>), shadow (<code>cs</code>), paper (<code>cp</code>) or special (<code>cx</code>) color attribute to <i>cattr</i>.
+        把 ink (<code>ci</code>)、shadow (<code>cs</code>)、paper (<code>cp</code>) 或 special (<code>cx</code>) 颜色属性设为 <i>cattr</i>。
       </td>
     </tr>
     <tr>
       <td>e[slbf] </td>
       <td>
-        Erase the screen between margins (<code>es</code>), the current line (<code>el</code>), the current line up to the cursor (<code>eb</code>; backwards), the current line from the cursor (<code>ef</code>; forwards).
+        擦除边距之间的屏幕（<code>es</code>）、当前行（<code>el</code>）、到光标的当前行（<code>eb</code>；向后）、从光标起的当前行（<code>ef</code>；向前）。
       </td>
     </tr>
     <tr>
       <td>er: <i>l</i>,<i>t</i>,<i>r</i>,<i>b</i> </td>
-      <td>Erase a rectangle given by (<i>l</i>,<i>t</i>) to (<i>r</i>,<i>b</i>). </td>
+      <td>擦除以 (<i>l</i>,<i>t</i>) 到 (<i>r</i>,<i>b</i>) 给出的矩形。 </td>
     </tr>
     <tr>
       <td>f: <i>idx</i> </td>
-      <td>Set <code>font</code> to <code>TTC.fontTable[<i>idx</i>]</code>. </td>
+      <td>把 <code>font</code> 设为 <code>TTC.fontTable[<i>idx</i>]</code>。 </td>
     </tr>
     <tr>
       <td>m[ltrb]:&nbsp;<i>value</i> </td>
       <td>
-          Set left (<code>ml</code>), top (<code>mt</code>),right (<code>mr</code>) or bottom (<code>mb</code>) margin to <i>value</i>. 
+          把左（<code>ml</code>）、上（<code>mt</code>）、右（<code>mr</code>）或下（<code>mb</code>）边距设为 <i>value</i>。
       </td>
     </tr>
     <tr>
       <td>m: <i>l</i>,<i>t</i>,<i>r</i>,<i>b</i> </td>
-      <td>Set margins to rectangle (<i>l</i>,<i>t</i>) - (<i>r</i>,<i>b</i>) </td>
+      <td>把边距设为矩形 (<i>l</i>,<i>t</i>) - (<i>r</i>,<i>b</i>) </td>
     </tr>
     <tr>
       <td>p: <i>dx</i>, <i>dy</i> </td>
-      <td>Move the cursor by (<i>dx</i>, <i>dy</i>). </td>
+      <td>把光标移动 (<i>dx</i>, <i>dy</i>)。 </td>
     </tr>
     <tr>
       <td>s: <i>idx</i> </td>
-      <td>Print the <i>idx</i>'th string in <code>TTC.stringTable</code>. </td>
+      <td>打印 <code>TTC.stringTable</code> 中第 <i>idx</i> 个字符串。 </td>
     </tr>
     <tr>
       <td>w: <i>count</i> </td>
-      <td>Wait for <i>count</i> frames. </td>
+      <td>等待 <i>count</i> 帧。 </td>
     </tr>
     <tr>
       <td>x: <i>dx</i> </td>
-      <td>Move the cursor to the right by <i>dx</i>. </td>
+      <td>把光标向右移动 <i>dx</i>。 </td>
     </tr>
     <tr>
       <td>y: <i>dy</i> </td>
-      <td>Move the cursor down by <i>dy</i>. </td>
+      <td>把光标向下移动 <i>dy</i>。 </td>
     </tr>
   </table>
 </div>
 
-I should point out that at present the commands are still fragile, so be careful with this stuff. For example, the positioning commands will simply move the cursor, but not clip to the margins. Also take care with the font and string commands (`f` and `s`, respectively). `tte_cmd_default()` doesn't test whether the index is out of the bounds of the arrays, so you could end up with … odd things. At some point, I hope to fix these things, but it's not a priority right now. If anyone has something more robust that I can use, please speak up.
+我应该指出，目前这些命令仍然脆弱，所以使用这些东西要小心。例如，定位命令只会移动光标，而不会裁剪到边距。还要小心字体和字符串命令（`f` 和 `s`）。`tte_cmd_default()` 不会测试索引是否越界，所以你可能会得到……奇怪的东西。在某个时候，我希望修复这些问题，但现在这不是优先事项。如果有人有更健壮、我能用的东西，请说出来。
 
-:::warning TTE formatting commands : caveat emptor.
+:::warning TTE 格式化命令：买家自负（caveat emptor）
 
-The current commands in TTE aren't exactly idiot-proof yet. If you stick to sensible things, it should work quite nicely. But it is still easy to shoot yourself in the foot if you're not careful.
+TTE 中当前的命令还不怎么防呆。如果你坚持合理的事情，它应该能很好工作。但如果你不小心，仍然很容易搬起石头砸自己的脚。
 
 :::
 
-### Using console I/O {#ssec-misc-conio}
+### 使用控制台 I/O {#ssec-misc-conio}
 
-Something like `tte_write()` is nice for pure strings, but what would really help is if you had something like `printf()`. In the old days (pre-2006), `printf()`, `putc` and other console output functions were unavailable, but Wintermute added a mechanism to devkitArm's standard C library that allows it on consoles as well.
+像 `tte_write()` 这样的东西对纯字符串很好，但真正有帮助的是如果你有类似 `printf()` 的东西。在过去（2006 年之前），`printf()`、`putc` 和其他控制台输出函数不可用，但 Wintermute 给 devkitArm 的标准 C 库加了一个机制，使它们也能用于控制台。
 
-The key to this is the `devoptab_t` struct, defined in `sys/iosupport.h`. This contains a table of function pointers to device operations. The pointer we're interested in here is `write_r`; this is the function that `printf()` et al. call for the final output.
+让标准控制台例程在 GBA 上工作的关键，是把控制台输出的默认 `write_r` 重定向到我们自己制作的那个。在解释它如何工作之前，我想让你明白这非常接近黑魔法。它涉及深入库的根基，几乎没有关于这些如何工作的文档。这个故事是我能找到的接近完整描述的东西：[Embedding GNU: Newlib, Part 2](https://web.archive.org/web/20100209210107/https://www.embedded.com/story/OEG20020103S0073)，但它对解释也不多。
+
+换句话说：你在一个洞穴里；里面漆黑一片，还有 [grues](<https://en.wikipedia.org/wiki/Grue_(monster)>)（洞穴怪物）出没。
+
+让标准控制台例程在 GBA 上工作的关键，是把控制台输出的默认 `write_r` 重定向到我们自己制作的那个。这涉及一个叫做 `devoptab_t` 的结构体，定义在 `sys/iosupport.h` 中。它包含一个函数指针表，用于设备操作。我们这里感兴趣的指针是 `write_r`；这是 `printf()` 等用于最终输出的函数。
 
 ```c {.proglist}
 // Partial devoptab_t definition
@@ -1803,11 +1806,7 @@ typedef struct {
 } devoptab_t;
 ```
 
-The key to making the standard console routines work on a GBA is to redirect the default `write_r` for console output to one of our own making. Before explaining how this works, I want you to understand that this comes very close to black magic. It involves descending to the roots of the library and there is next to no documentation about how this stuff works. This story is the closest thing I could find to a full description: [Embedding GNU: Newlib, Part 2](https://web.archive.org/web/20100209210107/https://www.embedded.com/story/OEG20020103S0073), but this isn't high on explanations either.
-
-To put it in other way: you're in a cave; it's pitch black and there are [grues](<https://en.wikipedia.org/wiki/Grue_(monster)>) about.
-
-Now that that's done, let's continue. The first step is creating our replacement writer. In TTE's case, this is `tte_con_write()`. It is almost identical to `tte_write()`, but has to fit in the format given by `devoptab_t.write_r`. It comes down to this:
+既然说完了，我们继续。第一步是创建我们的替换写入器。在 TTE 的情况下，这是 `tte_con_write()`。它几乎与 `tte_write()` 相同，但必须符合 `devoptab_t.write_r` 给出的格式。归结为：
 
 <pre><code class="language-c hljs">//! internal output routine used by printf.
 /*! \param r    Reentrancy parameter.
@@ -1848,21 +1847,21 @@ int tte_con_write(struct _reent *r, int fd, const char *text, int len)
 
 </code></pre>
 
-While I've added documentation for the arguments here, it's mostly based on guesswork. The `r` parameter contains [re-entrancy](https://en.wikipedia.org/wiki/Reentrancy_(computing)) information, useful if you have multiple threads. Since the GBA is a single-thread system, this should not concern us. I believe `fd` is a file handle of some sort, but since we're not writing to files this again does not concern us.
+虽然我在这里为参数加了文档，但大多基于猜测。`r` 参数包含[可重入性](https://en.wikipedia.org/wiki/Reentrancy_(computing))信息，如果你有多个线程会很有用。由于 GBA 是单线程系统，这不应该困扰我们。我相信 `fd` 是某种文件句柄，但由于我们不写文件，这同样不困扰我们。
 
-The real arguments of interest are `text` and `len`. The `text` argument points to the buffer with the string to render. In the case of `printf()`, it's the string _after_ formatting: all codes like `%d` are already done. And now for the most important part: `text` is **not** null-terminated. This is why there's a length variable as well.
+真正感兴趣的参数是 `text` 和 `len`。`text` 参数指向带有要渲染字符串的缓冲区。在 `printf()` 的情况下，它是_格式化之后_的字符串：所有像 `%d` 这样的代码都已经处理完。现在到了最重要的部分：`text` **不是**以空字符结尾的。这就是为什么还有一个长度变量。
 
-As far as I can tell, `printf` uses a large buffer (approximately 1300 bytes) on the stack to which it writes the formatted numbers. This buffer isn't cleared you call it again, or terminated by ‘\\0’ when sent to the writer. This has the following consequences:
+据我所知，`printf` 使用栈上一个大缓冲区（约 1300 字节）来写入格式化后的数字。这个缓冲区在你再次调用时不会被清空，发送到写入器时也不会以 ‘\\0’ 终止。这有如下后果：
 
-- 1300 bytes is a fair bit of IWRAM. Make sure you have enough room for it. Do _not_ call `printf()` from interrupts, as the routine is slow and the things can start to nest and clobber everything.
-- Don't forget the `len` parameter. As the buffer isn't zeroed, remnants of old data may still be there, and you get crap.
-- There's an additional potential danger with respect to parsing of formatting commands here. When strings exceed the buffer length, I imagine that it's broken up into smaller chunks. I don't know what will happen if the break occurs in the middle of a command, but I doubt it's good. Of course, you shouldn't have strings that long anyway, as the screen isn't big enough to fit them.
+- 1300 字节是不少的 IWRAM。确保你有足够的空间。_不要_从中断调用 `printf()`，因为该例程很慢，而且这些东西会开始嵌套并破坏一切。
+- 别忘了 `len` 参数。由于缓冲区不会被清零，旧数据的残余可能还在，于是你会得到垃圾。
+- 关于这里格式化命令的解析还有一个潜在危险。当字符串超过缓冲区长度时，我猜想它被拆成更小的块。我不知道如果拆分发生在命令中间会发生什么，但我怀疑不会好。当然，你本就不该有那么长的字符串，因为屏幕不够大放不下它们。
 
-Aside from that, `tte_con_write()` is straightforward. As said, the contents of the loop are nearly identical to the one in `tte_write()`. The only real difference is point 3. This is a test for VT100 formatting strings, which will be covered in the next subsection.
+除此之外，`tte_con_write()` 很直接。如前所述，循环的内容与 `tte_write()` 中的几乎相同。唯一真正的区别是第 3 点。这是对 VT100 格式化字符串的测试，将在下一小节介绍。
 
-To make use of the new writer, you have to hook it into the device list somehow. First, create a `devoptab_t` instance which the writer in the right place. There is a list of device operations called `devoptab_list`. The devices of interest are the streams `stdout` and `stderr`, which are entries `STD_OUT` and `STD_ERR` in the list. Simply point these entries to your own struct.
+为了使用新的写入器，你必须把它挂到设备列表中。首先，创建一个 `devoptab_t` 实例，把写入器放在正确的位置。有一个叫做 `devoptab_list` 的设备操作列表。感兴趣的设备是流 `stdout` 和 `stderr`，它们是列表中的 `STD_OUT` 和 `STD_ERR` 条目。只需把这些条目指向你自己的结构体。
 
-A second item is to set the buffers for these streams. I'm not sure this is really necessary, but that's how it's done in libgba and its author knows this system best so I'm not going to argue here. The function for this is `setvbuf()`. You find the required initialization steps below.
+第二项是设置这些流的缓冲区。我不确定这是否真的必要，但 libgba 里就是这么做的，而它的作者最懂这个系统，所以我不想在这里争辩。用于此的函数是 `setvbuf()`。你在下面找到所需的初始化步骤。
 
 ```c {#cd-tte-init-con .proglist}
 
@@ -1895,9 +1894,9 @@ void tte_init_con()
 }
 ```
 
-Calling `tte_init_con()` activates stdio's functionality so you can use `printf()` and such. Note that the raw `printf()` is rather heavy and it also has floating point options, which are rarely used in a GBA environment, if ever. For that reason, you'll usually use its integer-only cousin, `iprintf()`. Also note that TTE's implementation is **different** from libgba's, and the two should not be confused. For that reason, I've hidden the `iprintf()` name behind a `tte_printf` macro.
+调用 `tte_init_con()` 激活 stdio 的功能，这样你可以使用 `printf()` 之类的。注意原始的 `printf()` 相当重，而且它还有浮点选项，这在 GBA 环境中很少用，如果有的话。因此，你通常会用它的纯整数表亲 `iprintf()`。还要注意 TTE 的实现与 libgba 的**不同**，二者不应混淆。为此，我把 `iprintf()` 名字藏在 `tte_printf` 宏后面。
 
-The following is a short example of its use. I'm using `tte_printf()` here, but `printf()` or `iprintf()` would have worked just as well.
+下面是一个简短的使用示例。我这里用 `tte_printf()`，但 `printf()` 或 `iprintf()` 同样能工作。
 
 ```c {#cd-hello .proglist}
 #include <stdio.h>
@@ -1922,134 +1921,134 @@ int main()
 }
 ```
 
-:::warning Printf bagage
+:::warning Printf 包袱
 
-As wonderful as `printf()` is, there are some downsides to it too. First, it's a very heavy function that calls quite a large amount of functions which all have to be linked in. Second, it is pretty damn slow. Because it can do so much, it has to check for all these different cases. Also, for the string to decimal conversion it uses divisions, which is really bad for the GBA.
+尽管 `printf()` 很棒，它也有一些缺点。首先，它是一个非常重的函数，会调用相当大量的函数，这些都必须被链接进来。其次，它相当该死地慢。因为它能做那么多，它必须检查所有这些不同的情况。另外，对于字符串到十进制的转换它使用除法，这对 GBA 真的很糟。
 
-Be aware of how much `printf()` costs. If it turns out to be a bottle-neck, try making your own slimmed down version. A decent `sprintf()` alternative is `posprintf()`, created by [Dan Posluns](https://www.danposluns.com/gbadev/).
+意识到 `printf()` 的代价。如果它成为瓶颈，试着做你自己精简过的版本。一个像样的 `sprintf()` 替代品是 [Dan Posluns](https://www.danposluns.com/gbadev/) 创建的 `posprintf()`。
 
 :::
 
-### VT100 escape sequences {#ssec-misc-vt100}
+### VT100 转义序列 {#ssec-misc-vt100}
 
-Every book on C will tell you that you can place text on a console screen. What they usually don't tell you is that, in some environments, you can control formatting as well. One such environment is the [VT100](https://en.wikipedia.org/wiki/VT100), which used <dfn>escape sequences</dfn> to indicate formatting. The libraries that devkitPro distributes for various systems use these sequences, so it's a good idea to support them as well.
+每本讲 C 的书都会告诉你可以在控制台屏幕上放置文本。它们通常没告诉你的是，在某些环境中，你也可以控制格式。其中一个环境是 [VT100](https://en.wikipedia.org/wiki/VT100)，它使用<dfn>转义序列</dfn>（escape sequence）来表示格式。devkitPro 为各种系统分发的库使用这些序列，所以也支持它们是好主意。
 
-The general format for the codes is this:
+这些代码的一般格式是：
 
 ```
 CSI n1;n2 ... letter
 ```
 
-_CSI_ here is the ASCII code for the <dfn>command sequence indicator</dfn>, which in this case is the escape character (27, 0x1B or 033) followed by '\['. The letter at the end denotes the kind of formatting code, and _n1_, _n2_ … are the formatting parameters. Wikipedia has a nice overview of the standard set [here](https://en.wikipedia.org/wiki/ANSI_escape_code) and there's another one here: [VT100 commands and control sequences](https://web.archive.org/web/20080813073220/http://local.wasp.uwa.edu.au/~pbourke/dataformats/vt100/). Note that not all of the codes are supported in the devkitPro libraries. The ones you'll encounter most are the following:
+_CSI_ 这里是<dfn>命令序列指示符</dfn>（command sequence indicator）的 ASCII 码，在这种情况下是转义字符（27，0x1B 或 033）后跟 '\['。末尾的字母表示格式化代码的种类，_n1_、_n2_ … 是格式化参数。维基百科有一个不错的标准集合概览[在这里](https://en.wikipedia.org/wiki/ANSI_escape_code)，这里还有另一个：[VT100 命令与控制序列](https://web.archive.org/web/20080813073220/http://local.wasp.uwa.edu.au/~pbourke/dataformats/vt100/)。注意并非所有代码在 devkitPro 库中都受支持。你最常遇到的是以下这些：
 
 <div class="lblock">
   <table id="tbl:vt100" class="table-data">
     <caption align="bottom">
-      <b>{*@tbl:vt100}</b>: Common VT100 sequences
+      <b>{*@tbl:vt100}</b>: 常见 VT100 序列
     </caption>
     <tr>
       <td>ESC[<i>dy</i>A</td>
-      <td>Move cursor up <i>dy</i> rows.</td>
+      <td>光标上移 <i>dy</i> 行。</td>
     </tr>
     <tr>
       <td>ESC[<i>dy</i>B</td>
-      <td>Move cursor down <i>dy</i> rows.</td>
+      <td>光标下移 <i>dy</i> 行。</td>
     </tr>
     <tr>
       <td>ESC[<i>dx</i>C</td>
-      <td>Move cursor right <i>dx</i> columns.</td>
+      <td>光标右移 <i>dx</i> 列。</td>
     </tr>
     <tr>
       <td>ESC[<i>dx</i>D</td>
-      <td>Move cursor left <i>dx</i> columns.</td>
+      <td>光标左移 <i>dx</i> 列。</td>
     </tr>
     <tr>
       <td>ESC[<i>y</i>;<i>x</i>H</td>
-      <td>Set cursor to column <i>x</i>, row <i>y</i>.</td>
+      <td>把光标设到第 <i>y</i> 行、第 <i>x</i> 列。</td>
     </tr>
     <tr>
       <td>ESC[2J</td>
-      <td>Erase screen.</td>
+      <td>清屏。</td>
     </tr>
     <tr>
       <td>ESC[<i>n</i>K</td>
       <td>
         <ol start=0>
-	        <li>Erase to end of line.</li>
-          <li>Erase to start of line.</li>
-	        <li>Erase whole line.</li>
+	        <li>擦除到行尾。</li>
+          <li>擦除到行首。</li>
+	        <li>擦除整行。</li>
 	      </ol>
       </td>
     </tr>
     <tr>
       <td>ESC[<i>y</i>;<i>x</i>f</td>
-      <td>As ESC[<i>y</i>;<i>x</i>H</td>
+      <td>同 ESC[<i>y</i>;<i>x</i>H</td>
     </tr>
     <tr>
       <td>ESC[s</td>
-      <td>Save cursor position.</td>
+      <td>保存光标位置。</td>
     </tr>
     <tr>
       <td>ESC[u</td>
-      <td>Restore cursor position.</td>
+      <td>恢复光标位置。</td>
     </tr>
   </table>
 </div>
 
-If you compare this list to {@tbl:tte-cmd}, you'll see that most of these codes have corresponding TTE commands. You can use either, but if you plan to make something that's supposed to be cross-platform, use the VT100 codes.
+如果你把这个列表与 {@tbl:tte-cmd} 比较，你会看到大多数这些代码有对应的 TTE 命令。两者你都可以用，但如果你打算做一些应该是跨平台的东西，请用 VT100 代码。
 
-:::warning Deviations from the standard
+:::warning 与标准的偏差
 
-I'm trying to keep my implementation as close to the standard as possible. This is mainly because TTE uses other things just 8x8 characters on a regular background. In particular, scrolling is absent here and there are no color codes. Yet.
+我正努力让我的实现尽可能贴近标准。这主要是因为 TTE 使用的不只是常规背景上的 8x8 字符。特别是，这里缺少滚动，也没有颜色代码。暂时。
 
 :::
 
 ### UTF-8 {#ssec-misc-utf}
 
-You may have heard of a little thing called [ASCII](https://en.wikipedia.org/wiki/ASCII). This is (or was; I'm not sure) the standard encoding for character strings. Each character is 1 byte long, giving 256 numbers for letters, numbers et cetera. {\*@fig:img-verdana9} and {@fig:img-verdana9-b4} contain character 32 to 255, as they usually appear on Windows. ASCII works fine for Western languages but are completely inadequate for languages like Japanese, which have thousands of characters. To remedy this, they came up with Unicode, which has 16 bits per character.
+你可能听说过一个叫 [ASCII](https://en.wikipedia.org/wiki/ASCII) 的小东西。这是（或曾是；我不确定）字符字符串的标准编码。每个字符 1 字节长，给字母、数字等 256 个数字。{\*@fig:img-verdana9} 和 {@fig:img-verdana9-b4} 包含字符 32 到 255，正如它们通常出现在 Windows 上。ASCII 对西方语言工作良好，但对像日语这样有数千字符的语言完全不够。为补救，他们想出了 Unicode，每个字符 16 位。
 
-An intermediate between this is [UTF-8](https://en.wikipedia.org/wiki/UTF-8). This still uses 8-bit characters for the lower 128 ASCII codes, but bytes over 0x80 denote the start of a multi-byte code, where it and a few of the following characters form a single, larger character of up to 21 bits.
+介于两者之间的是 [UTF-8](https://en.wikipedia.org/wiki/UTF-8)。它对较低的 128 个 ASCII 码仍使用 8 位字符，但超过 0x80 的字节表示多字节码的开始，其中它与后面几个字符一起组成一个最多 21 位的更大字符。
 
-UTF-8 is a nice way of having your cake and eating it too: you can still use normal characters for Latin characters, meaning it'll still work with ASCII programs, but you also have a method of representing bigger numbers.
+UTF-8 是一种两全其美的好方法：你仍可以对拉丁字符使用普通字符，意味着它仍能与 ASCII 程序配合工作，但你也有表示更大数字的方法。
 
 <div class="cblock">
   <table id="tbl:utf8" class="table-data">
     <caption align="bottom">
-      {*@tbl:utf8}. UTF-8 to u32 conversion table.
+      {*@tbl:utf8}. UTF-8 到 u32 转换表。
     </caption>
     <tr> 
-      <th>String (binary)</th>
-      <th>Number (binary)</th>
-      <th>Range (hex)</th>
+      <th>字符串（二进制）</th>
+      <th>数字（二进制）</th>
+      <th>范围（十六进制）</th>
     </tr>
     <tbody style="font:85%, Courier New;">
       <tr>
         <td>0zzzzzzz		</td>
         <td>0zzzzzzz		</td>
-        <td>0x000000 - 0x00007F (7 bit)	</td>
+        <td>0x000000 - 0x00007F（7 位）	</td>
       </tr>
       <tr>
         <td>110yyyyy 10zzzzzz	</td>
         <td>00000yyy yyzzzzzz	</td>
-        <td>0x000080 - 0x0007FF (11 bit)	</td>
+        <td>0x000080 - 0x0007FF（11 位）	</td>
       </tr>
       <tr>
         <td>1110xxxx 10yyyyyy 10zzzzzz	</td>
         <td>xxxxyyyy yyzzzzzz	</td>
-        <td>0x000800 - 0x00FFFF (16 bit)	</td>
+        <td>0x000800 - 0x00FFFF（16 位）	</td>
       </tr>
       <tr>
         <td>11110www 10xxxxxx 10yyyyyy 10zzzzzz	</td>
         <td>000wwwxx xxxxyyyy yyzzzzzz	</td>
-        <td>0x010000 - 0x10FFFF (21 bit)	</td>
+        <td>0x010000 - 0x10FFFF（21 位）	</td>
       </tr>
     </tbody>
   </table>
 </div>
 
-{\*@tbl:utf8} shows the conversion works. If a byte is lower than 128, it's a simple ASCII character. If it's higher, it can fall into three classes of multi-byte numbers. The range of the byte determines the number of bytes for the whole thing; once you know that, you need to grab the appropriate bit-patterns from these bytes and join them into a single number as the table indicates. For more details, I will refer you to the wikipedia page.
+{\*@tbl:utf8} 展示了转换如何工作。如果一个字节小于 128，它是一个简单的 ASCII 字符。如果更大，它可以落入三类多字节数字。字节的范围决定整个东西的字节数；一旦你知道了，你需要从这些字节中抓取适当的位模式，并把它们连接成一个数字，如表所示。更多细节，我让你参考维基百科页面。
 
-Below you can find a routine that reads and decodes a single utf-8 character from a string. Yes, it's a cluster-f\*\*k of conditions, but that's necessary to check whether all the characters really follow the format; and if it doesn't, it'll interpret the first byte of the range as an extended ASCII character. If you want, you can omit all the \``if((*src>>6)!=2) break;`' statements.
+下面你可以找到一个从字符串读取并解码单个 utf-8 字符的例程。是的，它是一坨条件语句的集群（cluster-f\*\*k），但那是为了检查所有字符是否真的遵循格式所必需的；如果不遵循，它会把该范围的第一个字节解释为一个扩展的 ASCII 字符。如果你愿意，你可以省略所有 \``if((*src>>6)!=2) break;`' 语句。
 
 ```c {#cd-utf8-decode .proglist}
 //! Retrieve a single multibyte utf8 character.
@@ -2104,32 +2103,32 @@ uint utf8_decode_char(const char *ptr, char **endptr)
 }
 ```
 
-Both `tte_write()` and `tte_write_con()` use `utf_decode_char()` when the string requires it. The larger characters can be used to access larger font sheets. You could use the larger sheets for better language support, or perhaps to extend the standard set of characters with arrows, and other types of symbols.
+`tte_write()` 和 `tte_write_con()` 都在字符串需要时使用 `utf_decode_char()`。更大的字符可用于访问更大的字体表。你可以用更大的表来更好地支持语言，或者也许用箭头和其他类型的符号扩展标准字符集。
 
-There is, however, one catch to using UTF-8 with stdio. Internally, stdio is really picky about what's acceptable. For example, the copywrite symbol, © is extended number 0xA9. In non-UTF-8, you could use just 0xA9 in a string and it'd use the right symbol. However, 0xA9 alone wouldn't fit any of the formats from {\*@tbl:utf8}, so it's an invalid code in UTF-8. While `utf8_decode_char()` is forgiving in this case, stdio isn't, an will interpret it as a terminator. In other words, be careful with extended ASCII character; you _have_ to use the proper UTF-8 formats if you want to use the stdio functions.
+然而，使用 UTF-8 与 stdio 有一个陷阱。在内部，stdio 对什么是可接受的非常挑剔。例如，版权符号 © 是扩展数字 0xA9。在非 UTF-8 中，你可以在字符串中只用 0xA9 就能使用正确的符号。然而，单独的 0xA9 不适合 {\*@tbl:utf8} 中的任何格式，所以它在 UTF-8 中是无效代码。虽然 `utf8_decode_char()` 在这种情况下是宽容的，但 stdio 不是，它会把它解释为终止符。换句话说，小心扩展 ASCII 字符；如果你想要用 stdio 函数，你_必须_使用正确的 UTF-8 格式。
 
-:::warning Printf, UTF-8, and extended ASCII
+:::warning Printf、UTF-8 与扩展 ASCII
 
-As of devkitArm r22, `printf()` and the other stdio functions use the UTF-8 locale. This effectively means that you cannot use characters like ‘©’ and ‘è’ directly like you used to in older versions. You need to use the full multi-byte UTF-8 notations.
+截至 devkitArm r22，`printf()` 和其他 stdio 函数使用 UTF-8 区域设置。这实际上意味着你不能再像旧版本那样直接使用‘©’和‘è’这样的字符。你需要使用完整的多字节 UTF-8 表示。
 
 :::
 
-### Profiling the renderers {#ssec-misc-profile}
+### 分析渲染器性能 {#ssec-misc-profile}
 
-It's always a good idea to see how fast the things you make are. This is particularly true when the functions are complex, like most of the bitmap and tile renderers are.
+看看你做的东西有多快总是个好主意。当函数很复杂时尤其如此，就像大多数位图和图块渲染器那样。
 
-{\*@tbl:tte-profile} lists the cycles per glyph for the majority of the available renderers. These have been measured with the string (and library code) in ROM with the default waitstates, under -O2 optimization. The font used was verdana 9, with has a cell size of 8x16, meaning it can be used for both fixed and variable widths with ease. The test string was a 194 character line from [Portal](<https://en.wikipedia.org/wiki/Portal_(video_game)>):
+{\*@tbl:tte-profile} 列出了大多数可用渲染器每个字形的周期数。这些是在 ROM 中代码（和库代码）使用默认等待状态、在 -O2 优化下测得的。使用的字体是 verdana 9，单元格大小为 8x16，意味着它可以轻松用于定宽和变宽。测试字符串是来自 [Portal](<https://en.wikipedia.org/wiki/Portal_(video_game)>) 的一行 194 字符：
 
-> “Please note that we have added a consequence for failure. Any contact with the chamber floor will result in an 'unsatisfactory' mark on your official testing record followed by death. Good luck!”
+> “请注意，我们为失败添加了一个后果。与舱室地面的任何接触都会导致你的官方测试记录上出现一个‘不令人满意’的标记，随后是死亡。祝好运！”
 
 <div class="lblock">
   <table id="tbl:tte-profile" class="table-data">
     <caption align="bottom">
-      <b>{*@tbl:tte-profile}</b>: Renderer times. Conditions: 194 chars, verdana 9, ROM code, default waits, -O2.
+      <b>{*@tbl:tte-profile}</b>: 渲染器耗时。条件：194 字符，verdana 9，ROM 代码，默认等待，-O2。
     </caption>
     <tr>
-      <th>Renderer</th>
-      <th>Cycles/char</th>
+      <th>渲染器（Renderer）</th>
+      <th>周期/字符（Cycles/char）</th>
     </tr>
     <tr>
       <td>null</td>
@@ -2186,22 +2185,22 @@ It's always a good idea to see how fast the things you make are. This is particu
   </table>
 </div>
 
-First, note the great differences in values: from hundreds for the tilemaps and objects to _thousands_ in the case of bitmaps and tile renderers. And this is per character, so writing large swats of text can lead to significant slowdown.
+首先，注意数值的巨大差异：从图块映射和对象的几百，到位图和图块渲染器的_几千_。而且这是每个字符，所以写入大片文本会导致显著减速。
 
-The `null()` renderer is a dummy renderer, used to find the overhead of the TTE system. 200 isn't actually that bad, all things considered (remember: ROM code). That said, now compare this number to the regular tilemap time: the overhead is takes up a significant fraction of the time here. Also note the difference between the standard and 8×16 versions of `se_drawg`: this is purely due the loops
+`null()` 渲染器是一个虚拟渲染器，用于找出 TTE 系统的开销。考虑到所有情况（记住：ROM 代码），200 其实不算太糟。话虽如此，现在把这个数字与常规图块映射时间比较：开销在这里占了相当大的一部分。还要注意 `se_drawg` 的标准版和 8×16 版之间的差异：这纯粹来自循环。
 
-Half of the TTE overhead actually comes from the wrapping code; cursor setting and checking can be relatively slow. And I'm not even considering clipping here.
+TTE 开销的一半实际上来自换行代码；光标设置和检查可能相对较慢。我甚至还没考虑裁剪。
 
-For the bitmap and tile renderers, I've timed three versions. A ‘base’ version, using the template from `chr4_drawg_b1cts_base()` in the ["Text rendering on tiles" section](#ssec-chr-drawg).; C-optimized versions, which are the default renderers; and a fast asm version.
+对于位图和图块渲染器，我计时了三个版本。一个‘基础’版本，使用[“图块上的文本渲染”一节](#ssec-chr-drawg)中 `chr4_drawg_b1cts_base()` 的模板；C 优化版本，即默认渲染器；以及一个快速 asm 版本。
 
-The `bmp16` variants are faster than the others because you don't have to mask items into the surface. What's interesting, though, is that the difference between `bmp8` and `chr4` is practically zero. This probably has something to do with the layout of the font itself.
+`bmp16` 变体比其他更快，因为你不必把项掩码进表面。不过有趣的是，`bmp8` 和 `chr4` 之间的差异几乎为零。这可能与字体本身的布局有关。
 
-Also note how the base, the normal and the fast versions compare. `chr4_drawg_b1cts()` is 33% faster than the base version, and `chr4_drawg_b1cts_fast` is three times faster still. And remember, 200 of that 631 is TTE overhead, so it's actually 4.5 times faster. This is not just from the IWRAM benefit: it also has to do with ARM vs Thumb, and hand-crafted assembly vs compiled code.
+还要注意基础版、普通版和快速版的比较。`chr4_drawg_b1cts()` 比基础版快 33%，而 `chr4_drawg_b1cts_fast` 还要快三倍。记住，那 631 中的 200 是 TTE 开销，所以它实际上是快了 4.5 倍。这不只来自 IWRAM 的好处：它也与 ARM 对比 Thumb，以及手工汇编对比编译代码有关。
 
-## Conclusions {#sec-conc}
+## 结论 {#sec-conc}
 
-As far as I'm concerned, this chapter is basically [the earlier text chapter](text.html) done right. It's covered all types of graphics:regular/affine tilemaps, 8bpp/16bpp bitmaps, 4bpp tiles and objects. Okay, so I left 8bpp tiles out, but that's an awful mode for tile-rendering anyway. The functions for glyph rendering given here are work for arbitrary sizes, fixed and variable width fonts and should be doing so efficiently as well.
+就我而言，本章基本上是[早先的文本章](text.html)做对了的样子。它涵盖了所有类型的图形：常规/仿射图块映射、8bpp/16bpp 位图、4bpp 图块和对象。好吧，我漏掉了 8bpp 图块，但那无论如何都是图块渲染的糟糕模式。这里给出的字形渲染函数适用于任意尺寸、定宽和变宽字体，并且应该也能高效地做到这一点。
 
-Furthermore, it has presented Tonc's Text Engine, a system for handling all these different text families with relative ease. After the initial set-up, the surface-specific aspects are basically dealt with, making its functionality much more re-usable. I've also covered the most basic aspects of processing strings for printing: how to translate from a UTF-8 encoded character to a glyph-index in a font-sheet, and how you can implement formatting tags to change positions, colors and fonts dynamically. Lastly, I illustrated how you can build a callback that the stdio routines can call for output, making `printf()` and its friends available for general use.
+此外，它展示了 Tonc 的文本引擎，一个相对轻松处理所有这些不同文本族的系统。初始设置之后，表面相关的方面基本上被处理掉了，使其功能更具可复用性。我还涵盖了为打印处理字符串的最基本方面：如何从 UTF-8 编码字符转换到字体表中的字形索引，以及如何实现格式化标签以动态改变位置、颜色和字体。最后，我演示了如何构建一个 stdio 例程可以调用以进行输出的回调，使 `printf()` 及其朋友们可用于一般用途。
 
-This whole chapter has been a showcase for TTE and what it can do. Even though it's not in a fully finished state, I think that it can be a valuable asset for dealing with text. If nothing else, the concepts put forth here should help you design your own glyph renderers or text systems.
+整章是 TTE 及其能力的展示。尽管它还没完全完成，我认为它可以成为处理文本的宝贵资产。即便没有别的，这里提出的概念也应该能帮助你设计自己的字形渲染器或文本系统。

@@ -1,26 +1,26 @@
-# A. Numbers, bits and bit operations
+# A. 数字、位与位操作
 
 <!-- toc -->
 
-## Numbers {#sec-num}
+## 数字 {#sec-num}
 
-### The true meaning of symbols {#ssec-num-intro}
+### 符号的真正含义 {#ssec-num-intro}
 
-> “There are 10 kinds of people in the world, those that understand binary and those that don't.”
+> “这个世界上有 10 种人：懂二进制的人，和不懂二进制的人。”
 
-If you don't get the joke, you belong in the latter category. Just like everyone else, in your youth you've probably learned that the combination of numerals ‘1’ and ‘0’ means ten. Not so—not exactly. The primary problem here is the meaning of symbols. Now, what I'm about to tell you is key to understanding mystifying stuff out there, so gather around and let me tell you something about what they really mean. Listening? All right then. Your basic everyday symbol, like ‘1’ and ‘0’ and such, your basic symbol means exactly **SQUAT**!
+如果你没听懂这个笑话，那你属于后者。和所有人一样，你小时候大概学过，数字‘1’和‘0’的组合表示十。其实不然——并不完全如此。这里的关键问题在于符号的含义。接下来我要告诉你的，是理解外界那些令人困惑之事的钥匙，所以凑过来，听我说说它们到底意味着什么。听好了？那好，开始吧。你日常最基本的符号，像‘1’、‘0’之类，其本身**毫无意义**（SQUAT）！
 
-That's right: zilch, zip, nada, noppes, dick, and all the other synonyms you can think of that mean ‘nothing’. In and of themselves, symbols have no meaning; rather, meaning *is imposed* on them by us humans. Symbols are means of communication. There's a lot of stuff in the world—objects, people, feelings, actions—and we label these things with symbols to tell them apart. The symbols themselves mean nothing; they're just <dfn>representations</dfn>, labels that we can make up as we see fit. Unfortunately, this is something that is rarely mentioned when you're growing up, the only thing they tell you is which symbol is tied to which concept, which can lead people to confuse the thing itself with its representation. There are people that do just this, but still realise that the symbols are just social constructs, and start believing that the things they represent, stuff like gravity and the number π, are just social constructs too. (Yet these same people aren't willing to demonstrate this by, say, stepping out of a window on the 22nd floor.)
+没错：毫无意义、空无一物、零、zip、nada、noppes、dick，以及你能想到的所有表示“什么都没有”的同义词。符号本身并不承载含义；含义是*我们人类强加*于其上的。符号是交流的手段。世界上有很多东西——物体、人、情感、动作——我们用符号给它们贴标签以便区分。符号本身没有任何含义；它们只是<dfn>表征</dfn>（representations），是我们按照自己方便的方式臆造出来的标签。遗憾的是，这一点在你成长过程中很少有人提及，别人只告诉你哪个符号对应哪个概念，这容易让人把事物本身和它的表征混为一谈。确实有人这么做，但他们仍意识到符号只是社会建构，并进而开始相信符号所代表的东西（比如重力和 π 这样的数）也仅仅是社会建构。（不过这些人却不肯用从 22 楼窗外跳出去之类的方式来证明这一点。）
 
-As a simple example of symbol(s), consider the word “chair”. The word itself has no intrinsic relationship with a “piece of furniture for one person to sit on, having a back and, usually, four legs.” (Webster's); it's just handy to have a word for such an object so that we know what we're talking about in a conversation. Obviously, this only works if all parties in the conversation use the same words for the same objects, so at some point in the past a couple of guys got together and decided on a set of words and called it the English language. Since words are just symbols with no intrinsic meaning, different groups can and have come up with a different set of words.
+举一个简单的符号例子：词语“chair”（椅子）。这个词本身与“供一人就坐、有靠背、通常有四条腿的家具”（韦氏词典）没有任何内在联系；只是有个词指代这种物体很方便，这样我们在交谈时才知道彼此在说什么。显然，这只有在对话各方对同一种物体使用同一个词时才有效，所以过去某个时候，几个人聚在一起约定了一套词，称之为英语。既然词语只是没有内在含义的符号，不同群体*可以*也确实创造了不同的词集。
 
-Such an agreement between people for the sake of convenience is called a <dfn>convention</dfn> (basically, a fancy word for standard). Conventions can be found everywhere. That's part of the problem: they are so ubiquitous that they're usually taken for granted. At some point in time, a convention has become so normal that people forget that it was merely an agreement made to facilitate communication, and will attach real meaning to the thing convened upon: the convention is now a “tradition”.
+人们为了方便达成的这种约定，称为<dfn>约定</dfn>（convention，基本上就是“标准”的华丽说法）。约定无处不在。这也正是问题的一部分：它们太普遍了，以至于常被想当然。到某个时候，某项约定变得如此正常，以至于人们忘记了它最初只是为了方便交流而达成的协议，并给约定所指之物附加上了真实含义：约定于是变成了“传统”。
 
-Back to numbers. Numbers are used for two things: quantities and identifications (cardinal and ordinal numbers, respectively). It's primarily quantities we're concerned with here: one banana, two bananas, three bananas, that sort of thing. The way numbers are written down—represented by symbols—is merely a convention; for most people, it's probably even a tradition. There are a couple of different ways to represent numbers: by words (one, two, three, four, five) by carvings (*I, II, III, IIII, ~~IIII~~*), Roman numerals (I, II, III, IV, V). You have all seen these at some point or another. The system most commonly used, however, is a variant of what's called the <dfn>base-*N* positional system</dfn>.
+回到数字。数字用于两件事：计量与标识（分别对应基数词和序数词）。我们在这里主要关心计量：一根香蕉、两根香蕉、三根香蕉，诸如此类。数字被写下来的方式——用符号表征——仅仅是一种约定；对大多数人来说，它甚至可能是一种传统。表示数字有几种不同的方式：用文字（一、二、三、四、五）、用刻痕（*I, II, III, IIII, ~~IIII~~*）、用罗马数字（I, II, III, IV, V）。这些你都在某个时候见过。不过最常用的系统，是所谓的<dfn>基-*N* 进位制</dfn>（base-*N* positional system）的一个变体。
 
-### The Base-*N* Positional System {#ssec-num-basen}
+### 基-*N* 进位制 {#ssec-num-basen}
 
-“So, Mike, what is the base-n positional system?” Well, it's probably the most convenient system to use when you have to write down long numbers and/or do arithmetic! The basic idea is that you have *N* symbols—numerals—at your disposal, for 0 up to *N*−1, and you represent each possible number by a *string* of *m* numerals. The numeral at position *i* in the string, *a*<sub>i</sub>, is a multiplier of the *i*-th power of the base number. The complete number *S* is the sum of the product of the powers *N*<sup>i</sup> and their multipliers *a*<sub>i</sub>.
+“那么，Mike，什么是基-n 进位制？”嗯，当你要写很长的数字和/或做四则运算时，它大概是最方便的系统了！基本思想是：你手头有 *N* 个符号——数字——从 0 到 *N*−1，并用*一串* *m* 个数字来表示每一个可能的数。字符串中位置 *i* 上的数字 *a*<sub>i</sub>，是基数的第 *i* 次幂的一个乘数。完整的数 *S*，就是各次幂 *N*<sup>i</sup> 与其乘数 *a*<sub>i</sub> 乘积的总和。
 
 <!--
 S={\Sigma}a_iN^i
@@ -58,9 +58,9 @@ S={\Sigma}a_iN^i
 </tr>
 </table>
 
-Another way of thinking about the system is by looking at these numbers as a set of counters, like old-style odometers in cars and old cassette players. Here you have a number of revolving wheels with *N* numerals on each. Each wheel is set so that they will increment the counter before it after a revolution has been completed. You start with all zeros, and then begin to turn the last wheel. After *N* numbers have passed, you will have a full revolution: this counter will be back to zero, and the one next to it will increase by one. And again after *N* more counts, and after *N*<sup>2</sup> the second counter will be full as well and so a third counter will increase, etc, etc.
+理解这个系统的另一种方式，是把这些数看作一组计数器，就像汽车和老式磁带机里那种老式里程表。这里你有若干个带 *N* 个数字的转轮。每个转轮都设置成在转满一圈后使前面的计数器加一。你从全零开始，然后开始转动最后一个转轮。经过 *N* 个数之后，它转满一圈：这个计数器回到零，旁边的那个加一。再经过 *N* 个数又如此，经过 *N*<sup>2</sup> 后第二个计数器也满了，于是第三个计数器加一，依此类推，等等。
 
-Here's an example using the familiar case of *N* is ten: the decimal system. Base-ten means ten different symbols (digits): 0, 1, 2, 3, 4, 5, 6, 7, 8, 9. Note that the form of these symbols is arbitrary, but this is how we got/stole them from the Arabs centuries ago. Note also the zero symbol. The zero is one of the key discoveries in mathematics, and makes the positional system possible. Now, for our sample string of numerals, consider “1025”, which is to be read as:
+下面以大家熟悉的 *N* 等于十的情况为例：十进制。基十意味着有十个不同的符号（数字）：0, 1, 2, 3, 4, 5, 6, 7, 8, 9。注意这些符号的形式是任意的，不过这是我们几个世纪前从阿拉伯人那里得到/偷来的。还要注意零符号。零是数学中最重要的发现之一，它使进位制成为可能。现在，对于我们这个示例数字串，考虑“1025”，应读作：
 
 <div class="lblock">
 <table>
@@ -74,19 +74,19 @@ Here's an example using the familiar case of *N* is ten: the decimal system. Bas
   <td>+<td> 0·100<sub>ten</sub>
   <td>+<td> 2·10<sub>ten</sub>
   <td>+<td>5·1
-<tr><td><td>=<td colspan=7> one thousand twenty five
+<tr><td><td>=<td colspan=7> 一千零二十五（one thousand twenty five）
 </table>
 </div>
 
-You may have noticed I'm using words for numbers a lot of the time. The thing is that if you write the ‘*N*’ in ‘base-*N*’ in its own base, you will always write ‘base-10’, because the string “10” *always* denoted the base number. That's kind of the point. To point out which “10” you're talking about, I've followed the usual convention and subscripted it with the word “ten”. But because it's a big hassle to subscript every number, I'll use another convention that if the number isn't subscripted, it's a base-ten number. Yes, like everyone has been doing all along, only I've taken the effort of explicitly mentioning the convention.
+你可能注意到我大量使用了文字来表示数字。问题在于：如果你把“基-*N*”中的那个“*N*”用其自身进制写出来，你总会写成“base-10”，因为字符串“10”*永远*表示基数。这恰恰是要点所在。为了指出你所说的是哪个“10”，我遵循惯例，在其下标写上“ten”这个词。但因为在每个数字上都加下标太麻烦，我将采用另一个约定：如果某个数字没有下标，它就是十进制数。是的，就像大家一直做的那样，只不过我特意把这条约定明确说了出来。
 
-### base-2: binary {#ssec-num-bin}
+### base-2：二进制 {#ssec-num-bin}
 
-What you have to remember is that there's nothing special about using 10 (that is, ten) as the base number; it could have just as well been 2 (binary), 8 (octal), 16 (hexadecimal). True story: in the later decades of the 18th century, when the French were developing the metric system to standardize, well, everything, there were also proposals for going to a duodecimal (base-12) system, because of its many factors. The only reason base-ten is popular is because humans have ten fingers, and that's all there is to it.
+你要记住的是：用 10（即十）作为基数并没有什么特别的；它完全可以是 2（二进制）、8（八进制）、16（十六进制）。说真的：在 18 世纪后期，法国人制定公制来标准化一切事物时，也曾有人提议改用十二进制（base-12），因为它的因数很多。十进制之所以流行，唯一的原因是人类有十根手指，仅此而已。
 
-As an example, let's look at the binary (base-2) system. This system is kinda special in that it is the simplest base-*N* system, using only two numbers 0 and 1. It is also perfect for clear-cut choices: on/off, black/white, high/low. This makes it ideal for computer-systems and since we're programmers here, you'd better know something about binary.
+举个例子，看看二进制（base-2）系统。这个系统有点特殊，因为它是最简单的基-*N* 系统，只使用两个数字 0 和 1。它也非常适合非此即彼的选择：开/关、黑/白、高/低。这使它对计算机系统而言堪称完美，而既然我们都是程序员，你最好对二进制有所了解。
 
-As said, you only have two symbols (BInary digiTs, or bits) here: 0 and 1. In the decimal system, you have ten symbols before you have to add a new numeral to the string: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10. But in a binary system you'll already need a second numeral for two: 0, 1, 10 (with two represented by ‘10’). This means that you get large strings fairly quickly. For example, let's look the number 1025 again. To write this down in binary we have to find the multipliers for the powers of two that will add up to 1025. First, of course, we need the powers of two themselves. The first 11 are:
+如前所述，这里你只有两个符号（BInary digiTs，或称比特，bits）：0 和 1。在十进制中，你要有十个符号才会用到数字串中的新一位：0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10。但在二进制中，表示二你就需要第二位了：0, 1, 10（二用‘10’表示）。这意味着你很快就会得到很长的字符串。例如，再来看数字 1025。要把它写成二进制，就得找出 2 的各次幂中相加等于 1025 的那些乘数。首先，当然需要 2 的各次幂本身。前 11 个次幂是：
 
 <div class="lblock">
 <table id="tbl:pot" class="table-data">
@@ -109,7 +109,7 @@ As said, you only have two symbols (BInary digiTs, or bits) here: 0 and 1. In th
 </table>
 </div>
 
-As you can see, the length of binary numbers rises really quickly. With longer numbers it's often difficult to see the actual size of the critter, so I comma-separated them into numeral groups of 4. If you're serious about programming, you *need* to know the powers of two, preferably up to 16. The nice thing about binary is that you won't have to worry much about the multiplication factors of the powers, as the only possibilities are 0 and 1. This makes decimal↔binary conversions relatively easy. For 1025, it is:
+如你所见，二进制数字的长度增长得非常快。对于较长的数字，往往很难一眼看出它到底有多大，所以我把它们每四个数字一组用逗号分隔开。如果你是个正经的程序员，你*需要*知道 2 的各次幂，最好记到 16。二进制的好处是，你不必太操心各次幂的乘数，因为可能性只有 0 和 1。这使得十进制↔二进制的转换相对容易。对于 1025，过程如下：
 
 <div class="lblock">
 <table>
@@ -122,11 +122,11 @@ As you can see, the length of binary numbers rises really quickly. With longer n
 </table>
 </div>
 
-An interesting and completely fortuitous factoid about binary is that 2<sup>10</sup>=1024 is almost 10<sup>3</sup>=1000. Because of this, you will often find powers of 1024 indicated by metric prefixes: kilo-, mega-, giga- etc. The correspondence isn't perfect, of course, but it is a good approximate. It also gives salesmen a good swindling angle: since in the computer world powers of 2 reign supreme, one Megabyte (MB) is 1.05 bytes, but with some justification you could also use the traditional 1M = one million in memory sizes, and thus make it *seem* that your product has 5% more memory. You will also see both notations used randomly in Windows programs, and it's almost impossible to see whether or not that file that Explorer says is 1.4MB will fit on your floppy disk or not.
+关于二进制，有一个有趣且纯属巧合的事实：2<sup>10</sup>=1024 几乎等于 10<sup>3</sup>=1000。因此，你常会看到用 1024 的各次幂配以公制前缀来表示：kilo-（千）、mega-（兆）、giga-（吉）等。当然这种对应并不精确，但作为近似是好的。这也给了推销员一个很好的骗人角度：因为在计算机世界里 2 的幂占统治地位，一兆字节（MB）是 1.05 字节——不对，是一百万零五万字节，但你有理由也可以用传统的 1M = 一百万来表示内存大小，从而让它*看起来*比实际多了 5% 的内存。在 Windows 程序里你也常会看到这两种记法混用，几乎无法判断资源管理器说的 1.4MB 文件到底能不能塞进你的软盘。
 
-For this reason, in 1999, the IEC began to recommend a separate set of binary prefixed units based on powers of 1024. These include kibibyte (KiB) for 1024 bytes, mebibyte (MiB) for 1048576 bytes, and gibibyte (GiB) for 1073741824 bytes.
+正因如此，1999 年 IEC 开始推荐一套基于 1024 次幂的二进制前缀单位。其中包括 kibibyte（KiB，1024 字节）、mebibyte（MiB，1048576 字节）和 gibibyte（GiB，1073741824 字节）。
 
-### base-16, hexadecimal {#ssec-num-hex}
+### base-16，十六进制 {#ssec-num-hex}
 
 <div class="cpt_fr" style="width:160px">
 
@@ -162,9 +162,9 @@ For this reason, in 1999, the IEC began to recommend a separate set of binary pr
 
 </div>
 
-In itself, binary isn't so difficult, it's just that the numbers are so large! The solution for this given above was using commas to divide them into groups of four. There is a better solution, namely hexadecimal.
+单就二进制本身而言并不难，只是数字太长了！上面给出的解决方案是用逗号把它们分成每组四个。还有一个更好的解决方案，就是十六进制。
 
-Hexadecimal is the name for the base-16 system, also known as <dfn>hex</dfn>. That an abbreviation exists should tell you something about its prevalence. As you should be able to guess by now, there are 16 symbols in hex. This presents a small problem because we only have 10 symbols associated with numbers. Rather than invent new symbols, the first letters of the alphabet are used, so the sequence becomes: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, a, b, c, d, e, f. Hex is more concise than binary. In fact, since 16 is 2<sup>4</sup>, you can exactly fit four bits into one hex digit, so hex is exactly 4 times as short as binary. This is also why I used groups of four earlier on. If you know the powers of 2, then you automatically know the powers of 16 too, but rather than decompose numbers into powers of 16, it's often easier to go to binary first, make groups and convert those to hex.
+十六进制是基-16 系统的名称，也叫<dfn>hex</dfn>（十六进制）。它有一个缩写这件事本身就说明了它有多普遍。现在你应该能猜到，hex 中有 16 个符号。这带来一个小问题，因为我们只有 10 个与数字相关的符号。我们没有发明新符号，而是借用了字母表的前几个字母，于是序列变成：0, 1, 2, 3, 4, 5, 6, 7, 8, 9, a, b, c, d, e, f。Hex 比二进制更紧凑。事实上，因为 16 是 2<sup>4</sup>，你正好能把四个比特塞进一个 hex 数字，所以 hex 的长度恰好是二进制的 1/4。这也是我之前用四个一组的原因。如果你知道 2 的幂，那你自然也知道 16 的幂，不过与其把数字分解成 16 的幂，通常更简单的做法是先转成二进制，分组后再转成 hex。
 
 <div class="lblock">
 <table>
@@ -177,15 +177,15 @@ Hexadecimal is the name for the base-16 system, also known as <dfn>hex</dfn>. Th
 </table>
 </div>
 
-A hexadecimal digit is often called a <dfn>nybble</dfn> or a nibble, which fits in nicely with the bit and the byte. Speaking of bytes, bytes are conventionally made up of 8 bits, and hence 2 nybbles. So you can conveniently write down bytes and multiple byte types in nybbles. My personal preference in dealing with hex numbers in to always use an even number of nybbles, to correspond with the whole bytes, but that's just me. Hexadecimal is so engrained in the computer world that it not only has an abbreviation, but also a number of shorthand notations indicating numbers are indeed hex: C uses the prefix `0x`, in assembly you might find `\$`, and in normal text the affix `h` is sometimes used.
+一个十六进制数字常被称为<dfn>nybble</dfn>（或半字节，nibble），它与 bit 和 byte 搭配得很好。说到字节，字节传统上由 8 个比特组成，因此是两个 nybble。所以你可以用 nybble 方便地写出字节和多字节类型。我个人偏好在处理 hex 数字时总是使用偶数个 nybble，以对应整个字节，不过这只是我个人习惯。十六进制在计算机世界里如此根深蒂固，以至于它不仅有缩写，还有好几种表示某个数确实是 hex 的速记记法：C 用前缀 `0x`，在汇编里你可能会看到 `\$`，在正文中则有时用后缀 `h`。
 
-Depending on how low-level you do your programming, you will see any of the three systems mentioned above. Aside from decimal, binary and hexadecimal, you might also encounter octal (C prefix `0`) from time to time. Now, even if you know never intend to use octal, you might use it accidentally. If you would like to align your columns of numbers by padding them with zeros, you are actually converting them to octal! Yet one more of those fiendish little bugs that will have you tearing your hair out.
+根据你编程的底层程度，你会看到上述三种系统中的任何一种。除了十进制、二进制和十六进制，你偶尔还会碰到八进制（C 的前缀 `0`）。现在，即使你从没打算用八进制，你也可能意外用到它。如果你想用补零来对齐数字列，你实际上是在把它们转换成八进制！这又是一个会让你抓狂的阴险小 bug。
 
-### Using the positional system {#ssec-num-base-use}
+### 使用进位制 {#ssec-num-base-use}
 
-Using a base-*N* positional system has a number of advantages over the other number systems. For starters, numbers don't get nearly as long as the carving system; and you don't have to invent new symbols for higher numbers, like in the Roman system. It's also easier to compare two numbers using either the lengths of the strings or just the first number. There's also a tie with probability theory: each individual digit has *N* possibilities, so a number-string with length *m* has *N<sup>m</sup>* possibilities.
+使用基-*N* 进位制相比其他数字系统有不少优势。首先，数字不会像刻痕系统那样长得离谱；你也不必像罗马数字那样为更大的数发明新符号。比较两个数字也更容易，既可以比较字符串长度，也可以只比较第一个数字。它还与概率论有联系：每个单独的数字有 *N* 种可能性，所以长度为 *m* 的数字串有 *N<sup>m</sup>* 种可能性。
 
-Where it really comes into its own is arithmetic. The positions in a number-string are equivalent, so the steps for adding ‘3+4’ are the same for ‘30+40’. This will allow you to break up large calculations into smaller, easier ones. If you can do calculations for single-symbol numbers, you can do them all. What's more, the steps themselves are the same, regardless of which base you use. I won't show you how to do addition in binary or hex, as that's rather trivial, but I will demonstrate multiplication. Here's an example of calculating ‘123 × 456’, in decimal and hexadecimal. I've also given the multiplication tables for convenience.
+它真正大显身手的地方是算术。数字串中的各个位置是等价的，所以计算‘3+4’的步骤与‘30+40’相同。这使你能够把大计算拆成更小、更简单的计算。如果你会做单符号数字的计算，你就能做所有计算。而且，步骤本身是相同的，无论你用哪种进制。我不会演示如何在二进制或 hex 中做加法，因为那相当平凡，但我会演示乘法。下面是一个计算‘123 × 456’的例子，分别用十进制和十六进制。为方便起见，我也给出了乘法表。
 
 <div class="cblock" id="tbl:multiply">
   <table class="table-data">
@@ -311,13 +311,13 @@ Where it really comes into its own is arithmetic. The positions in a number-stri
 </table>
 </div>
 
-In both cases, I followed exactly the same procedure: break up the big numbers into powers of *N*, lookup the individual multiplications in the tables and stick the right number of zeros behind them, and then add them all up. You can check with a calculator to see that these numbers are correct. Hexadecimal arithmetic isn't any harder than decimal; it just *seems* harder because they haven't drilled it into your brain at a young age.
+在两种情况下，我遵循了完全相同的步骤：把大数拆成 *N* 的幂，在乘法表中查单个乘积并在其后补上正确数量的零，然后把它们全部加起来。你可以用计算器验证这些数字是正确的。十六进制算术并不比十进制难；它只是*看起来*更难，因为你小时候没有像对十进制那样被反复灌输。
 
-I should point out that 4EDC2<sub>sixteen</sub> is actually 323010<sub>ten</sub>, and not 56088<sub>ten</sub>. And it shouldn't be, because the second multiplication was *all* in hex: 123<sub>sixteen</sub> × 456<sub>sixteen</sub>, which actually corresponds to 291<sub>ten</sub> × 1110<sub>ten</sub>. This is why implicit conventions can cause trouble: in different conventions, the *same* number-string can mean completely *different* things. Please keep that in mind. (Incidentally, facts like this also disprove that mental virus known as numerology. Of course, it doesn't in the eyes of its adherents, because that's one of the characteristics of belief systems: belief actually grows as evidence mounts against them, instead of diminishing it.)
+我要指出，4EDC2<sub>sixteen</sub> 实际上是 323010<sub>ten</sub>，而不是 56088<sub>ten</sub>。它也不应该是，因为第二次乘法是*全程*在 hex 下进行的：123<sub>sixteen</sub> × 456<sub>sixteen</sub>，实际上对应的是 291<sub>ten</sub> × 1110<sub>ten</sub>。这就是为什么隐含的约定会引发麻烦：在*不同*约定下，*同一个*数字串可能意味着*完全不同*的东西。请务必牢记这一点。（顺便说一句，这类事实也驳斥了那种被称为“数字命理学”的心理病毒。当然，在它的信徒眼里并非如此，因为信仰体系的一个特征就是：随着反证越来越多，信念反而增强，而不是减弱。）
 
-#### Look, it floats! {#num-float}
+#### 看，它会浮！ {#num-float}
 
-Something that is only possible in a positional system is the use of a floating point. Each numeral in a number-string represents a multiplier for a power of *N*, but why use only positive powers? Negative powers of *x* are successive multiplications of 1/*x*: *x*<sup>−n</sup> = (1/*x*)<sup>n</sup>. For example, π can be broken down like this:
+只有进位制才能做到的一件事，就是使用浮点数（floating point）。数字串中的每个数字都是 *N* 的某次幂的乘数，但为什么只使用正次幂呢？*x* 的负次幂是 1/*x* 的连续乘积：*x*<sup>−n</sup> = (1/*x*)<sup>n</sup>。例如，π 可以这样分解：
 
 <div class="lblock">
 <table class="table-data">
@@ -337,9 +337,9 @@ Something that is only possible in a positional system is the use of a floating 
 </table>
 </div>
 
-You can't simply use a number-string for this; you need to know where the negative powers start. This is done with a period: π≈3.1416. At least, the English community uses the period; over here in the Netherlands, people use a comma. That's yet another one of those convention mismatches, one that can *seriously* mess up your spreadsheets.
+你不能简单地用数字串来表示这一点；你需要知道负次幂从哪里开始。这是用一个小数点来实现的：π≈3.1416。至少，英语社区使用句点；在荷兰这里，人们用逗号。这又是一个约定不一致的例子，而且会*严重*搞乱你的电子表格。
 
-Since each base-*N* system is equivalent, you can do this just as well in binary. π in binary is:
+由于每个基-*N* 系统都是等价的，你同样可以在二进制下这么做。二进制下的 π 是：
 
 <div class="lblock">
 <table class="table-data">
@@ -359,11 +359,11 @@ Since each base-*N* system is equivalent, you can do this just as well in binary
 </table>
 </div>
 
-So π in binary is 11.0010<sub>two</sub>. Well, yes and no. Unfortunately, 11.0010<sub>two</sub> is actually 3.1250, not 3.1416. The problem here is that with 4 bits you can only get a precision to the closest 1/16 = 0.0625. For 4 decimals of accuracy you'd need about 12 bits (11.001001000100 ≈ 3.1416). You could also use hex instead of binary, in which case the number is 3.243F<sub>sixteen</sub>.
+所以二进制下 π 是 11.0010<sub>two</sub>。嗯，对也不对。遗憾的是，11.0010<sub>two</sub> 实际上是 3.1250，而不是 3.1416。这里的问题在于，用 4 个比特你只能精确到最接近的 1/16 = 0.0625。要精确到 4 位小数，你需要大约 12 个比特（11.001001000100 ≈ 3.1416）。你也可以改用 hex 而不是二进制，那样这个数就是 3.243F<sub>sixteen</sub>。
 
-#### Conversion between bases
+#### 进制之间的转换
 
-You might wonder how I got these conversions. It's actually not that hard: all you have to do is divide by the base number and strip off the remainders until you have nothing left; the string of the remainders is the converted number. Converting decimal 1110 to hex, for example, would go like this:
+你可能想知道我是怎么得到这些转换的。其实并不难：你只需不断除以基数并取余数，直到除尽为止；余数的串就是转换后的数。例如，把十进制 1110 转成 hex，过程如下：
 
 <div class="lblock">
 <table class="table-data rules-cols">
@@ -375,37 +375,37 @@ You might wonder how I got these conversions. It's actually not that hard: all y
 </table>
 </div>
 
-This strategy will also work for floating point numbers, but it may be smart to break the number up in an integer and fractional part first. And remember that dividing by a fraction is the same as multiplying by its reciprocal. Grab your calculator and try it.
+这个策略对浮点数也有效，但最好先把数字拆成整数部分和小数部分。还要记住，除以一个分数就等同于乘以它的倒数。拿起你的计算器试试看。
 
-There are actually a number of different ways you can convert between bases. The one given using divisions is the easiest one to program, but probably also the slowest. This is especially true for the GBA, which has no hardware division. You can read about another strategy in ["Binary to Decimal Conversion in Limited Precision" by Douglas W. Jones](https://homepage.divms.uiowa.edu/~jones/bcd/decimal.html).
+实际上，进制之间有多种转换方法。这里给出的用除法的方法最容易编程，但也可能是最慢的。对 GBA 来说尤其如此，因为它没有硬件除法。你可以阅读 Douglas W. Jones 的[“有限精度下二进制到十进制的转换”](https://homepage.divms.uiowa.edu/~jones/bcd/decimal.html)了解另一种策略。
 
-#### Scientific notation {#num-sci}
+#### 科学计数法 {#num-sci}
 
-Another thing that a positional system is useful for is what is known as the <dfn>scientific notation</dfn> of numbers. This will help you get rid of all the excess zeros that plague big and large numbers, as well as indicate the number of significant figures. For example, if you look in science books, you might read that the mass of the Earth is 5,974,200,000,000,000,000,000,000 kg. There are two things wrong with this number. First, the value itself is incorrect: it isn't 59742 followed by 20 zeros kilograms, right down to the last digit: that kind of accuracy just isn't possible in physics (with the possible exception of Quantum Mechanics, where theory can be accurate to up to a staggering 14 decimals. That's right, that ‘fuzzy’ stuff actually has the highest degree of accuracy of *all* fields of science). When it comes to planetary masses, the first 3 to 5 numbers may be accurate, the rest is usually junk. The second problem is more obvious: the number is just too damn long to write!
+进位制的另一个用处是所谓的数字的<dfn>科学计数法</dfn>（scientific notation）。它能帮你摆脱那些困扰大数和小数的多余零，同时指出有效数字的位数。例如，如果你看科学书籍，可能会读到地球的质量是 5,974,200,000,000,000,000,000,000 kg。这个数字有两个问题。首先，数值本身是不正确的：它不是精确到最后一位的 59742 后面跟 20 个零千克；在物理学中这种精度根本不可能（量子力学可能是个例外，其理论可以精确到惊人的 14 位小数。没错，那个“模糊”的东西实际上拥有*所有*科学领域中最高的精度）。涉及行星质量时，前 3 到 5 位数字可能是准确的，其余通常是垃圾。第二个问题更明显：这个数字实在太长了，根本写不下！
 
-The scientific notation solves both problems. Multiplying with a power of 10 effectively moves the floating point around and thus can rid you of the zeros. The mass of the Earth can then be written concisely as 5.9742·10<sup>24</sup>, that is, 5.9742 times 10 to the power 24. You can also come across the even shorter notation of 5.9742e+24, where the “·10\^” is replaced by an ‘e’ for exponent. Don't misread it as a hexadecimal number. And yes, I am aware that this is a shorthand notation of a shorthand notation. What can I say, math people are lazy bastards. Additionally, this number also indicates that you have 5 significant digits, and any calculation you do afterwards needs to respect that.
+科学计数法解决了这两个问题。乘以 10 的幂实际上是在移动小数点，从而可以去掉那些零。地球的质量可以简洁地写成 5.9742·10<sup>24</sup>，即 5.9742 乘以 10 的 24 次方。你也可能碰到更短的记法 5.9742e+24，其中“·10\^”被替换成了表示指数的‘e’。别误读成十六进制数。是的，我知道这是速记的速记。我能说什么呢，搞数学的人都是懒惰的混蛋。此外，这个数字还表明你有 5 位有效数字，此后你做的任何计算都需要尊重这一点。
 
-Of course, this notation will work for any base number, just remember that conversion between bases require the whole number.
+当然，这种记法适用于任何基数，只要记住跨进制转换需要整个数字一起转。
 
-#### It ain't as hard as you think
+#### 它没你想的那么难
 
-The concepts laid out in this section may seem difficult, but I assure you they are actually quite easy to understand. All of this stuff is taught in elementary or high school; the only thing is that they only use the decimal system there. Like I said, the workings of the positional system is equivalent for all base numbers, the only difference is that you've had lots and lots of *practice* with the decimal system, and hardly any with the others. If you had memorised the multiplication tables in hex instead of in decimal, you'd have found the latter awkward to use.
+本节所述的概念可能看起来很难，但我向你保证它们其实相当容易理解。这些内容都在小学或中学教过；唯一的问题是，他们那时只用了十进制。正如我所说，进位制在所有基数下运作方式都是等价的，唯一的区别是你对十进制做过大量*练习*，而对其他进制几乎没有。如果你当初背的是十六进制乘法表而不是十进制，你会发现后者用起来很别扭。
 
-## Of bits and bytes {#sec-bits}
+## 位与字节 {#sec-bits}
 
-Any self-respecting programmer knows that the workings of a computer are all about little switches that can be on or off. This means that computers are more suited to a binary (or maybe hex) representation than a decimal one. Each switch is called a <dfn>bit</dfn>; computer memory is basically a sea of millions upon millions of bits. To make things a little more manageable, bits are often grouped into <dfn>bytes</dfn>. 1 byte = 8 bits is the standard nowadays, but some older systems had 6-, 7-, or 9-bit bytes.
+任何自尊的程序员都知道，计算机的运行全关乎那些可以开或关的小开关。这意味着计算机比十进制更适合用二进制（或也许是 hex）来表示。每个开关称为一个<dfn>位</dfn>（bit）；计算机内存基本上就是千千万万个位的海洋。为了让事情更易管理，位常被分组为<dfn>字节</dfn>（bytes）。如今 1 字节 = 8 位是标准，但一些较老的系统用过 6、7 或 9 位的字节。
 
-Since *everything* is just 1s and 0s, computers are the best example on the meaning of symbols: it's all about interpretation here. The bits can be used to mean anything: besides switches and numbers you can interpret them as letters, colors, sound, you name it. In this section, I will explain a few ways that you can interpret bits. I will often use a mixture of binary and hex, switching between them for convenience.
+既然*一切*都只是 1 和 0，计算机就是“符号意义”的最佳例证：这里一切都关于解释。这些位可以表示任何东西：除了开关和数字，你还可以把它们解释为字母、颜色、声音，应有尽有。在本节中，我会解释几种解释位的方式。我会经常混用二进制和 hex，为了方便在两者之间切换。
 
-### Integer number representations {#ssec-bits-int}
+### 整数表示 {#ssec-bits-int}
 
-An obvious use of bits would be numbers, especially integers. With 8 bits, you have 2<sup>8</sup>=256 different numbers running from 0 to 1111,1111<sub>two</sub> (FFh in hex and 255 decimal). That's not much, so there are also groupings of 16 bits (10000h or 65536 numbers) and 32 bits (10000:0000h or 4,294,967,296 numbers). In the late 2000s decade, PCs made the transition to 64 bits CPUs; I'm not even going to write down how much that is. The C types for these are `short` (16 bits), `int` or `long` (32 bits), and `long long` (64 bits). The size of an `int` or `long` is actually system dependent, but on a GBA, both are 32 bits.
+位的一个明显用途是数字，尤其是整数。用 8 位，你有 2<sup>8</sup>=256 个不同的数，范围从 0 到 1111,1111<sub>two</sub>（hex 下是 FFh，十进制下是 255）。这不多，所以还有 16 位（10000h 或 65536 个数）和 32 位（10000:0000h 或 4,294,967,296 个数）的分组。在 2000 年代后期，PC 转向了 64 位 CPU；我甚至不想把那个数写出来。对应的 C 类型是 `short`（16 位）、`int` 或 `long`（32 位），以及 `long long`（64 位）。`int` 或 `long` 的大小实际上依赖于系统，但在 GBA 上两者都是 32 位。
 
-#### Negative numbers {#bits-int-neg}
+#### 负数 {#bits-int-neg}
 
-That you have *n* bits to represent a number does not necessarily mean that you have to use them for the range \[0, 2<sup>n</sup>−1\], that is, positive integers. What about negative numbers? Well, there are a number of ways you can represent negative numbers. A very simple way could be to use one of the bits as a <dfn>sign bit</dfn>: 0 for positive numbers and 1 for negative numbers. For example, binary 1000,0001 could be ‘−1’. Some systems use this, but the GBA doesn't, because there's a smarter way.
+你有 *n* 位来表示一个数，并不一定意味着你必须把它们用于范围 \[0, 2<sup>n</sup>−1\]，也就是正整数。那负数呢？表示负数有几种方式。一种很简单的方式是用其中一个位作为<dfn>符号位</dfn>（sign bit）：0 表示正数，1 表示负数。例如，二进制 1000,0001 可以是‘−1’。一些系统这么做，但 GBA 不这么做，因为有更聪明的方式。
 
-Let's bring out our odometers again. In an three-digit odometer, you could go from 0 to 999. Forget what a three-digit odometer says about the quality of the car, just focus on the numbers. At 999, *every* digit will roll over and you'll be back at 0 again. You could also argue that the number *before* 0 is 999. In other words, '999' would be the representation of −1. You could split the full one thousand range into one half for the first positive five hundred (0 to 499), and the other for the first negative five hundred (−500 to −1), as counting backward from 0, using the roll-over. This type of numbering is called be <dfn>ten's complement</dfn>. The table below shows how this works for 3 digits.
+让我们再次请出里程表。在一个三位里程表中，你可以从 0 走到 999。先别管三位里程表说明了什么车的质量，只关注数字。到 999 时，*每一位*都会归零，你又回到 0。你也可以认为 0 *之前*的那个数是 999。换句话说，‘999’将是 −1 的表示。你可以把完整的一千个范围分成两半：前一半给前五百个正数（0 到 499），另一半给前五百个负数（−500 到 −1），即倒着从 0 往下数，利用归零。这种编号方式称为<dfn>十的补码</dfn>（ten's complement）。下面的表格展示了这在 3 位数下是如何运作的。
 
 <div class="lblock">
 <table id="tbl:10cmpl" class="table-data">
@@ -424,7 +424,7 @@ Let's bring out our odometers again. In an three-digit odometer, you could go fr
 </table>
 </div>
 
-That's the practice, now the theory behind it. Negative numbers are deeply tied to subtraction; you could almost consider it part of their definition. Basically, for every number *x*, the following should be true:
+以上是实践，下面是背后的理论。负数与减法紧密相连；你几乎可以把减法看作其定义的一部分。基本上，对每个数 *x*，下面这个式子应当成立：
 
 <table id="eq:sum-xeqmx">
 <tr>
@@ -435,7 +435,7 @@ That's the practice, now the theory behind it. Negative numbers are deeply tied 
 </tr>
 </table>
 
-This could be considered zeros' complement: the number (−*x*) is the number you need to add to *x* to get 0. In ten's complement, they need to add up to 10 or a power of 10. In our odometer, 1000 will have the same representation as 0, and counting back from one thousand will be the same as counting back from zero. However, you *must* know the number of digits beforehand; otherwise it won't work. The actual representation of -*x* using *m* digits, can be derived as follows:
+这可以看作零的补码：数 (−*x*) 是你加在 *x* 上得到 0 的那个数。在十的补码中，它们要加到 10 或 10 的幂。在我们的里程表里，1000 与 0 表示相同，从一千往下数就等同于从零往下数。不过，你*必须*事先知道数字的位数；否则它就失效了。使用 *m* 位表示 -*x* 的实际方式，可推导如下：
 
 <!--
 \begin{matrix}
@@ -534,9 +534,9 @@ This could be considered zeros' complement: the number (−*x*) is the number yo
 </tr>
 </table>
 
-Don't panic, these equations aren't as nasty as they seem. Remember that for *m* digits, the highest number is 10<sup>m</sup>&minus;1. If *m* = 3, then that'd be 999 in decimal, 111 in binary or FFF in hex. This will allow you to do the subtraction by *x* without borrowing. There's more to 10's complement then a way to express negative numbers; it'll also turn subtraction into a form of addition: *subtraction* by *y* is equivalent to *addition* by its 10's complement. That feature was part of the system from the start, and the other schemes of negative number representations don't have that property. Checking this is left as an exercise for the reader.
+别慌，这些方程没看起来那么可怕。记住，对于 *m* 位，最大的数是 10<sup>m</sup>&minus;1。如果 *m* = 3，那就是十进制的 999、二进制的 111 或 hex 的 FFF。这让你无需借位就能完成对 *x* 的减法。十的补码不止是表示负数的一种方式；它还会把减法变成一种加法形式：减去 *y* 等价于加上它的十的补码。这个特性从一开始就包含在系统里，而其他负数表示方案并不具备这一性质。验证就当作读者的练习吧。
 
-The binary version of 10's complement is <dfn>two's complement</dfn>. Finding the two's complement of a number is actually easier than in other cases: the subtraction of 10<sup>m</sup>−1 by *x* is just the inversion of all the bits of *x*. Take 76, for example:
+十的补码的二进制版本是<dfn>二的补码</dfn>（two's complement）。求一个数的二的补码其实比其他情况更容易：用 10<sup>m</sup>−1 减去 *x* 就是把 *x* 的所有位取反。以 76 为例：
 
 <table>
 <tr>
@@ -558,17 +558,17 @@ The binary version of 10's complement is <dfn>two's complement</dfn>. Finding th
   </table>
 </table>
 
-The 8bit −76 would be 179+1=180 (10110100<sub>two</sub>) and you will indeed see that 180+76 = 256 = 2<sup>8</sup>, exactly as it should be.
+8 位的 −76 就是 179+1=180 (10110100<sub>two</sub>)，你确实会看到 180+76 = 256 = 2<sup>8</sup>，完全符合预期。
 
-#### Signed is not unsigned {#bits-int-sign}
+#### 有符号不等于无符号 {#bits-int-sign}
 
-I've already mentioned this before, but it's important enough to state it again: when using 10's complement, you *must* know the number of digits ahead of time, otherwise you won't know what to subtract *x* from. Most of the time you can remain blissfully ignorant of this fact, but there are a few instances where it really does matter. In C or assembly programming, you have two types of integer numbers: <dfn>signed</dfn> and <dfn>unsigned</dfn>, and only the *signed* types are in two's complement. The difference manifests itself in the interpretation of the most significant bit: in unsigned numbers, it's just another bit. But in signed numbers, it acts as a sign-bit, and as such it needs to be preserved in certain operations as *type-casting* or *shifting*. For example, an 8-bit FF<sub>sixteen</sub> is a signed ‘−1’ or an unsigned ‘255’. When converting to 16 bits, the former should become FFFF<sub>sixteen</sub>, while the latter would remain 00FF<sub>sixteen</sub>. If you ever see stuff go completely bonkers when numbers become negative, this might be why.
+我之前已经提过这一点，但它足够重要，值得再说一遍：使用十的补码时，你*必须*事先知道数字的位数，否则你不知道要从哪个数里减去 *x*。大多数时候你可以对这些一无所知，但确实有少数情况它真的很重要。在 C 或汇编编程中，整数有两种类型：<dfn>有符号</dfn>（signed）和<dfn>无符号</dfn>（unsigned），而且只有*有符号*类型才使用二的补码。区别体现在最高位（most significant bit）的解释上：在无符号数中，它只是一个普通位。但在有符号数中，它充当符号位，因此在*类型转换*或*移位*等操作中需要被保留。例如，8 位的 FF<sub>sixteen</sub> 是有符号的‘−1’或无符号的‘255’。转换为 16 位时，前者应变成 FFFF<sub>sixteen</sub>，而后者仍保持 00FF<sub>sixteen</sub>。如果你曾见过数字变负时一切都乱套了，这可能就是原因。
 
-Here are a few guidelines for choosing signed or unsigned types. Intrinsically signed types are numbers that have a physical counterpart: position, velocity, that kind of stuff. A key feature of these is that you're supposed to do arithmetic on them. Variables that act as switches are usually unsigned, the bitflags for enabling features on a GBA are primary examples. These usually use logical operations like masking and inverting (see the section on [bit operations](#sec-bitops)). Then there are quantities and counters. These can be either signed or unsigned, but consider starting with signed, then switch to unsigned if you really have to. Again, these are just recommendations, not commandments that will land you in eternal damnation if you break them.
+以下是选择有符号或无符号类型的一些指导原则。本质上是有符号类型的是那些有物理对应物的数：位置、速度之类的东西。它们的一个关键特征是，你应当对其进行算术运算。充当开关的变量通常是无符号的，用于在 GBA 上启用各项功能的位标志就是主要例子。它们通常使用逻辑运算如掩码和取反（见[位操作](#sec-bitops)一节）。然后是数量和计数器。它们可以是有符号或无符号，但考虑先从无符号开始，只有在真的必须时才切换到有符号。再次强调，这些只是建议，不是违背就会下地狱的戒律。
 
 :::note
 
-Unsigned and signed types can behave differently under type casting, comparison and bit-operations. A byte *x* containing FFh could mean a signed −1 or an unsigned 255. In that case:
+无符号和有符号类型在类型转换、比较和位运算下表现可能不同。一个包含 FFh 的字节 *x* 可能表示有符号的 −1 或无符号的 255。在这种情况下：
 
 <div class="lblock">
 <table class="table-data">
@@ -584,21 +584,21 @@ Unsigned and signed types can behave differently under type casting, comparison 
 
 :::
 
-### Characters {#ssec-bits-char}
+### 字符 {#ssec-bits-char}
 
-No, I'm not talking about GBA-tiles, but the letter variety (this possible confusion is why I'm not fond of the name ‘character’ for tiles). For everyday purposes you would need 2×26 letters, 10 numerals, a bunch of punctuation signs and maybe a few extra things on the side: that's about 70 characters at least, so you'd need 7 bits to indicate them all (6 would only allow 2<sup>6</sup>=64 characters). Better make it 8 bits for possible future expansion, and because it's a nice round number. In binary that is. That's part of the reason why the byte is a handy grouping: one character per byte.
+不，我说的不是 GBA 图块，而是字母那种（正因可能混淆，我并不喜欢用“character”来称呼图块）。为了日常用途，你需要 2×26 个字母、10 个数字、一堆标点符号，外加侧边可能几个额外字符：这至少约 70 个字符，所以你需要 7 位来表示它们全部（6 位只能容纳 2<sup>6</sup>=64 个字符）。为了将来可能的扩展，最好用 8 位，而且因为它是个漂亮的整数——在二进制下。这也是字节这种分组很方便的部分原因：每个字符一个字节。
 
 #### ASCII
 
-Knowing which characters you need is only part of the story: you also need to assign them to certain numbers. The order of any alphabet is, again, just a convention (well, there are orders that are more logical than others, see Tolkien's *Tengwar*, “The Lord of the Rings”, Appendix E, but the Latin alphabet is completely random). One possible arrangement is to take a normal keyboard and work your way through the keys. Fortunately, this isn't the standard. The common code for character assignments is <dfn>ASCII</dfn>: *American Standard Code for Information Interchange*.
+知道你需要哪些字符只是故事的一部分：你还需要把它们分配给某些数字。任何字母表的顺序，再次说明，仅仅是一种约定（好吧，有些顺序比别的更合理，参见托尔金的“腾格瓦文字”，《魔戒》附录 E，但拉丁字母表完全是随机的）。一种可能的排列是拿一个普通键盘，按按键顺序走一遍。好在这不是标准。字符分配的通用编码是 <dfn>ASCII</dfn>：*美国信息交换标准代码*（American Standard Code for Information Interchange）。
 
-The lower 128 characters of ASCII are given below. The first 32 are control codes. Only a few of these are still of any importance: 08h (backspace, `\b`), 09h (tab, `\t`), 0Ah (Line Feed, `\n`) and 0Dh (Carriage Return, `\r`). If you have ever downloaded text files from Unix/Linux servers, you might have noticed that all the line breaks have been removed: this is because CP/M, MS-DOS, and Windows use CRLF (`\r\n`) as the line break, while Unix environments just use the line feed.
+ASCII 的下半部分 128 个字符如下。前 32 个是控制码。其中只有少数几个仍有意义：08h（退格，`\b`）、09h（制表符，`\t`）、0Ah（换行，LF，`\n`）和 0Dh（回车，CR，`\r`）。如果你曾从 Unix/Linux 服务器下载过文本文件，可能注意到所有换行都被去掉了：这是因为 CP/M、MS-DOS 和 Windows 使用 CRLF（`\r\n`）作为换行，而 Unix 环境只使用换行。
 
-The real characters start at 20h, the space character. Note how the numeric, uppercase and lowercase characters are located sequentially and in a logical fashion. Numbers start at 30h, uppercase at 41h, lowercase at 61h. The alphabetical order of the letters makes for easy alphabetizing, although I should point out that the 32 difference between uppercase and lowercase may cause problems.
+真正的字符从 20h（空格字符）开始。注意数字、大写和小写字符是依次排列且合乎逻辑的。数字从 30h 开始，大写从 41h 开始，小写从 61h 开始。字母的字母顺序便于排序，不过我要指出大写和小写相差 32 这一点可能导致问题。
 
-The ASCII set also has an upper 128 characters, but these can be different for different language settings. Normally, these will include accented characters that are frequent in non-English languages. In a DOS environment, they also contained a number of purely graphical characters for borders and the like. ASCII isn't the only character set available. Chinese and Japanese languages usually use the 16bit <dfn>Unicode</dfn>, as the 8bit ASCII simply isn't sufficient for thousands of characters. ASCII is basically a subset of Unicode.
+ASCII 集还有上半部分 128 个字符，但这些在不同语言设置下可能不同。通常，它们会包含非英语语言中常见的带重音字符。在 DOS 环境下，它们还包含一些用于边框等的纯图形字符。ASCII 并非唯一的字符集。中文和日文中通常使用 16 位的 <dfn>Unicode</dfn>（统一码），因为 8 位的 ASCII 根本不足以容纳成千上万个字符。ASCII 基本上是 Unicode 的一个子集。
 
-The C type for the character is called <dfn>char</dfn>. A **char** is actually a *signed* 8bit integer. I mention this because I distinctly remember being sent on a long bughunt long ago because of this little fact. To be perfectly honest, I think that the default signing of the char-type is actually platform dependent, so consider yourself warned.
+字符的 C 类型称为 <dfn>char</dfn>。一个 **char** 实际上是一个*有符号*的 8 位整数。我提到这个，是因为我清楚地记得很久以前曾因这个小事实被拖入一场漫长的查虫之旅。老实说，我认为 char 类型的默认符号性其实是平台相关的，所以请当心。
 
 <div class="cblock">
 <table id="tbl:ascii" class="table-data">
@@ -608,23 +608,23 @@ The C type for the character is called <dfn>char</dfn>. A **char** is actually a
 <tr><td>
   <table class="border-none"><tr><th>dec <th>hex <th>Char
     <tr><td> 0 <td>00h <th>NUL
-    <tr><td> 1 <td>01h <th>
-    <tr><td> 2 <td>02h <th>    <tr><td> 3 <td>03h <th>
-    <tr><td> 4 <td>04h <th>    <tr><td> 5 <td>05h <th>
+    <tr><td> 1 <td>01h <th>	
+    <tr><td> 2 <td>02h <th>    <tr><td> 3 <td>03h <th>	
+    <tr><td> 4 <td>04h <th>    <tr><td> 5 <td>05h <th>	
     <tr><td> 6 <td>06h <th>ACK  <tr><td> 7 <td>07h <th>BELL
     <tr><td> 8 <td>08h <th>BS   <tr><td> 9 <td>09h <th>HT
     <tr><td>10 <td>0Ah <th>LF
-    <tr><td>11 <td>0Bh <th>
+    <tr><td>11 <td>0Bh <th>	
     <tr><td>12 <td>0Ch <th>FF   <tr><td>13 <td>0Dh <th>CR
-    <tr><td>14 <td>0Eh <th>    <tr><td>15 <td>0Fh <th>
-    <tr><td>16 <td>10h <th>    <tr><td>17 <td>11h <th>
-    <tr><td>18 <td>12h <th>    <tr><td>19 <td>13h <th>
-    <tr><td>20 <td>14h <th>    <tr><td>21 <td>15h <th>
-    <tr><td>22 <td>16h <th>    <tr><td>23 <td>17h <th>
-    <tr><td>24 <td>18h <th>    <tr><td>25 <td>19h <th>
+    <tr><td>14 <td>0Eh <th>    <tr><td>15 <td>0Fh <th>	
+    <tr><td>16 <td>10h <th>    <tr><td>17 <td>11h <th>	
+    <tr><td>18 <td>12h <th>    <tr><td>19 <td>13h <th>	
+    <tr><td>20 <td>14h <th>    <tr><td>21 <td>15h <th>	
+    <tr><td>22 <td>16h <th>    <tr><td>23 <td>17h <th>	
+    <tr><td>24 <td>18h <th>    <tr><td>25 <td>19h <th>	
     <tr><td>26 <td>1Ah <th>^Z   <tr><td>27 <td>1Bh <th>ESC
-    <tr><td>28 <td>1Ch <th>    <tr><td>29 <td>1Dh <th>
-    <tr><td>30 <td>1Eh <th>    <tr><td>31 <td>1Fh <th>
+    <tr><td>28 <td>1Ch <th>    <tr><td>29 <td>1Dh <th>	
+    <tr><td>30 <td>1Eh <th>    <tr><td>31 <td>1Fh <th>	
   </table>
 <td>
   <table class="border-none"><tr><th>dec <th>hex <th>Char
@@ -686,11 +686,11 @@ The C type for the character is called <dfn>char</dfn>. A **char** is actually a
 </table>
 </div>
 
-### IEEE(k)! Floating points {#ssec-bits-float}
+### IEEE(k)! 浮点数 {#ssec-bits-float}
 
-The last of the most common types is the floating point. Having, say, 32bits for a number is nice and all, but it still means you are limited to around 4 billion characters. This may seem like a big number, but we've already seen numbers that are much bigger. The floating-point types provide a solution, using the scientific notation in binary. I already described [floating point](#num-float) numbers (even in binary), as well as the [scientific notation](#num-sci), so I won't repeat how they work.
+最后一种最常见的类型是浮点数。有 32 位来表示一个数固然不错，但它仍意味着你受限于大约 40 亿个字符。这看起来是个大数，但我们已经见过更大的数了。浮点类型用二进制的科学计数法给出了解决方案。我已经描述过[浮点数](#num-float)（甚至二进制的），以及[科学计数法](#num-sci)，所以我不重复它们如何运作。
 
-Describing floating-point numbers on a computer is done according to the <dfn>IEEE/ANSI</dfn> standard (Institute of Electrical and Electronic Engineers / American National Standards Institute). The floating-point format consists of 3 parts, a sign bit *s*, an exponent *e* and a fractional part *f*. The following table and equation is the formatting and meaning of a normal, 32bit float
+在计算机上描述浮点数，依据的是 <dfn>IEEE/ANSI</dfn> 标准（电气与电子工程师协会 / 美国国家标准协会）。浮点格式由三部分组成：符号位 *s*、指数 *e* 和小数部分 *f*。下面的表与方程描述了一个普通的 32 位浮点数的格式与含义
 
 <div class="reg">
 <table class="table-reg" id="tbl-float-fmt"
@@ -774,7 +774,7 @@ x=(-1)^s \cdot 1.f \cdot 2^{e-127}
 </tr>
 </table>
 
-Note that unlike signed integers, there *is* a real sign bit this time. Furthermore, the number always starts with 1, and the fractional part *f* really is the fractional part of the number. This makes sense, because sense, since if it weren't, you can always move the point around until you get a single 1 before the point. The exponent is subtracted by 127 to allow for negative powers (similar, but not exactly like you'd get in a 2s' complement number). Two examples:
+注意，与有符号整数不同，这次确实有一个真正的符号位。此外，这个数总是以 1 开头，小数部分 *f* 确实是这个数的小数部分。这是合理的，因为如果不是这样，你总可以移动小数点直到小数点前只有一个 1。指数要减去 127，以允许负次幂（与二的补码数相似，但不完全一样）。两个例子：
 
 <div class="lblock">
 <table class="table-data">
@@ -784,24 +784,22 @@ Note that unlike signed integers, there *is* a real sign bit this time. Furtherm
 </table>
 </div>
 
-Eq 4 will hold for the usual causes, but there are a few exceptions to this rule.
+方程 4 在通常情形下成立，但这一规则有几个例外。
 
--   If **e = f = 0**, then *x* = 0. Note that the sign-bit can still be set to indicate a left-limit to zero.
--   If **e = 0** and **f ≠ 0**, then the number is too small to be normalized, *x* = (−1)<sup>s</sup> × 0.*f* × 2<sup>−127</sup>
--   If **e = 255** and **f = 0**, then the *x* = +∞ or *x*= −∞
--   If **e = 255** and **f ≠ 0**, then *x* = NaN, or *Not a Number*. √−1 would be NaN, for example.
+-   如果 **e = f = 0**，则 *x* = 0。注意符号位仍可被置位，表示趋近于零的下限。
+-   如果 **e = 0** 且 **f ≠ 0**，则该数太小而无法规范化，*x* = (−1)<sup>s</sup> × 0.*f* × 2<sup>−127</sup>
+-   如果 **e = 255** 且 **f = 0**，则 *x* = +∞ 或 *x* = −∞
+-   如果 **e = 255** 且 **f ≠ 0**，则 *x* = NaN，即*非数*（Not a Number）。例如 √−1 就是 NaN。
 
-The 32bit **float** has a 23bit fractional part, meaning 24 bits of precision. Each 10 bits mean roughly one decimal, so that 24 bits give around 7 decimals of precision, which may or may not be enough for your purposes. If you need more, there are also the 8 byte **double** and and 10 byte **long double** types, which have more exponent and fractional bits.
+32 位的 **float** 有 23 位小数部分，意味着 24 位精度。每 10 位约等于一位十进制数，所以 24 位给出大约 7 位十进制精度，对你的目的而言可能够也可能不够。如果你需要更多，还有 8 字节的 **double** 和 10 字节的 **long double** 类型，它们有更长的指数和小数位。
 
+如你所见，浮点格式远不如整数那样容易理解。算术和整型到浮点的转换都很棘手。这不只是对我们人类，计算机处理它们也可能很吃力。PC 通常有一个专门的浮点单元（FPU）来处理这类数。但 GBA 没有。因此，在这个系统上*强烈*不鼓励使用浮点数。那么这是否意味着，如果我们想用分数和小数之类的东西，就完蛋了？不，这个特定问题的解决方案叫做定点数运算（fixed-point math），我会在[这里](fixed.html)解释。
 
+### AAaagghhh！大小端来了！ {#ssec-bits-endian}
 
-As you can probably tell, the floating-point format isn't nearly as easy to understand as an integer. Both arithmetic and int-float conversion is tricky. This isn't just for us humans, but computers can have a hard time with them too. PCs usually have a separate floating-point unit (FPU) for just these numbers. The GBA, however, does not. As such, the use of floating-point numbers is *strongly* discouraged on this system. So does that mean that, if we want to use fractions and decimals and such, we're screwed? No, the solution to this particular problem is called fixed-point math, and I'll explain that [here](fixed.html).
+整章里有一个约定我完全忽略了：<dfn>字节序</dfn>（endianness）。它关乎数字、位和字节的读取顺序。我一直默认数字中*最左边*的数字是最高位，即 *N* 的最高次幂。所以 1025 读作一千零二十五。这是<dfn>大端序</dfn>（big-endian），之所以这么叫，是因为大端（最高次幂）排在前面。还有<dfn>小端序</dfn>（little-endian），小端（最低次幂）排在前面。那样的话，1025 会被读作五千二百零一。再次强调，这只是一种平凡的约定，但你用哪一种关系重大。两者各有优点：口语通常是大端的，我们的数字系统也反映了这一点（除了少数国家把个位放在十位前面，如“五和二十”，这相当让人困惑）。但算术通常从小端开始，URL 也是如此。
 
-### AAaagghhh! The endians are coming! {#ssec-bits-endian}
-
-There is one convention I have completely overlooked throughout this chapter: <dfn>endianness</dfn>. This is about the reading order numbers, bits and bytes. I have always just assumed that in a number, the *left*most digit is the most significant number, that is, the highest power of *N*. So 1025 is read as one thousand twenty-five. That's <dfn>big-endian</dfn>, so named because the big-end (the highest power) goes first. There is also <dfn>little-endian</dfn>, in which the little-end (lowest power) goes first. In that case, 1025 would be read as five thousand two hundred and one. Once again, it's a trivial convention, but it matters greatly which one you use. Both have their merits: speech is usually big-endian and our number system reflects that (except in a few countries which place the ones before the tens (five and twenty), which can be quite confusing). Arithmetic, however, usually starts at the little-end, as do URLs.
-
-Computer endianness plays a part in two areas: bit-order in a byte and byte-order in a multi-byte type such as an int. Since the byte is usually the smallest chunk you can handle, the bit-order is usually of little concern. As a simple example, look at the int 0x11223344. This will be stored differently on different systems, see the table below. Try to think of what would happen if you save this in a file and then transfer that to a computer with a different endian-scheme.
+计算机的字节序在两个领域起作用：字节内的位顺序，以及像 int 这样的多字节类型中的字节顺序。由于字节通常是你能操作的最小块，位顺序通常不太要紧。举个简单例子，看 int 0x11223344。它在不同系统上存储方式不同，见下表。试着想想要是你把它存进文件，再传给一个使用不同字节序方案的计算机，会发生什么。
 
 <div class="lblock">
 <table id="tbl:endian" class="table-data" width=30%>
@@ -815,7 +813,7 @@ Computer endianness plays a part in two areas: bit-order in a byte and byte-orde
 </table>
 </div>
 
-So what should we use then? Well, that's just it: there is no real answer. A benefit of big-endian is that if we see a memory dump, the numbers will be in the human reading-order. On the little-endian side, lower powers are in lower memory, which makes more sense mathematically. Additionally, when you have a 16bit integer *x* = 0x0012, when you cast its address to a 8bit pointer, the value will be preserved which, personally, I think is a good thing.
+那么我们应该用哪一种呢？嗯，问题就在这里：没有真正的标准答案。大端序的好处是，如果我们看到内存转储，数字会按人类阅读顺序排列。在小端序这边，较低的次幂位于较低的内存，这在数学上更合理。此外，当你有一个 16 位整数 *x* = 0x0012，把它的地址转换成 8 位指针时，值会被保留——我个人认为这是件好事。
 
 ```c
   u8 *pc;
@@ -825,25 +823,25 @@ So what should we use then? Well, that's just it: there is no real answer. A ben
   //    big endian: *pc = 0x00, whups
 ```
 
-There is actually one place where you can see the bits-in-byte order: bitmaps. In particular, bitmaps with a bit depth less than 8. A byte in a 4bpp bitmap will represent two pixels. In a BMP, the high-nybbles are the even pixels and low-nybbles the odd ones. GBA graphics work exactly the other way around. One could say that BMP bits are big-endian and GBA bits are little-endian (*bytes*, however, are little-endian on both PCs and GBA). Another endianness-related thing about bitmaps is the color order, RGB (red-green-blue), or BGR (blue-green-red). There are so many pitfalls here that I don't even want to get into this.
+实际上有一个地方你能看到字节中的位顺序：位图。尤其是位深小于 8 的位图。一个 4bpp 位图中的一个字节表示两个像素。在 BMP 中，高 nybble 是偶数像素，低 nybble 是奇数像素。GBA 图形正好相反。可以说 BMP 的位是大端的，而 GBA 的位是小端的（不过*字节*在 PC 和 GBA 上都是小端的）。关于位图还有另一个与字节序相关的东西，就是颜色顺序：RGB（红-绿-蓝），还是 BGR（蓝-绿-红）。这里陷阱太多了，我甚至不想深入。
 
-Interestingly, there's one other field where endianness mucks things up: dates. In Europe we use a little-endian scheme: day-month-year. China, Japan, and the ISO 8601 standard use big-endian dates: year-month-day. And then there's the American English scheme, which just had to make things difficult for themselves by using a month-day-year scheme. This could be called middle endian, I suppose.
+有趣的是，字节序还在另一个领域捣乱：日期。在欧洲我们用小端方案：日-月-年。中国、日本和 ISO 8601 标准使用大端日期：年-月-日。然后是美式英语方案，它非要让事情变难，用了月-日-年方案。这大概可以称为中端序吧。
 
-In the end it's not a matter of which is ‘better’, but rather of which system you're working on. PCs and the GBA are little-endian; I hear that PowerPC Macs and a lot of other RISC chips are big-endian (but I may be wrong here). Don't get dragged into any [holy wars](https://www.rfc-editor.org/ien/ien137.txt) over this, just be aware that the different schemes exist and be careful when porting code.
+归根结底，这不是哪个“更好”的问题，而是你在哪个系统上工作的问题。PC 和 GBA 是小端的；我听说 PowerPC Mac 和许多其他 RISC 芯片是大端的（不过我可能错了）。别卷入任何关于此的[圣战](https://www.rfc-editor.org/ien/ien137.txt)，只要意识到不同方案的存在，并在移植代码时多加小心。
 
-## Bit operations {#sec-bitops}
+## 位操作 {#sec-bitops}
 
-As the name implies, bit operations (bit-ops) work at the individual bit level and are therefore the lowest operations you can think of. Most Real World applications have little need for bit-fiddling and therefore use bit-ops sparingly, if at all. A good number of programming languages don't even have them. Assembly and C (and Java) belong to the ones that do, but if you look at course books, bit operations are usually moved to the back pages (yes, I am aware that I'm doing this too, but remember that Tonc isn't meant as a general programming tutorial; you should know this stuff already. Most of it, anyway). As GBA programming is done very close to the hardware, with effects taking place depending on whether individual bits are set (1) or clear (0), a good understanding of bit operations is *essential*!
+顾名思义，位操作（bit-ops）作用于单个位的层面，因此是你所能想到的最低级的操作。大多数现实世界的应用很少需要摆弄位，因此即使使用也很少。很多编程语言甚至没有它们。汇编和 C（以及 Java）属于有它们的语言，但如果你看教科书，位操作通常被放到最后几页（是的，我意识到我也在这么做，但请记住 Tonc 并不是作为通用编程教程而写的；这些你应该已经懂了，至少大部分）。由于 GBA 编程非常贴近硬件，效果取决于各个位是否被置位（1）或清零（0），因此对位操作的良好理解是*必不可少*的！
 
-The basic list of bit-ops is: OR, AND, NOT, XOR, shift left/right, rotate left/right. That's 8 operations, though someone proficient with Occam's Razor could cut this list down to 5, perhaps even four items. Of these, only OR, AND and XOR are ‘true’ bit operations: they can be used to change the value of a single bit. The rest change all the bits of a variable.
+位操作的基本清单是：OR、AND、NOT、XOR、左移/右移、循环左移/循环右移。共 8 种操作，尽管精通奥卡姆剃刀的人可能把它削减到 5 种，甚至 4 种。其中只有 OR、AND 和 XOR 是“真正”的位操作：它们可以用来改变单个位的值。其余的会改变一个变量的所有位。
 
-### True bitwise bit operations {#ssec-bitops-true}
+### 真正的逐位位操作 {#ssec-bitops-true}
 
-There are 3 bitwise operators: OR ( (inclusive or, symbol ‘|’), AND (symbol ‘\&’) and XOR (exclusive or, symbol ‘\^’) ). These are binary operators, as in ‘taking two arguments as their inputs’. They're called <dfn>bitwise</dfn> operators because that the *n*th bit of the result is only affected by the *n*th bits of the operands. AND and OR work pretty much as their logical counterparts (&& and \|\|). In *c*=*a*&*b*, a bit in *c* will be `1` only if that bit is `1` in both *a* *and* *b*. For OR, the *a*-bit *or* *b*-bit (or both) must be `1`. XOR doesn't have a logical counterpart, but it is more closely linked to the Real Word definition of ‘or’: XOR is `1` if *either* the *a*-bit *or* the *b*-bit is `1` (but not both).
+有 3 个逐位运算符：OR（包含或，符号‘|’）、AND（符号‘\&’）和 XOR（异或，符号‘\^’）。它们是二元运算符，即“以两个参数作为输入”。它们被称为<dfn>逐位</dfn>（bitwise）运算符，因为结果的第 *n* 位只受操作数第 *n* 位的影响。AND 和 OR 的作用与它们的逻辑对应物（&& 和 \|\|）非常相似。在 *c*=*a*&*b* 中，只有当 *a* *和* *b* 中该位都为 `1` 时，*c* 中的该位才是 `1`。对于 OR，*a* 位 *或* *b* 位（或两者）必须为 `1`。XOR 没有逻辑对应物，但它更贴近现实世界对“或”的定义：XOR 在 *a* 位 *或* *b* 位为 `1`（但不同时为 `1`）时为 `1`。
 
-There is a fourth operation that is often included in this group, namely NOT (ones' complement, symbol ‘\~’). NOT is a unary operator, and inverts all bits of the operand, which is basically XORring with −1 (which is all `1`s in binary). The bitwise NOT is similar to the logical not (‘!’). There is an important difference between the logical operations (‘&&’, ‘\|\|’ and ‘!’) and their bitwise counterparts (‘&’, ‘\|’ , ‘\~’), try not to confuse them.
+常被归入这一组的第四个操作是 NOT（一的补码，符号‘\~’）。NOT 是一元运算符，把操作数的所有位取反，这本质上是与 −1（二进制下全为 `1`）做 XOR。逐位 NOT 类似于逻辑 not（‘!’）。逻辑运算（‘&&’、‘\|\|’和‘!’）与它们的逐位对应物（‘&’、‘\|’、‘\~’）有一个重要区别，尽量不要混淆它们。
 
-What these four operations do is usually written down in truth tables, which list all possible input combinations and their results. Note that the truth tables look at each bit individually, not the variable as a whole, even though the operators themselves always act on variables. Table 8 shows examples of these operators on bytes 0Fh and 35h.
+这四个操作通常写在真值表里，列出所有可能的输入组合及其结果。注意真值表是逐位地看，而不是把变量作为整体看，尽管运算符本身总是作用于变量。表 8 展示了字节 0Fh 和 35h 上这些运算符的例子。
 
 <div class="lblock">
 <table id="tbl:bitops-truth">
@@ -943,14 +941,14 @@ What these four operations do is usually written down in truth tables, which lis
 </table>  <!-- /frame for masked results -->
 </div>
 
-I hope you've noticed that some of the bits were colored. Yes, there was a point to this. Knowing what the bit-ops do is one thing; knowing how to *use* them is another. A bit is a binary switch, and there are four things you can do to a switch: leave it alone, flip it, turn it on, and turn it off. In other words, you can:
+我希望你已经注意到一些位被上了色。是的，这是有目的的。知道位操作做什么是一回事；知道如何*使用*它们是另一回事。一个位就是一个二进制开关，你可以对一个开关做四件事：不管它、翻转它、把它打开、把它关闭。换句话说，你可以：
 
--   **keep** the current state,
--   **toggle** it (0→1, 1→0),
--   **set** it (*x*→1), and
--   **clear** it (*x*→0)
+-   **保持**当前状态，
+-   **翻转**它（0→1，1→0），
+-   **置位**它（*x*→1），以及
+-   **清零**它（*x*→0）
 
-If you look at the truth tables and the examples, you may already see how this can work. OR, AND, XOR are binary operators, and you can think of the two operands as a source variable *s* and a <dfn>mask</dfn> variable *m* which tells you which of the bits are affected. In table 8a I used *s*=35h and *m*=0Fh; the mask consists of the set bits (in blue), the red bits were the ones that were affected. If you examine the table, you'll see that an OR sets bits, a XOR toggles it and an AND keeps bits (i.e., clears the unmasked bits). To clear the masked bits, you'd need to invert the mask first, so that would be an *s* AND NOT *m* operation. Note that the first three are commutative ( *s* OP *m* = *m* OP *s* ), but the last one isn't. This masking interpretation of the bit operations is very useful, since you'll often be using them to change the bits of certain registers in just this way, using C's assignment operators like '\|='.
+如果你看真值表和例子，可能已经看出来这怎么运作了。OR、AND、XOR 是二元运算符，你可以把两个操作数看作源变量 *s* 和一个<dfn>掩码</dfn>（mask）变量 *m*，它告诉你哪些位受影响。在表 8a 中我用 *s*=35h、*m*=0Fh；掩码由置位的位（蓝色）组成，红色的位是受影响的位。如果你细看表格，会发现 OR 置位、XOR 翻转、AND 保持（即清零未被掩码的位）。要清零被掩码的位，你需要先对掩码取反，也就是 *s* AND NOT *m* 操作。注意前三个是可交换的（*s* OP *m* = *m* OP *s*），但最后一个不是。这种位操作的掩码解释非常有用，因为你常会像这样用它们来只改变某些寄存器的位，使用 C 的赋值运算符如‘\|=’。
 
 <div class="lblock">
 
@@ -1021,9 +1019,9 @@ If you look at the truth tables and the examples, you may already see how this c
 </table>  <!-- /frame for masked results -->
 </div>
 
-### Non-bitwise bit operations {#ssec-bitops-false}
+### 非逐位的位操作 {#ssec-bitops-false}
 
-And then there are the shift and rotate operations. In contrast to the earlier operations, these act on a variable as a whole. Each variable is a string of bits and with the shift and rotate operations you can move the bits around. Both have left and right variants and are binary operations, the first operand is the source number, and the second is the amount of bits to move. I'll refer to shift left/right as SHL and SHR and rotate left/right as ROL and ROR for now. These sound like assembly instructions, but they're not. At least, not ARM assembly. Shift left/right have C operators ‘\<\<’ and ‘\>\>’, but there are no C operators for a bit-rotate, although you can construct the effect using shifts. As said, shift and rotate move bits around a variable, in pretty much the way you'd expect:
+然后是移位和循环操作。与前面的操作不同，它们作用于整个变量。每个变量都是一个位串，通过移位和循环操作你可以在变量中移动这些位。两者都有左移和右移变体，且都是二元操作，第一个操作数是源数字，第二个是要移动的位数。我暂且把左移/右移称为 SHL 和 SHR，把循环左移/右移称为 ROL 和 ROR。这听起来像汇编指令，但其实不是。至少，不是 ARM 汇编。左移/右移有 C 运算符‘\<\<’和‘\>\>’，但 C 没有位循环运算符，尽管你可以用移位构造出该效果。如前所述，移位和循环在变量中移动位，方式基本如你所料：
 
 <div class="lblock">
 <table id="tbl:shift" class="table-data rules-groups">
@@ -1058,13 +1056,13 @@ And then there are the shift and rotate operations. In contrast to the earlier o
 </table>
 </div>
 
-Shifting has two uses. First of all, you can easily find the *n* bit, or the *n*th power of 2 by using `1<<`*n*. Speaking of powers, shifting basically comes down to adding zeros or removing bits, which is essentially multiplying or dividing by 10. Binary 10, that is. So you could use shifting to quickly multiply or divide by 2. The latter is especially useful, since division is very, very costly on a GBA, while shifting is a one-cycle operation. I can't really thing of a use for rotation right now but I'm sure they're there.
+移位有两个用途。首先，你可以轻松找到第 *n* 位，或用 `1<<`*n* 找到 2 的第 *n* 次幂。说到幂，移位本质上就是补零或去掉位，即乘以或除以 10——二进制下的 10。所以你可以用移位来快速乘或除以 2。后者尤其有用，因为除法在 GBA 上非常、非常昂贵，而移位是一条单周期指令。我实在想不出循环现在的什么用处，但我相信它们是存在的。
 
-OK, that's what they do in theory. In *practice*, however, there's a lot more to it. One thing that is immediately obvious is that the size of the variable is important. A rotate on an 8bit variable will be very different then a rotate on a 16bit one. There is also the possibility of including the carry bit in the rotation, but that doesn't really matter for the moment because bit rotation is purely an assembly matter, and that's beyond the scope of this page.
+好，以上是理论上它们的作用。但在*实践*中，还有更多名堂。一个立刻显而易见的问题是，变量大小很重要。8 位变量上的循环与 16 位上的循环会大不相同。循环还有可能把进位位也包括进来，但眼下这并不重要，因为位循环纯属汇编领域，超出了本页范围。
 
-What does matter is a few nasty things about shifting. Shift-left isn't much of a problem, unless you shift by more than the amount of bits of the variable. Shift-right, however, has one particular nasty issue for negative numbers. For example, an 8bit −2 is represented in twos' complement by `FEh`. If you shift-right by one, you'd get `7Fh`, which is 128, and not −2/2 = −1. The problem here is that the first bit acts as a sign bit, and should have special significance. When shifting- right, the sign-bit needs to be preserved and extended to the other bits, this will ensure that the result is both negative and represents a division by a power of two. There are actually two right-shift instructions, the *arithmetic* and the *logical* shift right (ASR and LSR); the former extends the sign bit, the latter doesn't. In C, the [signing](numbers.html#bits-int-sign) of the variable type determines which of these instructions is used.
+真正要紧的是移位的一些讨厌之处。左移问题不大，除非你移的位数超过了变量的位数。但右移对于负数有一个特别讨厌的问题。例如，8 位的 −2 用二的补码表示为 `FEh`。如果你右移一位，会得到 `7Fh`，即 128，而不是 −2/2 = −1。这里的问题在于第一位充当符号位，应具有特殊意义。右移时，符号位需要被保留并扩展到其他位，这样才能保证结果既是负数又表示除以 2 的幂。实际上有两条右移指令：*算术*右移和*逻辑*右移（ASR 和 LSR）；前者扩展符号位，后者不扩展。在 C 中，变量类型的[符号性](numbers.html#bits-int-sign)决定了使用哪条指令。
 
-Take the interesting case of the 8bits 80h, which is both the unsigned 128 as the signed −128. A right-shift by 3 should result in 16 and −16, respectively. This would be 10h for the unsigned and F0h for the signed case, and lo and behold, that is exactly what you'd get by sign-bit extension or not.
+以 8 位 80h 这个有趣的例子来看，它既是无符号的 128，也是有符号的 −128。右移 3 位应分别得到 16 和 −16。无符号情况是 10h，有符号情况是 F0h，看哪，这正是你是否扩展符号位的结果。
 
 <div class="lblock">
 <table id="tbl:sign" class="table-data">
@@ -1085,17 +1083,17 @@ Take the interesting case of the 8bits 80h, which is both the unsigned 128 as th
 </table>
 </div>
 
-I know this seems like such a small and trivial issue, and indeed, it usually is. But when it isn't, you could be looking at a long bughunt. This isn't limited to just shifting, by the way, *all* bit operations can suffer from this problem.
+我知道这看起来是个很小很平凡的问题，确实通常如此。但当它不是的时候，你可能要面对一场漫长的查虫之旅。而且这不限于移位，顺便说一句，*所有*位操作都可能受此问题困扰。
 
-### Arithmetic with bit operations {#ssec-bitops-arith}
+### 用位操作做算术 {#ssec-bitops-arith}
 
-The shift operators can be used to divide and multiply by powers of two. The other bit-ops also have arithmetic interpretations.
+移位运算符可以用来乘除 2 的幂。其他位操作也有算术解释。
 
-For example, a modulo of a power of two basically cuts away the upper bits, which can be done with an AND operation: *x*%2<sup>n</sup> = *x* AND 2<sup>n</sup>−1. For example, *x*%8 = *x*&7.
+例如，对 2 的幂取模本质上就是砍掉高位，可以用 AND 操作完成：*x*%2<sup>n</sup> = *x* AND 2<sup>n</sup>−1。例如，*x*%8 = *x*&7。
 
-An OR operation can be used as an addition, but *only* if the affected bits were 0 to start with. F0h \| 01h = F1h, which is the same as F0h+01h. However, F0h \| 11h = F1h too, but F0h+11h is actually 101h. Be careful with this one, and make note of it when you see it in other people's code.
+OR 操作可以用作加法，但*仅当*受影响的位一开始就是 0 时。F0h \| 01h = F1h，与 F0h+01h 相同。然而 F0h \| 11h 也等于 F1h，但 F0h+11h 实际上是 101h。用这个时要小心，并在别人代码里看到它时记上一笔。
 
-Thanks to [two's''s complement](#bits-int-neg), we can use XOR as a subtraction: (2<sup>n</sup>−1)−*x* = (2<sup>n</sup>−1) XOR *x*. This can be used to reverse the traversal order of loops, for example, which can be useful when you want collision detection with flipped tiles. Yes, it's a bit of a hack, but so what?
+多亏了[二的补码](#bits-int-neg)，我们可以用 XOR 做减法：(2<sup>n</sup>−1)−*x* = (2<sup>n</sup>−1) XOR *x*。这可以用来反转循环的遍历顺序，例如，在你想对翻转后的图块做碰撞检测时很有用。是的，这有点 hack，但那又怎样？
 
 ```c
 int ii, mask;
@@ -1109,7 +1107,7 @@ for(ii=0; ii<8; ii++)
 }
 ```
 
-OR and XOR are only very rarely used in their arithmetic form, but the shifts and AND can be seen with some regularity. This is especially true on a system with no hardware division (like the GBA), in which case division and modulo are expensive operations. That is why powers of two are preferred for sizes and such, the faster bit operations can then be used instead. Fortunately, the compiler is smart enough to optimize, say, division by 8 to a right-shift by 3, so you don't have to write down the bit-op version yourself if you don't want to. Mind you, this will only work if a) the second operand is a constant and b) that constant is a power of two.
+OR 和 XOR 很少以其算术形式出现，但移位和 AND 倒是常能见到。在没有硬件除法（如 GBA）的系统上尤其如此，因为那时除法和取模都是昂贵的操作。这就是为什么尺寸和类似的东西偏好用 2 的幂，这样就可以改用更快的位操作。幸运的是，编译器足够聪明，会把比如除以 8 优化成右移 3 位，所以如果你不想，就不必自己写下位操作版本。请注意，这只在 a) 第二个操作数是常量，且 b) 该常量是 2 的幂时才有效。
 
 <div class="lblock">
 <table id="tbl:bitops-arith" class="table-data rules-groups">
@@ -1141,7 +1139,7 @@ OR and XOR are only very rarely used in their arithmetic form, but the shifts an
 </table>
 </div>
 
-And now for my final trick of the day, let's take a closer look at the most basic of arithmetic operations, addition. The addition of 2 bits to be precise, and the truthtable of that can be found in table 12 below. If you've paid attention so far (well done! I didn't think anyone would make it this far <kbd>:P</kbd>), there should be something familiar about the two columns that make up the result. The right column is just *a* XOR *b* and the left column is *a* AND *b*. This means that you can create a 1-bit adder with just an AND and a XOR port, electric components that can be found in any Radio Shack, or its local equivalent. String 8 of these together for an 8-bit adder, and you'll have yourself the foundation of an 8bit computer, cool huh?
+现在表演我今天的最后一个戏法，让我们仔细看看最基础的算术运算：加法。准确地说，是两个位的加法，其真值表可在下面的表 12 找到。如果你到目前为止一直专心（干得好！我没想到真有人能坚持到这儿 <kbd>:P</kbd>），结果的两列应该有些眼熟。右列只是 *a* XOR *b*，左列是 *a* AND *b*。这意味着你可以用一个 AND 和一个 XOR 门构建一个 1 位加法器，这种电子元件在任何 Radio Shack 或其本地等价物里都能找到。把 8 个这样的串联起来就是一个 8 位加法器，你就拥有了 8 位计算机的基础，酷吧？
 
 <div class="lblock">
 <table id="tbl:adder" class="table-data rules-groups" width=20%>
@@ -1161,8 +1159,9 @@ And now for my final trick of the day, let's take a closer look at the most basi
 </table>
 </div>
 
-### Beware of bit operations {#ssec-bitops-caveat}
+### 当心位操作 {#ssec-bitops-caveat}
 
-There are two things you should *always* remember when you're using bit operations. I've already mentioned the first, that they can mess with the sign of the variables. This is only relevant for signed integers, though.
+使用位操作时，有两件事你*永远*要记住。第一件我已经提过，就是它们可能搞乱变量的符号。不过这只对有符号整数有意义。
 
-The second problem is concerns the level of precedence of the bit operations. Except for NOT (`~`), the precedence is very low; lower than addition, for example, and even lower than conditional operators in some cases. Your C manual should have a precedence list, so I'll refer you to that for details. In the mean time, be prepared to drown your code in parentheses over this.
+第二个问题关乎位操作的优先级。除了 NOT（`~`），位操作的优先级非常低；低于加法，在某些情况下甚至低于条件运算符。你的 C 手册应该有一份优先级列表，所以我让你去查详情。同时，准备好用括号把你的代码淹没吧。
+

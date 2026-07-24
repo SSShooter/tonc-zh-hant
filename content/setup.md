@@ -1,111 +1,110 @@
-# 2. Setting up a development environment
+# 2. 搭建开发环境
 
 <!-- toc -->
 
-## Introduction {#sec-intro}
+## 简介 {#sec-intro}
 
-Unless you want to punch in the instructions in binary in a hex editor, you'll need a development environment to turn human readable code into machine code. This chapter will show you how to set up the necessary components and use them to compile Tonc's examples.
+除非你想在十六进制编辑器里用二进制手动敲入指令，否则你需要一个开发环境来把人类可读的代码转换成机器码。本章将展示如何搭建必要的组件，并用它们来编译 Tonc 的示例。
 
-By the end you should have:
+到本章结束时，你应该拥有：
 
-* A text editor
-* A GBA emulator _(mGBA)_
-* A cross-compiler toolchain _(devkitARM)_
-* Libraries used for GBA programming _(libtonc in particular)_
-* The examples which accompany this tutorial
+* 一个文本编辑器
+* 一个 GBA 模拟器 _(mGBA)_
+* 一个交叉编译工具链 _(devkitARM)_
+* 用于 GBA 编程的库 _(尤其 libtonc)_
+* 本教程配套的示例
 
+:::warning 需要一定的命令行基础
 
-:::warning Some command-line skills required
+要编译一个 GBA 游戏，你需要对命令行有基本的了解。如果你对此不熟悉，下面的 [Unix 命令行教程](https://command-line-tutorial.readthedocs.io/) 或许有帮助。
 
-To compile a GBA game, you'll need a basic undestanding of the command-line. If this is unfamiliar to you, the following [Unix command-line tutorial](https://command-line-tutorial.readthedocs.io/) may be helpful.
-
-If you're on Windows, you should use the **MSYS2** terminal which comes with devkitARM. On other OS's, the built-in terminal should be perfectly adequate.
+如果你在 Windows 上，应该使用 devkitARM 自带的 **MSYS2** 终端。在其他操作系统上，内置的终端应该完全够用。
 
 :::
 
 
-## Choosing a text editor {#sec-editor}
+## 选择文本编辑器 {#sec-editor}
 
-A decent text editor is essential for programming. At the bare minimum you'll want something that supports syntax highlighting and gives you control over indentation and line endings. That means _notepad.exe_ sadly won't cut it.
+一个像样的文本编辑器对编程至关重要。最起码你需要一个支持语法高亮、并能让你控制缩进和换行符的东西。这意味着很遗憾 _notepad.exe_ 无法满足需求。
 
-There are many options, and you may already have a favourite. But in case you don't, here are some suggestions:
+有很多选择，你可能已经有了心头好。但如果你还没有，这里有些建议：
 
-- [Visual Studio Code](https://code.visualstudio.com/) - a popular and featureful editor that works on Linux, Windows & Mac
+- [Visual Studio Code](https://code.visualstudio.com/) - 一款流行且功能丰富的编辑器，可在 Linux、Windows 和 Mac 上运行
 
-- [Kate](https://kate-editor.org/) - another powerful editor, a bit lighter and fully open-source
+- [Kate](https://kate-editor.org/) - 另一个强大的编辑器，更轻量且完全开源
 
-- [Geany](https://www.geany.org/) - runs well on low-end machines and is still very extensible via plugins
+- [Geany](https://www.geany.org/) - 在低端机器上运行良好，并且仍能通过插件高度扩展
 
-- [Notepad++](https://notepad-plus-plus.org/) - a lightweight and widely-loved choice on Windows
+- [Notepad++](https://notepad-plus-plus.org/) - Windows 上一个轻量且广受欢迎的选择
 
-Once you've chosen an editor and gotten comfortable with it, you can move onto the next section.
+一旦你选好了编辑器并觉得顺手，就可以进入下一节。
 
 <div class="cpt cblock" style="width:420px;">
 <img src="img/setup/text_editor.png" id="fig:text-editor"><br>
-<b>{*@fig:text-editor}</b>: Editing a file in VS Code.
+<b>{*@fig:text-editor}</b>: 在 VS Code 中编辑文件。
 </div>
 
-In many editors it's possible to set a hotkey (usually <kbd>F5</kbd> or <kbd>Ctrl+Enter</kbd>) to compile and run your code. This can be an effective workflow, but for the purposes of this tutorial we'll use the command-line, because it's essential to know what's going on under the hood.
+在许多编辑器里，可以设置一个热键（通常是 <kbd>F5</kbd> 或 <kbd>Ctrl+Enter</kbd>）来编译并运行你的代码。这是一种高效的工作流，但出于本教程的目的，我们将使用命令行，因为了解底层发生了什么至关重要。
 
-Likewise, code-completion and error highlighting are also valuable features which you may want to spend time setting up, but are outside the scope of this chapter.
+同样，代码补全和错误高亮也是很有价值的功能，你可能想花时间配置一下，但超出了本章范围。
 
 
-## Installing a GBA emulator {#sec-emu}
+## 安装 GBA 模拟器 {#sec-emu}
 
-Needless to say, you'll need a way to actually run your GBA programs. Testing on real hardware from time to time is highly recommended (and part of the fun), but for everyday development you'll want something more convenient. That's where emulators come in.
+不用说，你需要一种实际运行 GBA 程序的方式。时不时地在真实硬件上测试是强烈推荐的（也是乐趣的一部分），但在日常开发中，你会想要更方便的东西。这正是模拟器派上用场的地方。
 
-At the time of writing, the most suitable emulator for GBA development is [<dfn>mGBA</dfn>](https://mgba.io/). It's highly accurate and has features for developers such as memory viewers, debug logging, and a GDB server for step debugging, all of which will make your life a lot easier when things go wrong (and they will)!
+在撰写本文时，最适合 GBA 开发的模拟器是 [<dfn>mGBA</dfn>](https://mgba.io/)。它精度极高，并带有面向开发者的功能，比如内存查看器、调试日志，以及一个用于单步调试的 GDB 服务器，所有这些都会在你出错时（而且你一定会出错！）让你的生活轻松许多。
 
 <div class="cpt cblock" style="width:320px;" markdown>
 <img src="img/setup/mgba_game.png" id="fig:mgba-game"><br>
-<b>{*@fig:mgba-game}</b>: A GBA ROM running inside mGBA
+<b>{*@fig:mgba-game}</b>: 一个 GBA ROM 在 mGBA 中运行
 </div>
 
-Other emulators which you might want to use are: [NanoBoyAdvance](https://github.com/nba-emu/NanoBoyAdvance) and [SkyEmu](https://github.com/skylersaleh/SkyEmu), which are both _cycle accurate_ and effectively the closest you can get to playing on real hardware without actually doing so.
+你可能想用的其他模拟器有：[NanoBoyAdvance](https://github.com/nba-emu/NanoBoyAdvance) 和 [SkyEmu](https://github.com/skylersaleh/SkyEmu)，它们都是_周期精确_的，实际上是在不实际使用真机的情况下，最接近真机游玩的体验。
 
-Finally [no$gba](https://problemkaputt.github.io/gba.htm) (debug version) is a somewhat older and less accurate Windows-only GBA emulator, but has some unique debugging features you won't find elsewhere. Namely a visual debugger, performance profiler, CPU usage meters, and memory access checking which can catch buffer overflows and such. If you can get it working, it's an invaluable tool!
+最后，[no$gba](https://problemkaputt.github.io/gba.htm)（调试版）是一个较老、精度稍逊、仅限 Windows 的 GBA 模拟器，但有一些你在别处找不到的独特调试功能。即可视化调试器、性能分析器、CPU 使用率计量，以及能捕获缓冲区溢出之类问题的内存访问检查。如果你能把它跑起来，它是个无价之宝！
 
 
-## Installing devkitARM {#sec-dkp}
+## 安装 devkitARM {#sec-dkp}
 
-<dfn>devkitARM</dfn> has been the standard toolchain for GBA homebrew for many years. It is provided by a team called <dfn>devkitPro</dfn> (dkP), though informally the tools are often referred to as devkitPro too (much to the maintainers' lament).
+<dfn>devkitARM</dfn> 多年来一直是 GBA 自制软件的标准工具链。它由一支名为 <dfn>devkitPro</dfn>（dkP）的团队提供，尽管非正式地，这些工具也常被叫作 devkitPro（这让维护者们相当遗憾）。
 
-To install devkitARM, visit the [devkitPro Getting Started](https://devkitpro.org/wiki/Getting_Started) page and follow the instructions for your OS.
+要安装 devkitARM，请访问 [devkitPro 入门](https://devkitpro.org/wiki/Getting_Started) 页面，并按照你操作系统的说明操作。
 
-:::danger Do not use spaces in paths
+:::danger 路径中不要使用空格
 
-devkitARM uses [`make`](https://en.wikipedia.org/wiki/Make_(software)) for building projects, which doesn't cope well with spaces in paths (such as `My Documents`). The reason for this is that `make` uses spaces as a separator between command-line options, but unlike e.g. shell scripts, it doesn't provide an adequate form of quoting/escaping, especially not when working with lists of filenames.
+devkitARM 使用 [`make`](https://en.wikipedia.org/wiki/Make_(software)) 来构建项目，它对路径中的空格处理不好（比如 `My Documents`）。原因是 `make` 用空格作为命令行选项之间的分隔符，但与 shell 脚本等不同，它没有提供恰当的引用/转义形式，尤其是在处理文件名列表时。
 
 :::
 
-### Windows tips {#ssec-dkp-win}
+### Windows 提示 {#ssec-dkp-win}
 
-If you are on Windows, there is a GUI installer which downloads and installs the components automatically. Be sure to select "GBA Development" during installation, as shown in @fig:devkitpro.
+如果你在 Windows 上，有一个 GUI 安装程序会自动下载并安装组件。请务必在安装过程中选择"GBA Development"，如 @fig:devkitpro 所示。
 
 <div class="cpt cblock" style="width:420px;">
 <img src="img/setup/devkitpro.png" id="fig:devkitpro"><br>
-<b>{*@fig:devkitpro}</b>: Installing devkitARM with the GBA packages on Windows.
+<b>{*@fig:devkitpro}</b>: 在 Windows 上安装带 GBA 包的 devkitARM。
 </div>
 
 
-### Linux & Mac tips {#ssec-dkp-unix}
+### Linux 与 Mac 提示 {#ssec-dkp-unix}
 
-If you are using Linux or Mac, after following the instructions on dkP's Getting Started page, you should install the `gba-dev` package group via `dkp-pacman` in your terminal _(or just `pacman` if you use Arch Linux)_. To do this, run the following command:
+如果你使用 Linux 或 Mac，在按照 dkP 的入门页面说明之后，应该在终端里通过 `dkp-pacman` 安装 `gba-dev` 包组 _（或者如果你用 Arch Linux，就只是 `pacman`）_。为此，运行以下命令：
 
 ```sh
 sudo dkp-pacman -S gba-dev
 ```
 
-When asked which packages to install _("Enter a selection (default=all):")_ you should simply hit <kbd>Enter</kbd> to install everything in the entire `gba-dev` group.
+当被问到要安装哪些包时 _("Enter a selection (default=all):")_，你只需按 <kbd>Enter</kbd> 即可安装整个 `gba-dev` 组中的所有内容。
 
 
-## Obtaining Tonc's example code {#sec-examples}
+## 获取 Tonc 的示例代码 {#sec-examples}
 
-This tutorial comes with a [full set of examples](https://github.com/gbadev-org/libtonc-examples) to demonstrate the concepts taught in each chapter.
+本教程附带了一[整套示例](https://github.com/gbadev-org/libtonc-examples)，用于演示每一章所教授的概念。
 
-Additionally, <dfn>libtonc</dfn> is the GBA programming library that accompanies Tonc, and is necessary to compile the examples. In the past, libtonc had to be downloaded separately and placed where your projects could find it. But nowadays it comes included as part of devkitARM. As long as you selected the `gba-dev` packages during installation, _you already have libtonc_.
+此外，<dfn>libtonc</dfn> 是伴随 Tonc 的 GBA 编程库，编译示例所必需。过去，libtonc 必须单独下载并放在你的项目能找到它的位置。但如今它作为 devkitARM 的一部分附带提供。只要你安装时选择了 `gba-dev` 包，_你就已经拥有 libtonc 了_。
 
-The bad news is devkitARM doesn't include the Tonc examples, so you still have to download those yourself. You can get them via _"Code -> Download&nbsp;Zip"_ on the repository page, or by using [git](https://git-scm.com/) in your terminal:
+坏消息是 devkitARM 不包含 Tonc 示例，所以你仍然得自己下载它们。你可以通过仓库页面上的 _"Code -> Download&nbsp;Zip"_ 获取，或者在终端里使用 [git](https://git-scm.com/)：
 
 ```sh
 git clone https://github.com/gbadev-org/libtonc-examples
@@ -113,39 +112,39 @@ git clone https://github.com/gbadev-org/libtonc-examples
 <br>
 
 
-:::tip toolbox.h vs libtonc
+:::tip toolbox.h 与 libtonc
 
-In the early chapters, we'll be building our own library called `toolbox.h` which replicates parts of libtonc for educational purposes. But for real-world usage, sticking to a more featureful, tried-and-tested library (such as libtonc itself) should be preferred.
+在前几章，我们会构建自己的库 `toolbox.h`，它在教学目的上复刻了 libtonc 的部分功能。但在真实使用中，应该优先坚持使用一个功能更丰富、经过实战检验的库（比如 libtonc 本身）。
 
 :::
 
 
-## Compiling the examples {#sec-compile}
+## 编译示例 {#sec-compile}
 
-To test your installation, let's try building one of the examples.
+为了测试你的安装，我们来试着构建其中一个示例。
 
-In the terminal, navigate to the directory where one of the examples is located (let's say, the *hello* example) and run `make`:
+在终端中，导航到某个示例所在的目录（比如 *hello* 示例）并运行 `make`：
 
 ```sh
 cd libtonc-examples/basic/hello
 make
 ```
 
-When invoked, `make` will build the project by following the rules in the file called _'Makefile'_ in the current working directory. Assuming this was successful, a `.gba` file will be produced, which you can run in your emulator of choice:
+被调用时，`make` 会按照当前工作目录中名为 _'Makefile'_ 的文件里的规则来构建项目。假设成功，会生成一个 `.gba` 文件，你可以在你选择的模拟器中运行它：
 
 <div class="cpt cblock" style="width:320px">
 <img src="img/setup/mgba_hello.png" id="fig:mgba-hello"><br>
-<b>{*@fig:mgba-hello}</b>: One of the Tonc examples running in mGBA.
+<b>{*@fig:mgba-hello}</b>: Tonc 的示例之一在 mGBA 中运行。
 </div>
 
-If you've gotten this far, congratulations! You are now ready to start writing your own GBA programs.
+如果你走到了这一步，恭喜！你现在可以开始编写自己的 GBA 程序了。
 
-You can move onto the next chapter, or keep reading for more details.
+你可以进入下一章，或继续往下读了解更多细节。
 
 
-:::tip Setting environment variables
+:::tip 设置环境变量
 
-If you get an error such as `Please set DEVKITPRO in your environment`, it means your environment variables aren't set properly. The solution to this differs between machines, but usually you want to edit a file called `.bashrc` in your home directory, and add the following lines to it:
+如果你遇到诸如 `Please set DEVKITPRO in your environment` 这样的错误，意味着你的环境变量没有正确设置。解决方案因机器而异，但通常你需要编辑主目录下一个名为 `.bashrc` 的文件，并向其中添加以下几行：
 
 ```sh
 export DEVKITPRO=/opt/devkitpro
@@ -155,20 +154,20 @@ export DEVKITPPC=/opt/devkitpro/devkitPPC
 export PATH=$DEVKITARM/bin:$DEVKITPRO/tools/bin:$PATH  # optional
 ```
 
-The last line adds the compiler and related tools to your `PATH` environment variable, allowing you to use them directly in your terminal.
+最后一行把编译器和相关工具加到了你的 `PATH` 环境变量中，让你能在终端里直接使用它们。
 
-This is optional, because the example makefiles also set `PATH` during the build process. But having the tools on hand is useful, and *required* if you want to follow along in the next section.
+这是可选的，因为示例的 makefile 也会在构建过程中设置 `PATH`。但手头有这些工具很有用，而且如果你想跟着下一节走，这是*必需的*。
 
-After editing `.bashrc`, you will have to close and reopen your terminal to apply the changes. Or you can run `source ~/.bashrc` to persist these changes in the current shell.
+编辑完 `.bashrc` 后，你必须关闭并重新打开终端才能应用更改。或者你可以运行 `source ~/.bashrc` 在当前 shell 中使这些更改生效。
 
 :::
 
 
-## Manual steps to build a GBA ROM {#sec-build-steps}
+## 手动构建 GBA ROM 的步骤 {#sec-build-steps}
 
-We've just seen how to compile a GBA program via `make`. Copying the makefile and using it for your own projects is absolutely encouraged! That said, it's valuable to know what's happening under the hood.
+我们刚才看到了如何通过 `make` 编译一个 GBA 程序。复制 makefile 并用于你自己的项目是绝对被鼓励的！话虽如此，了解底层发生了什么是有价值的。
 
-Converting your C/C++/asm sources into a valid GBA ROM involves 4 steps, which can be seen in the output from running `make`:
+把你的 C/C++/asm 源文件转换成一个有效的 GBA ROM 涉及 4 个步骤，可以在运行 `make` 的输出中看到：
 
 ```sh
 $ make
@@ -178,26 +177,26 @@ built ... hello.gba   # <--- elf stripped
 ROM fixed!            # <--- header fixed
 ```
 
-The steps are as follows:
+步骤如下：
 
-1. **Compile/assemble the sources**. We turn the human readable C or C++ files (`.c`/`.cpp`) or assembly files (`.s`/`.asm`) to a binary format known as [object files](https://en.wikipedia.org/wiki/Object_code) (`.o`). There is one object file for each source file.
+1. **编译/汇编源文件**。我们把人类可读的 C 或 C++ 文件（`.c`/`.cpp`）或汇编文件（`.s`/`.asm`）转换成一种称为[目标文件](https://en.wikipedia.org/wiki/Object_code)（`.o`）的二进制格式。每个源文件对应一个目标文件。
     
-    The tool for this is called `arm-none-eabi-gcc`. Actually, this is just a front-end for the real compiler, but that's just details. The `arm-none-eabi-` here is a prefix which means this version of GCC produces machine code for bare-metal ARM platforms; other target platforms have different prefixes. Note that C++ uses `g++` instead of `gcc`.
+    做这件事的工具叫 `arm-none-eabi-gcc`。实际上，这只是真正编译器的前端，但那只是细节。这里的 `arm-none-eabi-` 是一个前缀，表示这个 GCC 版本为裸机 ARM 平台生成机器码；其他目标平台有不同的前缀。注意 C++ 使用 `g++` 而非 `gcc`。
 
-2. **Link the object files**. After that, the separate object files are linked into a single executable [ELF](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format) file. Any precompiled code libraries (`.a`) you may have specified are linked at this stage too.
+2. **链接目标文件**。之后，独立的目标文件被链接成一个单一的可执行 [ELF](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format) 文件。你可能指定的任何预编译代码库（`.a`）也在这个阶段链接。
     
-    You can actually compile and link at the same time, but it is good practice to keep them separate: serious projects usually contain multiple source files and you don't want to have to wait for the whole world to recompile when you only changed one. This becomes even more important when you start adding data (graphics, music, etc).
+    你其实可以同时进行编译和链接，但把它们分开是好习惯：严肃的项目通常包含多个源文件，而不希望你只改了一个就得等整个世界重新编译。当你开始添加数据（图形、音乐等）时，这一点变得更加重要。
     
-    Again, `arm-none-eabi-gcc` is used for invoking the linker, although the actual linker is called `arm-none-eabi-ld`.
+    同样，`arm-none-eabi-gcc` 被用来调用链接器，尽管真正的链接器叫 `arm-none-eabi-ld`。
 
-3. **Strip to raw binary**. The ELF file still contains debug data and can't actually be read by the GBA (though many emulators will accept it). `arm-none-eabi-objcopy` removes the debug data and makes sure the GBA will accept it. Well, almost.
+3. **剥离为原始二进制**。ELF 文件仍包含调试数据，实际上无法被 GBA 读取（尽管许多模拟器会接受它）。`arm-none-eabi-objcopy` 移除调试数据，确保 GBA 会接受它。嗯，差不多。
 
-4. **Fix the header**. Each GBA game has a header with a checksum to make sure it's a valid GBA ROM. The linking step makes room for one, but leaves it blank, so we have to use a tool like DarkFader's `gbafix` to fix the header. This tool comes with devkitARM, so you don't have to download it separately.
+4. **修复头部**。每个 GBA 游戏都有一个带校验和的头部，以确保它是一个有效的 GBA ROM。链接步骤为它留出了空间，但留空，所以我们得用 DarkFader 的 `gbafix` 之类的工具来修复头部。这个工具随 devkitARM 提供，所以你不必单独下载。
 
 
-You can of course run all these commands in the terminal yourself without a makefile, provided the dkP tools are in your `PATH`.
+你当然可以在终端里自己运行所有这些命令，而不需要 makefile，只要 dkP 工具在你的 `PATH` 中。
 
-Let's try it with the example named *first* - this is the easiest one to compile because it doesn't depend on any libraries.
+让我们用名为 *first* 的示例试试——这是最容易编译的一个，因为它不依赖任何库。
 
 
 ```sh
@@ -216,36 +215,36 @@ arm-none-eabi-objcopy -O binary first.elf first.gba
 gbafix first.gba
 ```
 
-There you have it - a GBA program compiled from scratch! Well... we can always go deeper but this is probably a good place to stop for now. <kbd>x)</kbd>
+你做到了——一个从零编译的 GBA 程序！嗯……我们总能钻得更深，但现在大概是个不错的收尾之处。 <kbd>x)</kbd>
 
-There are various options passed to the tools here that may not be immediately obvious. These are explained in the [makefile appendix](makefile.html#sec-flags) if you're interested.
+这里传给工具的各个选项可能不立即明显。如果你感兴趣，它们会在 [makefile 附录](makefile.html#sec-flags) 中解释。
 
 
-:::tip Avoid batch files for compiling
+:::tip 避免用批处理文件编译
 
-You may be tempted to stick all these commands into a batch file or shell script, and use that to compile your project. This is simple, but not recommended. 
+你可能会想把所有命令塞进一个批处理文件或 shell 脚本，并用它来编译你的项目。这很简单，但不推荐。
 
-The reason becomes apparent as soon as your project has more than one source file: if you make an edit to a single file, you shouldn't have to recompile _all_ of the sources, only the one that changed. A build system such as `make` is smart enough to realise this, whereas simple shell scripts are not.
+一旦你的项目有多个源文件，原因就显而易见了：如果你改了其中一个文件，你不该重新编译_所有_源文件，只重编改动的那个。像 `make` 这样的构建系统足够聪明能意识到这点，而简单的 shell 脚本做不到。
 
-When you get to the point where your project has dozens of source files, this makes a big difference! 
+当你的项目有几十个源文件时，这差别就大了！
 
 :::
 
-## Alternative toolchains {#sec-alt}
+## 替代工具链 {#sec-alt}
 
-The advantage of devkitARM is that it provides a consistent environment for compiling GBA homebrew on Windows, Mac and Linux. However, if you're feeling adventurous there are other good options available nowadays:
+devkitARM 的优势在于它为在 Windows、Mac 和 Linux 上编译 GBA 自制软件提供了一致的环境。然而，如果你喜欢冒险，如今还有其他不错的选择：
 
-* [gba-toolchain](https://github.com/felixjones/gba-toolchain) - uses the CMake build system instead of Makefiles
-* [meson-gba](https://github.com/LunarLambda/meson-gba) - uses the Meson build system instead of Makefiles
-* [gba-bootstrap](https://github.com/AntonioND/gba-bootstrap) - the bare minimum needed to compile a GBA program. In other words, _roll your own toolchain_, with the hard bits done for you.
+* [gba-toolchain](https://github.com/felixjones/gba-toolchain) - 使用 CMake 构建系统而非 Makefile
+* [meson-gba](https://github.com/LunarLambda/meson-gba) - 使用 Meson 构建系统而非 Makefile
+* [gba-bootstrap](https://github.com/AntonioND/gba-bootstrap) - 编译一个 GBA 程序所需的最低限度。换句话说，_自己动手搭工具链_，最难的部分已经替你做好了。
 
-Why would you want to use these? They might be easier to install (many Linux distros offer their own builds of `arm-none-eabi-gcc` and related packages, which is essentially the same thing devkitARM provides), or you could be using a machine for which devkitARM is not available (such as a Raspberry Pi). Or perhaps you just want a better build system than makefiles.
+你为何想用这些？它们可能更容易安装（许多 Linux 发行版提供它们自己构建的 `arm-none-eabi-gcc` 及相关的包，这本质上和 devkitARM 提供的是同一回事），或者你可能用的机器上 devkitARM 不可用（比如树莓派）。又或者你只是想要比 makefile 更好的构建系统。
 
-Tonc assumes you're using devkitARM, but most of the information is relevant no matter which toolchain you're using.
+Tonc 假定你使用 devkitARM，但无论你用哪个工具链，大部分信息都是相关的。
 
 
-:::danger Avoid 'devkitAdvance'
+:::danger 避开 'devkitAdvance'
 
-You may encounter a toolchain called _devkitAdvance_. This is an ancient toolchain which hasn't been updated since 2003. By using it, you will be missing out on _two decades worth_ of compiler improvements and optimisations. If somebody recommends this to you, run away!
+你可能会遇到一个名为 _devkitAdvance_ 的工具链。这是一个古老的工具链，自 2003 年起就没有更新过。使用它，你将错过_二十年_的编译器改进和优化。如果有人向你推荐这个，快跑！
 
 :::

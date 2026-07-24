@@ -1,20 +1,20 @@
-# 16. Interrupts
+# 16. 中断
 
 <!-- toc -->
 
-## Introduction {#sec-intro}
+## 简介 {#sec-intro}
 
-Under certain conditions, you can make the CPU drop whatever it's doing, go run another function instead, and continue with the original process afterwards. This process is known as an <dfn>interrupt</dfn> (two ‘r’s, please). The function that handles the interrupt is an <dfn>interrupt service routine</dfn>, or just interrupt; triggering one is called <dfn>raising</dfn> an interrupt.
+在某些条件下,你可以让 CPU 放下手头正在做的事,转而去运行另一个函数,之后再继续执行原来的进程。这个过程被称为<dfn>中断</dfn>(interrupt,请拼两个"r")。处理中断的函数称为<dfn>中断服务程序</dfn>(interrupt service routine),简称中断;触发一个中断叫做<dfn>引发</dfn>(raising)一个中断。
 
-Interrupts are often attached to certain hardware events: pressing a key on a PC keyboard, for example, raises one. Another PC example is the VBlank (yes, PCs have them too). The GBA has similar interrupts and others for the HBlank, DMA and more. This last one in particular can be used for a great deal of nifty effects. I'll give a full list of interrupts shortly.
+中断通常附着于某些硬件事件:例如,按下 PC 键盘上的一个键就会引发一个中断。PC 的另一个例子是 VBlank(没错,PC 也有 VBlank)。GBA 有类似的中断,以及用于 HBlank、DMA 等等的其他中断。最后一个尤其可以用于大量的巧妙效果。我很快就会给出中断的完整列表。
 
-Interrupts halt the current process, quickly do ‘something’, and pass control back again. Stress the word “quickly”: interrupts are supposed to be short routines.
+中断会暂停当前进程,快速做"某件事",然后交还控制权。请重读"快速"二字:中断应当是短小的例程。
 
-## Interrupts registers {#sec-regs}
+## 中断寄存器 {#sec-regs}
 
-There are three registers specifically for interrupts: `REG_IE` (`0400:0200h`), `REG_IF` (`0400:0202h`) and `REG_IME` (`0400:0208h`). `REG_IME` is the master interrupt control; unless this is set to ‘1’, interrupts will be ignored completely. To enable a specific interrupt you need to set the appropriate bit in `REG_IE`. When an interrupt occurs, the corresponding bit in `REG_IF` will be set. To acknowledge that you've handled an interrupt, the bit needs to be cleared again, but the way to do that is a little counter-intuitive to say the least. To acknowledge the interrupt, you actually have to *set* the bit again. That's right, you have to write 1 to that bit (which is already 1) in order to clear it.
+有三个专门用于中断的寄存器:`REG_IE` (`0400:0200h`)、`REG_IF` (`0400:0202h`) 和 `REG_IME` (`0400:0208h`)。`REG_IME` 是主中断控制;除非它被设为"1",否则中断会被完全忽略。要启用特定中断,你需要在 `REG_IE` 中设置相应的位。当中断发生时,`REG_IF` 中相应的位会被置位。要确认你已经处理了某个中断,需要再次清除该位,但清除的方式至少可以说有点反直觉。要确认中断,你实际上必须再次*置位*该位。没错,你必须向该位(它已经是 1)写入 1 才能清除它。
 
-Apart from setting the bits in `REG_IE`, you also need to set a bit in other registers that deal with the subject. For example, the HBlank interrupt also requires a bit in `REG_DISPSTAT`. I think (but please correct me if I'm wrong) that you need both a sender and receiver of interrupts; `REG_IE` controls the receiver and registers like `REG_DISPSTAT` control the sender. With that in mind, let's check out the bit layout for `REG_IE` and `REG_IF`.
+除了在 `REG_IE` 中设置位之外,你还需要在与该主题相关的其他寄存器中设置一位。例如,HBlank 中断还需要 `REG_DISPSTAT` 中的一位。我想(但如果我错了请纠正我),你既需要中断的发送方也需要接收方;`REG_IE` 控制接收方,而像 `REG_DISPSTAT` 这样的寄存器控制发送方。考虑到这一点,让我们看看 `REG_IE` 和 `REG_IF` 的位布局。
 
 <div class="reg">
 <table class="table-reg" id="tbl:reg-ie">
@@ -45,21 +45,21 @@ Apart from setting the bits in `REG_IE`, you also need to set a bit in other reg
 <tr class="bg0">
   <td> 0 <td class="rclr0">Vbl
   <td>IRQ_VBLANK
-  <td><b>VBlank</b> interrupt. Also requires 
+  <td><b>VBlank</b> 中断。还需要
     <code>REG_DISPSTAT</code>{3}
 <tr class="bg1">
   <td> 1 <td class="rclr1">Hbl
   <td>IRQ_HBLANK
-  <td><b>HBlank</b> interrupt. Also requires 
-    <code>REG_DISPSTAT</code>{4} Occurs <i>after</i> the HDraw, so that 
-    things done here take effect in the next line. 
+  <td><b>HBlank</b> 中断。还需要
+    <code>REG_DISPSTAT</code>{4}，发生在 HDraw <i>之后</i>，
+    因此这里的更改会在下一行生效。
 <tr class="bg0">
   <td> 2 <td class="rclr2">Vct
   <td>IRQ_VCOUNT
   <td><b>VCount</b> interrupt. Also requires 
     <code>REG_DISPSTAT</code>{5}. The high byte of 
-    <code>REG_DISPSTAT</code> gives the VCount at which to raise the 
-    interrupt. Occurs at the <i>beginning</i> of a scanline.
+    <code>REG_DISPSTAT</code> 给出触发该中断的 VCount 值。
+    中断发生在扫描线的<i>开头</i>。
 <tr class="bg1">
   <td>3-6<td class="rclr3">Tm
   <td>IRQ_TIMER<i>x</i>
@@ -69,34 +69,31 @@ Apart from setting the bits in `REG_IE`, you also need to set a bit in other reg
 <tr class="bg0">
   <td> 7 <td class="rclr4">Com
   <td>IRQ_COM
-  <td><b>Serial communication</b> interrupt. Apparently, also requires 
-    <code>REG_SCCNT</code>{E}. To be raised when the transfer
-    is complete. Or so I'm told, I really don't know squat about 
-    serial communication. 
+  <td><b>串行通信</b> 中断。此外还需要
+    <code>REG_SCCNT</code>{E}。在整个传输完成时触发。
+    至少我是这么听说的，我对串行通信其实一窍不通。
 <tr class="bg1">
   <td>8-B<td class="rclr5">Dma
   <td>IRQ_DMA<i>x</i>
-  <td><b>DMA</b> interrupt, 1 bit per channel. Also requires 
-    <code>REG_DMAxCNT</code>{1E}. Interrupt will be raised 
-    when the full transfer is complete.
+  <td><b>DMA</b> 中断，每个通道 1 位。还需要
+    <code>REG_DMAxCNT</code>{1E}。在整个传输完成时触发。
 <tr class="bg0">
   <td>C <td class="rclr6">K
   <td>IRQ_KEYPAD
-  <td><b>Keypad</b> interrupt. Also requires 
-    <code>REG_KEYCNT</code>{E}. Raised when any or all or the keys 
-    specified in <code>REG_KEYCNT</code> are down.
+  <td><b>按键</b> 中断。还需要
+    <code>REG_KEYCNT</code>{E}。当 <code>REG_KEYCNT</code> 中指定的
+    任意一个或所有按键被按下时触发。
 <tr class="bg1">
   <td> D <td class="rclr7">C
   <td>IRQ_GAMEPAK
-  <td><b>Cartridge</b> interrupt. Raised when the cart is removed from 
-    the GBA.
+  <td><b>卡带</b> 中断。在卡带从 GBA 中拔出时触发。
 </tbody>
 </table>
 </div>
 
-## Interrupt Service Routines {#sec-isr}
+## 中断服务程序 {#sec-isr}
 
-You use the interrupt registers described above to indicate which interrupts you want to use. The next step is writing an interrupt service routine. This is just a typeless function (`void func(void)`); a C-function like many others. Here's an example of an HBlank interrupt.
+你使用上述中断寄存器来指明你想使用哪些中断。下一步是编写一个中断服务程序。这只是一个无类型的函数(`void func(void)`);一个很像其他许多函数的 C 函数。下面是一个 HBlank 中断的例子。
 
 ```c
 void hbl_pal_invert()
@@ -106,29 +103,29 @@ void hbl_pal_invert()
 }
 ```
 
-The first line inverts the color of the first entry of the palette memory. The second line resets the HBlank bit of `REG_IF` indicating the interrupt has been dealt with. Since this is an HBlank interrupt, the end-result is that that the color changes every scanline. This shouldn't be too hard to imagine.
+第一行反转调色板内存第一个条目的颜色。第二行重置 `REG_IF` 的 HBlank 位,表示中断已被处理。由于这是一个 HBlank 中断,最终结果是颜色每一条扫描线都变化一次。这应该不难想象。
 
-If you simply add this function to an existing program, nothing would change. How come? Well, though you have an isr now, you still need to tell the GBA where to find it. For that, we will need to take a closer look at the interrupt process as a whole.
+如果你简单地将这个函数添加到一个已有的程序中,什么都不会改变。怎么会这样?嗯,虽然你现在有了一个 isr,你仍然需要告诉 GBA 去哪里找它。为此,我们需要更仔细地审视整个中断过程。
 
-:::warning On acknowledging interrupts correctly
+:::warning 正确确认中断
 
-To acknowledge that an interrupt has been dealt with, you have to **set** the bit of that interrupt in `REG_IF`, and *only* that bit. That means that ‘<code>REG_IF <b>=</b> IRQ_<i>x</i></code>’ is usually the correct course of action, and not ‘<code>REG_IF <b>|=</b> IRQ_<i>x</i></code>’. The |= version acknowledges all interrupts that have been raised, even if you haven't dealt with them yet.
+要确认一个中断已被处理,你必须**置位** `REG_IF` 中该中断的位,而且*只*有那一位。这意味着"`<code>REG_IF <b>=</b> IRQ_<i>x</i></code>`"通常是正确的做法,而不是"`<code>REG_IF <b>|=</b> IRQ_<i>x</i></code>`"。`|=` 版本会确认所有已被引发的中断,即使你还没有处理它们。
 
-Usually, these two result in the same thing, but if multiple interrupts come in at the same time things will go bad. Just pay attention to what you're doing.
+通常,这两种做法结果相同,但如果多个中断同时到来,事情就会变糟。只要注意你在做什么就好。
 
 :::
 
-### The interrupt process {#ssec-isr-proc}
+### 中断处理过程 {#ssec-isr-proc}
 
-The complete interrupt process is kind of tricky and part of it is completely beyond your control. What follows now is a list of things that you, the programmer, need to know. For the full story, see [GBATEK : irq control](https://problemkaputt.de/gbatek.htm#gbainterruptcontrol).
+完整的中断过程有点棘手,而且其中一部分完全超出了你的控制。下面是你,程序员,需要知道的清单。完整说明,请参见 [GBATEK : irq control](https://problemkaputt.de/gbatek.htm#gbainterruptcontrol)。
 
-1.  Interrupt occurs. Some black magic deep within the deepest dungeons of BIOS happens and the CPU is switched to IRQ mode and ARM state. A number of registers (`r0-r3, r12, lr`) are pushed onto the stack.
-2.  BIOS loads the address located at `0300:7FFC` and branches to that address.
-3.  The code pointed to by `0300:7FFC` is run. Since we're in ARM-state now, this *must* to be ARM code!
-4.  After the isr is done, acknowledge that the interrupt has been dealt with by writing to `REG_IF`, then return from the isr by issuing a `bx lr` instruction.
-5.  The previously saved registers are popped from stack and program state is restored to normal.
+1.  中断发生。BIOS 最深处地牢中的一些黑魔法发生,CPU 切换到 IRQ 模式和 ARM 状态。一些寄存器(`r0-r3, r12, lr`)被压入栈。
+2.  BIOS 加载位于 `0300:7FFC` 的地址,并跳转到该地址。
+3.  由 `0300:7FFC` 指向的代码被执行。由于我们现在处于 ARM 状态,这段代码*必须*是 ARM 代码!
+4.  在 isr 完成后,通过写入 `REG_IF` 确认中断已被处理,然后通过发出 `bx lr` 指令从 isr 返回。
+5.  先前保存的寄存器从栈中弹出,程序状态恢复正常。
 
-Steps 1, 2 and 5 are done by BIOS; 3 and 4 are yours. Now, in principle all you need to do is place the address of your isr into address `0300:7FFC`. To make our job a little easier, we will first create ourselves a function pointer type.
+步骤 1、2 和 5 由 BIOS 完成;3 和 4 是你的。现在,原则上你只需将你的 isr 的地址放入地址 `0300:7FFC`。为了让我们的工作轻松一点,我们首先为自己创建一个函数指针类型。
 
 ```c
 typedef void (*fnptr)(void);
@@ -144,39 +141,39 @@ void foo()
 }
 ```
 
-Now, this will probably work, but as usual there's more to the story.
+现在,这多半能工作,但像往常一样,故事还有更多内容。
 
--   First, the code that `REG_ISR_MAIN` jumps to *must* be ARM code! If you compile with the `-mthumb` flag, the whole thing comes to a screeching halt.
--   What happens when you're interrupted inside an interrupt? Well, that's not quite possible actually; not unless you do some fancy stuff we'll get to later. You see, `REG_IME` is not the only thing that allows interrupts, there's a bit for irqs in the <dfn>program status register</dfn> (PSR) as well. When an interrupt is raised, the CPU disables interrupts there until the whole thing is over and done with.
--   `hbl_pal_invert()` doesn't check whether it has been activated by an HBlank interrupt. Now, in this case it doesn't really matter because it's the only one enabled, but when you use different types of interrupts, sorting them out is essential. That's why we'll create an [interrupt switchboard](#sec-switch) in the next section.
--   Lastly, when you use [BIOS calls](swi.html) that require interrupts, you also need to acknowledge them in `REG_IFBIOS` (== `0300:7FF8`). The use is the same as `REG_IF`.
+-   首先,`REG_ISR_MAIN` 跳转到的代码*必须*是 ARM 代码!如果你用 `-mthumb` 标志编译,整个事情会戛然而止。
+-   当你在中断内部被中断时会发生什么?嗯,这实际上不太可能;除非你做一些我们稍后会讲到的花哨操作。你看,`REG_IME` 并不是唯一允许中断的东西,<dfn>程序状态寄存器</dfn>(program status register,PSR)中也有一个用于 irq 的位。当引发中断时,CPU 会在整个事情结束并处理完之前禁用那里的中断。
+-   `hbl_pal_invert()` 不会检查它是否由 HBlank 中断激活。现在,在这种情况下这并不重要,因为它是唯一被启用的中断,但当你使用不同类型的中断时,区分它们至关重要。这就是为什么我们将在下一节创建一个[中断交换台](#sec-switch)。
+-   最后,当你使用需要中断的 [BIOS 调用](swi.html) 时,你也需要在 `REG_IFBIOS`(== `0300:7FF8`)中确认它们。其用法与 `REG_IF` 相同。
 
 :::warning On section mirroring
 
-GBA's memory sections are mirrored ever so many bytes. For example IWRAM (`0300:0000`) is mirrored every 8000h bytes, so that `0300:7FFC` is also `03FF:FFFC`, or `0400:0000`−4. While this is faster, I'm not quite sure if this should be taken advantage of. no$gba v2.2b marks it as an error, even though this was apparently a small oversight and fixed in v2.2c. Nevertheless, consider yourself warned.
+GBA 的内存段每隔若干字节就会镜像一次。例如 IWRAM (`0300:0000`) 每 8000h 字节镜像一次,因此 `0300:7FFC` 也就是 `03FF:FFFC`,或 `0400:0000`−4。虽然这样更快,但我不太确定是否应该利用这一点。no$gba v2.2b 将其标记为错误,尽管这显然是一个小疏忽,并在 v2.2c 中修复了。不过,已经提醒过你了。
 
 :::
 
-## Creating an interrupt switchboard {#sec-switch}
+## 创建中断交换台 {#sec-switch}
 
-The `hbl_pal_invert()` function is an example of a single interrupt, but you may have to deal with multiple interrupts. You may also want to be able to use different isr's depending on circumstances, in which case stuffing it all into one function may not be the best way to go. Instead, we'll create an interrupt switchboard.
+`hbl_pal_invert()` 函数是一个单一中断的例子,但你可能需要处理多个中断。你可能还希望能够根据情况使用不同的 isr,在这种情况下,把所有东西都塞进一个函数可能不是最好的做法。相反,我们将创建一个中断交换台(interrupt switchboard)。
 
-An <dfn>interrupt switchboard</dfn> works a little like a telephone switchboard: you have a call (i.e., an interrupt, in `REG_IF`) coming in, the operator checks if it is an active number (compares it with `REG_IE`) and if so, connects the call to the right receiver (your isr).
+<dfn>中断交换台</dfn>的工作方式有点像电话交换台:你有一个来电(即 `REG_IF` 中的一个中断)进来,操作员检查它是不是一个活跃的号码(与 `REG_IE` 比较),如果是,则将来电连接到正确的接收方(你的 isr)。
 
-This particular switchboard will come with a number of additional features as well. It will acknowledge the call in both `REG_IF` and `REG_IFBIOS`), even when there's no actual ISR attached to that interrupt. It will also allow nested interrupts, although this requires a little extra work in the ISR itself.
+这个特定的交换台还附带一些额外特性。它会在 `REG_IF` 和 `REG_IFBIOS` 中确认来电,即使该中断实际上没有附接任何 ISR。它还会允许嵌套中断,尽管这需要在 ISR 本身中做一点额外工作。
 
-### Design and interface considerations {#ssec-switch-design}
+### 设计与接口考量 {#ssec-switch-design}
 
-The actual switchboard is only one part of the whole; I also need a couple of structs, variables and functions. The basic items I require are these.
+实际的交换台只是整体的一部分;我还需要几个结构、变量和函数。我需要的基本项目如下。
 
--   **`__isr_table[]`**. An interrupt table. This is a table of function pointers to the different isr's. Because the interrupts should be prioritized, the table should also indicate which interrupt the pointers belong to. For this, we'll use an `IRQ_REC` struct.
--   **`irq_init()`** / **`irq_set_master()`**. Set master isr. `irq_init()` initializes the interrupt table and interrupts themselves as well.
--   **`irq_enable()`** / **`irq_disable()`**. Functions to enable and disable interrupts. These will take care of both `REG_IE` and whatever register the sender bit is on. I'm keeping these bits in an internal table called `__irq_senders[]` and to be able to use these, the input parameter of these functions need to be the *index* of the interrupt, not the interrupt flag itself. Which is why I have `II_`*`foo`* counterparts for the `IRQ_`*`foo`* flags.
--   **`irq_set()`** / **`irq_add()`** / **`irq_delete()`**. Function to add/delete interrupt service routines. The first allows full prioritization of isr's; `irq_add()` will replace the current irs for a given interrupt, or add one at the end of the list; `irq_delete()` will delete one and correct the list for the empty space.
+-   **`__isr_table[]`**。一个中断表。这是一个指向不同 isr 的函数指针表。由于中断应当有优先级,该表还应指明这些指针属于哪个中断。为此,我们将使用一个 `IRQ_REC` 结构。
+-   **`irq_init()`** / **`irq_set_master()`**。设置主 isr。`irq_init()` 也初始化中断表以及中断本身。
+-   **`irq_enable()`** / **`irq_disable()`**。用于启用和禁用中断的函数。它们会同时处理 `REG_IE` 以及发送方位所在的任何寄存器。我将这些位保存在一个名为 `__irq_senders[]` 的内部表中,为了能使用它们,这些函数的输入参数需要是中断的*索引*,而不是中断标志本身。这就是为什么我为 `IRQ_`*`foo`* 标志准备了对应的 `II_`*`foo`*。
+-   **`irq_set()`** / **`irq_add()`** / **`irq_delete()`**。用于添加/删除中断服务程序的函数。第一个允许 isr 的完整优先级排序;`irq_add()` 会替换给定中断当前的 irs,或在列表末尾添加一个;`irq_delete()` 会删除一个并纠正列表中的空位。
 
-All of these functions do something like this: disable interrupts (`REG_IME`=0), do their stuff and then re-enable interrupts. It's a good idea to do this because being interrupted while mucking about with interrupts is not pretty. The functions concerned with service routines will also take a function pointer (the `fnptr` type), and also return a function pointer indicating the previous isr. This may be useful if you want to try to chain them.
+所有这些函数都做类似的事:禁用中断(`REG_IME`=0),做它们的事,然后重新启用中断。这是个好主意,因为在鼓捣中断时被中断并不好看。与 service routine 相关的函数还会接受一个函数指针(`fnptr` 类型),并返回一个函数指针以指示先前的 isr。如果你想尝试将它们链式连接,这可能有用。
 
-Below you can see the structs, tables, and the implementation of `irq_enable()` and `irq_add()`. In both functions, the `__irq_senders[]` array is used to determine which bit to set in which register to make sure things send interrupt requests. The `irq_add()` function goes on to finding either the requested interrupt in the current table to replace, or an empty slot to fill. The other routines are similar. If you need to see more, look in *tonc_irq.h/.c* in libtonc.
+下面你可以看到结构、表,以及 `irq_enable()` 和 `irq_add()` 的实现。在两个函数中,`__irq_senders[]` 数组用于确定在哪个寄存器设置哪个位以确保发送中断请求。`irq_add()` 函数接着去寻找当前表中要替换的所请求中断,或一个空槽来填充。其他例程类似。如果你需要看更多,请查看 libtonc 中的 *tonc_irq.h/.c*。
 
 ```c
 //! Interrups Indices
@@ -287,9 +284,9 @@ fnptr irq_add(enum eIrqIndex irq_id, fnptr isr)
 }
 ```
 
-### The master interrupt service routine {#ssec-switch-master}
+### 主中断服务程序 {#ssec-switch-master}
 
-The main task of the master ISR is to seek out the raised interrupt in `___isr_table`, and acknowledge it in both `REG_IF` and `REG_IFBIOS`. If there is an irq-specific service routine, it should call it; otherwise, it should just exit to BIOS again. In C, it would look something like this.
+主 ISR 的主要任务是在 `___isr_table` 中寻找引发的中断,并在 `REG_IF` 和 `REG_IFBIOS` 中确认它。如果有特定于某 irq 的 service routine,它应当调用它;否则,它应当直接返回 BIOS。在 C 中,它大概是这样:
 
 ```c
 // This is mostly what libtonc's isr_master does, but
@@ -324,7 +321,6 @@ IWRAM_CODE void isr_master_c()
     //> *(--sp_irq)= spsr
     //> cpsr &= ~(CPU_MODE_MASK | CPU_IRQ_OFF);
     //> cpsr |= CPU_MODE_SYS;
-    //> *(--sp_sys) = lr_sys;
 
     pir->isr();             // (6) Run the ISR
 
@@ -343,13 +339,14 @@ IWRAM_CODE void isr_master_c()
 }
 ```
 
-Most of these points have been discussed already, so I won't repeat them again. Do note the difference is acknowledging `REG_IF` and `REG_IFBIOS`: the former uses a simple assignment and the latter an |=. Steps 4, 5 and 6 only execute if the current IRQ has its own service routine. Steps 4a and 5a work as initialization steps to ensure that the ISR (step 6) can work in CPU mode and that it can't be interrupted unless it asks for it. Steps 4b and 5b unwind 4a and 5a.
+这些要点大多已经讨论过,所以我不再重复。请注意确认 `REG_IF` 和 `REG_IFBIOS` 的区别:前者使用简单赋值,后者使用 |=。步骤 4、5 和 6 仅当当前 IRQ 有自己的 service routine 时才执行。步骤 4a 和 5a 作为初始化步骤,确保 ISR(步骤 6)能在 CPU 模式下工作,并且除非它要求,否则不能被中断。步骤 4b 和 5b 撤销 4a 和 5a。
 
-This routine would work fine in C, were it not for items 5a and 5b. These are the code to set/restore the CPU mode to system/irq mode, but the instructions necesasry for that aren't available in C. Another problem is that the link registers (these are used to hold the return addresses of functions) have to be saved somehow, and these *definitely* aren't available in C.
+这个例程在 C 中可以正常工作,如果不是因为项目 5a 和 5b 的话。这些是将 CPU 模式设置/恢复为 system/irq 模式的代码,但必要的指令在 C 中不可用。另一个问题是链接寄存器(用于保存函数返回地址)必须以某种方式保存,而这些在 C 中*绝对*不可用。
 
-Note: I said register**s**, plural! Each CPU mode has its own stack and link register, and even though the names are the same (`lr` and `sp`), they really aren't identical. Usually a C routine will save `lr` on its own, but since you need it twice now it's very unsafe to leave this up to the compiler. Aside from that, you need to save the saved program status register `spsr`, which indicates the program status when the interrupt occurred. This is another thing that C can't really do. As such, assembly is required for the master ISR.
+注意:我说的是寄存器,复数!每种 CPU 模式都有自己的栈和链接寄存器,即使名字相同(`lr` 和 `sp`),它们也确实不相同。通常一个 C 例程会自己保存 `lr`,但既然现在你需要它两次,把它留给编译器就非常不安全了。除此之外,你还需要保存已保存程序状态寄存器 `spsr`,它表示中断发生时的程序状态。这是另一件 C 真的做不了的事。因此,主 ISR 需要汇编。
+
 <br>  
-So, assembly it is then. The function below is the assembly equivalent of `irs_master_c()`. It is almost a line by line translation, although I am making use of a few features of the instruction set the compiler wont't or can't. I don't expect you to really understand everything written here, but with some imagination you should be able to follow most of it. Teaching assembly is *way* beyond the scope of this chapter, but worth the effort in my view. Tonc's [assembly chapter](asm.html) should give you the necessary information to understand most of it and shows where to go to learn more.
+那么,就用汇编吧。下面的函数是 `irs_master_c()` 的汇编等价物。它几乎是逐行翻译,尽管我利用了指令集的一些编译器不会或不愿使用的特性。我不指望你真能理解这里写的一切,但发挥一点想象力,你应该能跟上大部分。教授汇编*远远*超出了本章的范围,但在我看来值得付出努力。Tonc 的[汇编章节](asm.html)应该能给你理解其中大部分内容所需的信息,并指出进一步学习的方向。
 
 ```armasm
     .file   "tonc_isr_master.s"
@@ -439,32 +436,32 @@ isr_master:
 
 :::warning Nested irqs are nasty
 
-Making a nested interrupt routine work is not a pleasant exercise when you only partially know what you're doing. For example, that different CPU modes used different stacks took me a while to figure out, and it took me quite a while to realize that the reason my nested isrs didn't work was because there are different link registers too.
+在你只懂皮毛的情况下,让嵌套中断例程工作可不是令人愉快的练习。例如,不同的 CPU 模式使用不同的栈,这一点我花了一阵才弄明白;而我花了相当长时间才意识到我的嵌套 isr 不工作的原因是也有不同的链接寄存器。
 
-The `isr_master_nest` is largely based on libgba's interrupt dispatcher, but also borrows information from GBATEK and A. Bilyk and DekuTree's analysis of the whole thing as described in [forum:4063](https://gbadev.net/forum-archive/thread/4/4063.html). Also invaluable was the home-use debugger version of no$gba, hurray for breakpoints.
+`isr_master_nest` 很大程度上基于 libgba 的中断分发器,但也借鉴了 GBATEK 以及 A. Bilyk 和 DekuTree 对整个事情的分析,如 [forum:4063](https://gbadev.net/forum-archive/thread/4/4063.html) 所述。同样 invaluable(非常宝贵)的是 no$gba 的家用调试器版本,断点万岁。
 
-If you want to develop your own interrupt routine, these sources will help you immensely and will keep the loss of sanity down to somewhat acceptable levels.
+如果你想开发自己的中断例程,这些资料会极大地帮助你,并将 sanity(理智)的损失控制在尚可接受的水平。
 
 :::
 
 :::note Deprecation notice
 
-I used to have a different master service routine that took care of nesting and prioritizing interrupts automatically. Because it was deemed too complicated, it has been replaced with this one.
+我以前有一个不同的主 service routine,它会自动处理嵌套和优先级排序。因为它被认为太复杂,已被替换为这个。
 
-Nested interrupts are still possible, but you have to indicate interruptability inside the isr yourself now.
+嵌套中断仍然是可能的,但现在你必须自己在 isr 内部标明可中断性。
 
 :::
 
-## Nested interrupt demo {#sec-demo}
+## 嵌套中断演示 {#sec-demo}
 
-Today's demo shows a little bit of everything described above:
+今天的演示展示了上述所有内容的一小部分:
 
--   It'll display a color gradient on the screen through the use of an HBlank interrupt.
--   It will allow you to toggle between two different master isrs: The switchboard `isr_master` which routes the program flow to an HBlank isr, and an isr in C that handles the HBlank interrupt directly. For the latter to work, we'll need to use ARM-compiled code, of course, and I'll also show you how in a minute.
--   Finally, having a nested isr switchboard doesn't mean much unless you can actually see nested interrupts in action. In this case, we'll use two interrupts: VCount and HBlank. The HBlank isr creates a vertical color gradient. The VCount isr will reset the color and tie up the CPU for several scanlines. If interrupts don't nest, you'll see the gradient stop for a while; if they do nest, it'll continue as normal.
--   And just for the hell of it, you can toggle the HBlank and VCount irqs on and off.
+-   它将通过一个 HBlank 中断在屏幕上显示颜色渐变。
+-   它允许你在两个不同的主 isr 之间切换:作为交换台的 `isr_master`(将程序流路由到一个 HBlank isr),以及一个直接用 C 处理 HBlank 中断的 isr。后者要工作,我们当然需要使用 ARM 编译的代码,我稍后也会向你展示如何做。
+-   最后,拥有一个嵌套的 isr 交换台意义不大,除非你能真正看到嵌套中断在运行。在这种情况下,我们将使用两个中断:VCount 和 HBlank。HBlank isr 创建一个垂直颜色渐变。VCount isr 会重置颜色并让 CPU 忙碌若干个扫描线。如果中断不嵌套,你会看到渐变暂停一会儿;如果嵌套了,它会照常继续。
+-   而且只是为了好玩,你可以切换 HBlank 和 VCount irq 的开关。
 
-The controls are as follows:
+控制方式如下:
 <table>
 <tbody valign="top">
 <tr>
@@ -596,15 +593,15 @@ int main()
 }
 ```
 
-The code listing above contains the main demo code, the HBlank, and VCount isrs that will be routed and some sundry items for convenience. The C master isr called `hbl_grad_direct()` is in another file, which will be discussed later.
+上面的代码清单包含了主演示代码、将被路由的 HBlank 和 VCount isr,以及一些为方便起见的杂项。用 C 编写的主 isr `hbl_grad_direct()` 在另一个文件中,稍后讨论。
 
-First, the contents of the interrupt service routines (points 1 and 2). Both routines are pretty simple: the HBlank routine (`hbl_grad_routed()`) uses the value of the scanline counter to set a color for the backdrop. At the top, `REG_VCOUNT` is 0, so the color will be blue; at the bottom, it'll be 160/8=20, so it's somewhere between blue and red: purple. Now, you may notice that the first scanline is actually red and not blue: this is because a) the HBlank interrupt occurs *after* the scanline (which has caused trouble before in the [DMA demo](dma.html#sec-demo)) and b) because HBlanks happen during the VBlank as well, so that the color for line 0 is set at `REG_VCOUNT`=227, which will give a bright red color.
+首先,中断服务程序的内容(标号 1 和 2)。两个例程都很简单:HBlank 例程(`hbl_grad_routed()`)使用扫描线计数器的值来为背景设置颜色。在顶部,`REG_VCOUNT` 是 0,所以颜色是蓝色;在底部,它是 160/8=20,所以介于蓝和红之间:紫色。现在,你可能注意到第一条扫描线实际上是红色的而不是蓝色:这是因为 a) HBlank 中断发生在扫描线*之后*(这之前在 [DMA 演示](dma.html#sec-demo) 中造成过麻烦),以及 b) 因为 HBlank 在 VBlank 期间也会发生,所以第 0 行的颜色是在 `REG_VCOUNT`=227 时设置的,这会给出亮红色。
 
-The VCount routines activate at scanline 80. They set the color to red and then waits until scanline 120. The difference between the two is that `vct_wait()` just waits, but `vct_wait_nest()` enables the HBlank interrupt. Remember that `isr_master` disables interrupts before calling an service routine, so the latter Vcount routine should be interrupted by `hbl_grad_routed()`, but the former would not. As you can see from {@fig:irq-demo}a and {@fig:irq-demo}b, this is exactly what happens.
+VCount 例程在扫描线 80 处激活。它们将颜色设为红色,然后等待直到扫描线 120。两者的区别在于 `vct_wait()` 只是等待,而 `vct_wait_nest()` 启用了 HBlank 中断。记住 `isr_master` 在调用 service routine 之前会禁用中断,所以后一个 Vcount 例程应该被 `hbl_grad_routed()` 中断,而前者不会。正如你从 {@fig:irq-demo}a 和 {@fig:irq-demo}b 看到的,这确实发生了。
 
-Point 3 is where the interrupts are set up in the first place. The call to `irq_init()` clears the isr table and sets up the master isr. Its argument can be NULL, in which case the tonc's default master isr is used. The calls to `irq_add()` initialize the HBlank and VCount interrupts and their service routines. If you don't supply a service routine, the switchboard will just acknowledge the interrupt and return. There are times when this is useful, as we'll see in the next chapter. `irq_add()` already takes care of both `REG_IE` and the IRQ bits in `REG_DISPSTAT`; what it doesn't do yet is set the VCount at which the interrupt should be triggered, so this is done separately. The order of `irq_add()` doesn't really matter, but lower orders are searched first so it makes sense to put more frequent interrupts first.
+标号 3 是一开始设置中断的地方。`irq_init()` 的调用清除 isr 表并设置主 isr。它的参数可以是 NULL,此时使用 tonc 的默认主 isr。对 `irq_add()` 的调用初始化 HBlank 和 VCount 中断及其 service routine。如果你不提供 service routine,交换台只会确认中断然后返回。有时这很有用,我们将在下一章看到。`irq_add()` 已经同时处理了 `REG_IE` 和 `REG_DISPSTAT` 中的 IRQ 位;它还没做的是设置应引发中断的 VCount,所以这是单独完成的。`irq_add()` 的顺序其实并不重要,但较低的顺序会被先搜索,所以把更频繁的中断放在前面是有意义的。
 
-You can switch between master service routines with `irq_set_master()`, as is done at point 4. Point 5 chooses between the nested and non-nested VCount routine.
+你可以用 `irq_set_master()` 在主 service routine 之间切换,如标号 4 处所示。标号 5 在嵌套和非嵌套的 VCount 例程之间选择。
 
 <div class="cblock">
 <table id="fig:irq-demo">
@@ -637,15 +634,15 @@ You can switch between master service routines with `irq_set_master()`, as is do
 </table>
 </div>
 
-This explains most of what the demo can show. For Real Life use, `irq_init()` and `irq_add()` are pretty much all you need, but the demo shows some other interesting things as well. Also interesting is that the result is actually a little different for VBA, no$gba and hardware, which brings up another point: interrupts are time-critical routines, and emulating timing is rather tricky. If something works on an emulator but not hardware, interrupts are a good place to start looking.
+这解释了演示能展示的大部分内容。对于实际应用,`irq_init()` 和 `irq_add()` 几乎就是你需要的全部,但演示也展示了一些其他有趣的东西。同样有趣的是,对于 VBA、no$gba 和真机,结果实际上略有不同,这引出了另一点:中断是时间关键的例程,而模拟时序相当棘手。如果某件事在模拟器上能工作但在真机上不行,中断是个值得开始排查的好地方。
 
-This almost concludes demo section, except for one thing: the direct HBlank isr in C. But to do that, we need it in ARM code and to make it efficient, it should be in IWRAM as well. And here's how we do that.
+这几乎结束了演示部分,除了一件事:直接用 C 写的 HBlank isr。但为此,我们需要它是 ARM 代码,而为了高效,它还应该放在 IWRAM 中。我们就是这么做的。
 
-### Using ARM + IWRAM code {#ssec-demo-iwram}
+### 使用 ARM + IWRAM 代码 {#ssec-demo-iwram}
 
-The master interrupt routines have to be ARM code. As we've always compiled to Thumb code, this would be something new. The reason that we've always compiled to Thumb code is that the 16bit buses of the normal code sections make ARM-code slow there. However, what we could do is put the ARM code in IWRAM, which has a 32bit bus (and no waitstates) so that it's actually beneficial to use ARM code there.
+主中断例程必须是 ARM 代码。由于我们一直编译为 Thumb 代码,这对我们来说是新东西。我们一直编译为 Thumb 代码的原因是普通代码段的 16 位总线让 ARM 代码在那里变慢。然而,我们可以做的是将 ARM 代码放在 IWRAM 中,它有 32 位总线(且无等待状态),因此在那里使用 ARM 代码实际上是有益的。
 
-Compiling as ARM code is actually quite simple: use `-marm` instead of `-mthumb`. The IWRAM part is what causes the most problems. There are GCC extensions that let you specify which section a function should be in. Tonclib has the following macros for them:
+编译为 ARM 代码其实相当简单:使用 `-marm` 而不是 `-mthumb`。IWRAM 部分才是造成最多问题的地方。有一些 GCC 扩展可以让你指定一个函数应放在哪个段。Tonclib 有如下宏:
 
 ```c
 #define EWRAM_DATA __attribute__((section(".ewram")))
@@ -671,15 +668,16 @@ IWRAM_CODE void foo()
 }
 ```
 
-The EWRAM/IWRAM things should be self-explanatory. The <code>DATA_IN_<i>x</i></code> things allow global data to be put in those sections. Note that the default section for data is IWRAM anyway, so that may be a little redundant. `EWRAM_BSS` concerns uninitialized globals. The difference with initialized globals is that they don't have to take up space in ROM: all you need to know is how much space you need to reserve in RAM for the array.
+EWRAM/IWRAM 的东西应该是不言自明的。<code>DATA_IN_<i>x</i></code> 的东西允许将全局数据放入那些段。注意数据的默认段本来就是 IWRAM,所以这可能有点多余。`EWRAM_BSS` 涉及未初始化的全局变量。与已初始化全局变量的区别在于它们不必在 ROM 中占用空间:你只需要知道要在 RAM 中为数组保留多少空间。
 
-The function variants also need the `long_call` attribute. Code branches have a limited range and section branches are usually too far to happen by normal means and this is what makes it work. You can compare them with ‘far’ and ‘near’ that used to be present in PC programming.
+函数变体还需要 `long_call` 属性。代码分支的范围有限,段间分支通常太远而无法用常规方式完成,而这正是使其工作的原因。你可以将它们与 PC 编程中曾经存在的"far"和"near"进行比较。
 
-It should be noted that these extensions can be somewhat fickle. For one thing, the placement of the attributes in the declarations and definitions seems to matter. I think the examples given work, but if they don't try to move them around a bit and see if that helps. A bigger problem is that the long_call attribute doesn't always want to work. Previous experience has led me to believe that the `long_call` is ignored *unless* the definition of the function is in another file. If it's in the same file as the calling function, you'll get a ‘relocation error’, which basically means that the jump is too far. The upshot of this is that you have to separate your code depending on section as far as functions are concerned. Which works out nicely, as you'll want to separate ARM code anyway.
+应该指出,这些扩展可能有点挑剔。一方面,属性和声明及定义中放的位置似乎很重要。我想给出的例子能工作,但如果不能,试着移动一下它们,看看是否有帮助。更大的问题是 `long_call` 属性不总是想工作。之前的经验让我相信,除非函数的定义在另一个文件中,否则 `long_call` 会被忽略。如果它在调用函数所在的同一文件中,你会得到一个"relocation error",基本上意味着跳转太远。其结果是你必须根据段来分离你的函数。这其实挺好,因为你反正也要分离 ARM 代码。
 
-So, for ARM/IWRAM code, you need to have a separate file with the routines, use the `IWRAM_CODE` macro to indicate the section, and use `-marm` in compilation. It is also a good idea to add `-mlong-calls` too, in case you ever want to call ROM functions from IWRAM. This option makes every call a long call. Some toolchains (including DKP) have set up their linkscripts so that files with the extension *.iwram.c* automatically go into IWRAM, so that `IWRAM_CODE` is only needed for the declaration.
+所以,对于 ARM/IWRAM 代码,你需要有一个单独的文件来放这些例程,使用 `IWRAM_CODE` 宏来标明段,并在编译时使用 `-marm`。添加 `-mlong-calls` 也是个好主意,以防你 ever 想从 IWRAM 调用 ROM 函数。这个选项让每次调用都成为长调用。一些工具链(包括 DKP)设置了它们的链接脚本,使得扩展名为 *.iwram.c* 的文件自动进入 IWRAM,因此 `IWRAM_CODE` 只需要在声明处使用。
+
 <br>  
-In this case, that'd be the file called *isr.iwram.c*. This contains a simple master isr in C, and only takes care of the HBlank and acknowledging the interrupts.
+在这种情况下,那就是名为 *isr.iwram.c* 的文件。它包含一个简单的用 C 写的主 isr,只处理 HBlank 和确认中断。
 
 ```c
 #include <tonc.h>
@@ -703,9 +701,9 @@ void hbl_grad_direct()
 }
 ```
 
-:::tip Flags for ARM+IWRAM compilation
+:::tip ARM+IWRAM 编译的标志
 
-Replace the ‘-mthumb’ in your compilation flags by ‘-marm -mlong-calls’. For example:
+将编译标志中的 "-mthumb" 替换为 "-marm -mlong-calls"。例如:
 
 ```makefile
 CBASE   := $(INCDIR) -O2 -Wall
@@ -716,6 +714,6 @@ RCFLAGS := $(CBASE) -mthumb-interwork -mthumb
 ICFLAGS := $(CBASE) -mthumb-interwork -marm -mlong-calls
 ```
 
-For more details, look at the makefile for this project.
+更多细节,请查看本项目的 makefile。
 
 :::

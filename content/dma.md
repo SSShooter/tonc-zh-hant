@@ -1,21 +1,21 @@
-# 14. Direct Memory Access
+# 14. 直接内存访问
 
 <!-- toc -->
 
-## DMA … que? {#sec-intro}
+## DMA … 是什么？ {#sec-intro}
 
-<dfn>Direct Memory Access</dfn> (DMA) is fast way of copying data from one place to another. Or, rather, a way of *transferring* data fast; as it can be used for copying data, but also filling memory. When you activate DMA the so-called <dfn>DMA controller</dfn> takes over the hardware (the CPU is actually halted), does the desired transfer and hands control back to the CPU before you even knew it was missing.
+<dfn>直接内存访问</dfn>（DMA，Direct Memory Access）是一种把数据从一处快速复制到另一处的方法。或者更准确地说，是一种*快速传输*数据的方法；因为它既可用于复制数据，也可用于填充内存。当你激活 DMA 时，所谓的 <dfn>DMA 控制器</dfn>会接管硬件（CPU 实际上被挂起），完成所需的传输，并在你还没意识到它消失之前把控制权交还 CPU。
 
-There are four DMA channels. Channel 0 has the highest priority; it is used for time-critical operations and can only be used with internal RAM. Channels 1 and 2 are used to transfer sound data to the right sound buffers for playback. The lowest priority channel, channel 3, is for general-purpose copies. One of the primary uses for this channel is loading in new bitmap or tile data.
+一共有四个 DMA 通道。通道 0 优先级最高；它用于时间关键的操作，且只能配合内部 RAM 使用。通道 1 和 2 用于把声音数据传到正确的声音缓冲区以供播放。优先级最低的通道 3 用于通用复制。这个通道的主要用途之一是载入新的位图或图块数据。
 
-## DMA registers {#sec-regs}
+## DMA 寄存器 {#sec-regs}
 
-Every kind of transfer routine needs 3 things: a source, a destination and the amount of data to copy. The *whence*, *whither* and *how much*. For DMA, the source address is put into `REG_DMAxSAD` and destination address into `REG_DMAxDAD`. A third register, `REG_DMAxCNT`, not only indicates the amount to transfer, but also controls other features possible for DMA, like when it should start the transfer, chunk-size, and how the source and destination addresses should be updated after each individual chunk of data. All the DMA registers are 32bits in length, though they can be divided into two 16bit registers if so desired. Those of channel 0 start at`0400:00B0h`; subsequent channels start at an offset of 12 (see {@tbl:dma-regs}).
+每种传输例程都需要 3 样东西：源、目标，以及要复制的数据量。即*从哪来*、*到哪去*和*多少*。对于 DMA，源地址被放入 `REG_DMAxSAD`，目标地址放入 `REG_DMAxDAD`。第三个寄存器 `REG_DMAxCNT` 不仅指示要传输的数量，还控制 DMA 可能的其他特性，比如何时开始传输、块大小，以及源和目标地址在每一块数据传输后应如何更新。所有 DMA 寄存器都是 32 位长，不过如果需要，它们也可以分成两半作为两个 16 位寄存器。通道 0 的寄存器从 `0400:00B0h` 开始；后续通道以 12 的偏移开始（见 {@tbl:dma-regs}）。
 
 <div class="lblock">
 <table id="tbl:dma-regs">
 <caption align="bottom">
-  <b>{*@tbl:dma-regs}</b>: DMA register addresses
+  <b>{*@tbl:dma-regs}</b>: DMA 寄存器地址
 </caption>
 <tr><th>reg<th>function<th>address
 <tr><td><code>REG_DMAxSAD</code><td>source
@@ -27,9 +27,9 @@ Every kind of transfer routine needs 3 things: a source, a destination and the a
 </table>
 </div>
 
-### DMA controls {#ssec-reg-cnt}
+### DMA 控制寄存器 {#ssec-reg-cnt}
 
-The use of the source and destination registers should be obvious. The control register needs some explaining. Although the `REG_DMAxCNT` registers themselves are 32bits, they are often split into two separate registers: one for the count, and one for the actual control bits.
+源和目标寄存器的用法应该一目了然。控制寄存器则需要一些解释。虽然 `REG_DMAxCNT` 寄存器本身是 32 位，但它们常被拆成两个独立的寄存器：一个用于计数，一个用于实际的控制位。
 
 <div class="reg">
 <table class="table-reg reg-huge" id="tbl:reg-dmaxcnt"
@@ -64,90 +64,80 @@ The use of the source and destination registers should be obvious. The control r
 <tr class="bg0">
   <td>00-0F<td class="rclr0">N
   <td> 
-  <td><b>Number</b> of transfers.
+  <td><b>传输</b>次数。
 <tr class="bg1">
   <td>15-16<td class="rclr4">DA
   <td>DMA_DST_INC, DMA_DST_DEC, DMA_DST_FIXED, DMA_DST_RELOAD
-  <td><b>Destination adjustment</b>.
+  <td><b>目标地址调整</b>。
     <ul>
-      <li><b>00</b>: increment after each transfer (default)
-      <li><b>01</b>: decrement after each transfer
-      <li><b>10</b>: none; address is fixed
-      <li><b>11</b>: increment the destination during the transfer, 
-	    and reset it so that repeat DMA will always start at the 
-		same destination.
+      <li><b>00</b>: 每次传输后递增（默认）
+      <li><b>01</b>: 每次传输后递减
+      <li><b>10</b>: 不变；地址固定
+      <li><b>11</b>: 在传输过程中递增目标地址，并重置它，使重复 DMA 总能从同一个目标地址开始。
     </ul>
 <tr class="bg0">
   <td>17-18<td class="rclr3">SA
   <td>DMA_SRC_INC, DMA_SRC_DEC, DMA_SRC_FIXED,
-  <td><b>Source Adjustment</b>. Works just like the two bits for the 
-    destination. Note that there is no <code>DMA_SRC_RESET</code>; 
-    code 3 for source is forbidden.
+  <td><b>源地址调整</b>。工作方式与目标的那两位一样。注意没有 <code>DMA_SRC_RESET</code>；源的编码 3 是被禁止的。
 <tr class="bg1">
   <td> 19  <td class="rclr7">R
   <td>DMA_REPEAT
-  <td>Repeats the copy at each VBlank or HBlank if the DMA timing 
-    has been set to those modes.
+  <td>如果 DMA 时序被设为那些模式，会在每个 VBlank 或 HBlank 重复复制。
 <tr class="bg0">
   <td> 1A  <td class="rclr2">CS
   <td>DMA_16, DMA_32
-  <td><b>Chunk Size</b>. Sets DMA to copy by halfword (if clear) 
-    or word (if set).
+  <td><b>块大小</b>。设置 DMA 每次复制半字（清除时）或字（置位时）。
 <tr class="bg1">
   <td>1C-1D<td class="rclr5">TM
   <td>DMA_NOW, DMA_AT_VBLANK, DMA_AT_HBLANK, DMA_AT_REFRESH
-  <td><b>Timing Mode</b>. Specifies when the transfer should start.
+  <td><b>时序模式</b>。指定传输应在何时开始。
       <ul>
-        <li><b>00</b>: start immediately.
-        <li><b>01</b>: start at VBlank.
-        <li><b>10</b>: start at HBlank. 
-        <li><b>11</b>: Never used it so far, but here's how I gather it 
-          works. For DMA1 and DMA2 it'll refill the FIFO when it has 
-          been emptied. Count and size are forced to 1 and 32bit, 
-          respectively. For DMA3 it will start the copy at the start of 
-          each rendering line, but with a 2 scanline delay.
+        <li><b>00</b>: 立即开始。
+        <li><b>01</b>: 在 VBlank 开始。
+        <li><b>10</b>: 在 HBlank 开始。
+        <li><b>11</b>: 迄今从未用过，但据我了解它这样工作。对于 DMA1 和 DMA2，它会在 FIFO 被清空时重新填充。计数和大小分别被强制为 1 和 32 位。对于 DMA3，它会在每条渲染线开始时启动复制，但有 2 条扫描线的延迟。
       </ul>
 <tr class="bg0">
   <td> 1E  <td class="rclr6">I
   <td>DMA_IRQ
-  <td><b>Interrupt request</b>. Raise an interrupt when finished.
+  <td><b>中断请求</b>。完成时触发中断。
 <tr class="bg1">
   <td> 1F  <td class="rclr1">En
   <td>DMA_ENABLE
-  <td><b>Enable</b> the DMA transfer for this channel.
+  <td><b>使能</b>该通道的 DMA 传输。
 </tbody>
 </table>
 </div>
 
-### Source and destination addresses {#ssec-reg-adr}
+### 源地址与目标地址 {#ssec-reg-adr}
 
-The registers for source and destination addresses work just as you'd expect: just put in the proper addresses. Oh, I should tell you that the sizes for the source and destination addresses are 28 and 27 bits wide, respectively, and not the full 32. This is nothing to worry about though, you can't access addresses above `1000:0000h` anyway. For destination addresses, you can't use the section above `0800:0000h`. But then, being able to copy to ROM would be kind of strange, wouldn't it?
+源和目标地址寄存器的用法正如你所预期：只要放入正确的地址即可。哦，我应该告诉你，源和目标地址的大小分别是 28 位和 27 位宽，而非完整的 32 位。不过这没什么好担心的，反正你也访问不到 `1000:0000h` 以上的地址。对于目标地址，你不能使用 `0800:0000h` 以上的区域。但是话说回来，能复制到 ROM 也挺奇怪的，不是吗？
 
-### DMA flags {#ssec-reg-flags}
+### DMA 标志位 {#ssec-reg-flags}
 
-The `REG_DMAxCNT` registers can be split in two parts: one with actual flags, and one for the number of copies to do. Either way will work but you must be careful how the flags are defined: using 32-bit #defines for 16-bit registers or vice versa is not a good idea.
+`REG_DMAxCNT` 寄存器可以分成两部分：一部分带实际标志位，一部分用于要执行的复制次数。两种方式都行，但你必须小心标志位是如何定义的：把 32 位的 #define 用于 16 位寄存器，或者反过来，都不是好主意。
 
-There are options to control what will be the next source and destination addresses when one chunk has been transferred. By default, both will increment so that it works as a copier. But you could also keep the source constant so that it'd work more as a memory fill.
+有一些选项可以控制一块数据传输完后，下一个源和目标地址是什么。默认情况下，两者都会递增，这样它就作为复制器工作。但你也可以让源保持恒定，这样它就更像内存填充了。
 
-What goes into the lower half of `REG_DMAxCNT` is the number of transfers. This is the number of *chunks*, not bytes! Best be careful when using `sizeof()` or something similar here, missing a factor 2 or 4 is very easy. A chunk can be either 16 or 32 bit, depending on bit 26.
+放入 `REG_DMAxCNT` 低半字的是传输次数。这是*块*的数量，而非字节数！在这里用 `sizeof()` 或类似的东西时要格外小心，漏掉一个 2 或 4 的因子非常容易。一块可以是 16 位或 32 位，取决于第 26 位。
 
-### More on DMA timing {#ssec-reg-timing}
+### 更多关于 DMA 时序 {#ssec-reg-timing}
 
-What the immediate DMA does is easy to imagine, it works as soon as you enable the DMA. Well *actually* it takes 2 cycles before it'll set in, but it's close enough. The other timing settings aren't that more difficult conceptually, but there is one point of confusion.
+立即 DMA 做什么很好想象，你一使能 DMA 它就开始工作。嗯，*实际上*它要花 2 个周期才会真正生效，但也足够接近了。其他时序设置概念上并不更难，但有一点容易令人困惑。
 
-Consider the following situation: you want to do something cool to your otherwise standard backgrounds; specifically, you want to do something that requires the background registers to be updated every scanline. I just said that you can copy data at every HBlank (via the `DMA_AT_HBLANK` timing flag), which seems perfect for the job. If you think about it for a minute, however, you may ask yourself the following question:
+考虑以下情形：你想对你那本来很标准的背景做些很酷的事；具体来说，你想做一件需要每一条扫描线都更新背景寄存器的事。我刚才说过你可以在每个 HBlank 复制数据（通过 `DMA_AT_HBLANK` 时序标志），这看起来完美契合这项工作。不过，如果你想一想，可能会问自己下面这个问题：
 
-> When you set the timing to, say, `DMA_AT_HBLANK`, does it do *all* the *N* copies at the next HBlank, or one copy at each HBlank until the list is done?
+> 当你把时序设为比如 `DMA_AT_HBLANK` 时，它会在下一个 HBlank 做*全部* *N* 次复制，还是每个 HBlank 做一次复制直到列表做完？
 
-There is a crucial difference between the two. The first option seems pointless because all copied would be done at once; if your destination is fixed (like they are for background registers), all copies except the last would be lost. In the case of the second one, how would you do more than one copy per HBlank? Clearly, something's amiss here. There is, on two counts.
+两者之间有关键区别。第一种选择似乎毫无意义，因为所有复制都会一次性完成；如果目标地址是固定的（背景寄存器就是这样），那么除了最后一次之外的所有复制都会丢失。在第二种情况下，你又如何在每个 HBlank 做不止一次复制呢？显然，这里有什么不对劲。而且不对劲的地方有两处。
 
-For the record, I'm not 100% sure about what I'm going to say here, but I think it's pretty close to what's actually going on. The main thing to realize is that as long as the channel is not enabled (`REG_DMAxCNT`\{1f\} is cleared), that channel won't do squat; only after `REG_DMAxCNT`\{1f\} has been set will the DMA process be initiated. At the appropriate time (determined by the timing bits), DMA will do all *N* copies and then shut itself off again.
+郑重声明，我并不完全确定我下面要说的，但我认为它相当接近实际发生的情况。要认识到的主要一点是：只要通道未被使能（`REG_DMAxCNT`\{1f\} 被清除），那个通道就不会做任何事；只有在 `REG_DMAxCNT`\{1f\} 被置位后，DMA 过程才会启动。在恰当的时机（由时序位决定），DMA 会完成全部 *N* 次复制，然后再次自行关闭。
 
-Unless, that is, the repeat-bit (`REG_DMAxCNT`\{19\}) is set. In that case, it will keep doing the copies at the right time until you disable the channel yourself.
+除非，也就是说，重复位（`REG_DMAxCNT`\{19\}）被置位。那样的话，它会在恰当的时机不断做复制，直到你亲自禁用该通道。
 
-## Some DMA routines {#sec-func}
+## 一些 DMA 例程 {#sec-func}
 
-While it's not that much trouble to set the three registers manually, it is preferable to hide the direct interaction in subroutines. Now, in older code, you might come across something like this:
+虽然手动设置三个寄存器不算太麻烦，但把直接交互隐藏在子例程中更好。现在，在较老的代码中，你可能会遇到类似这样的东西：
 
 ```c
 // Don't do this. Please.
@@ -164,7 +154,7 @@ void dma_copy(int ch, void* src, void* dest, uint count, u32 mode)
 }
 ```
 
-This will work, but it's not a nice way of doing things. If your switch-cases differ by a single number, you can usually replace it by a simpe lookup. There are a number of ways of fixing this, but the easiest is by mapping a struct array over the DMA registers, similar to what I did for tile memory. After that, you can just select the channel with the channel variable and simply fill in the addresses and flags.
+这能工作，但不是个漂亮的做法。如果你的 switch-case 只差一个数字，通常可以用一个简单的查表来替代。有若干种方式修复这个，但最简单的是把一个结构体数组映射到 DMA 寄存器上，类似于我对图块内存做的那样。之后，你只需用通道变量选择通道，然后填入地址和标志即可。
 
 ```c
 typedef struct DMA_REC
@@ -177,7 +167,7 @@ typedef struct DMA_REC
 #define REG_DMA ((volatile DMA_REC*)0x040000B0)
 ```
 
-The following are my three of my DMA routines. First the `DMA_TRANSER()` macro, which is the overall macro that can be used for anything. Then two routines for general memory copies and fills using 32bit transfers with DMA 3.
+下面是我三个 DMA 例程中的三个。首先是 `DMA_TRANSER()` 宏，它是可用于任何情况的通用宏。然后是两个用 DMA 3 进行 32 位传输、用于通用内存复制和填充的例程。
 
 ```c
 // in tonc_core.h
@@ -218,11 +208,11 @@ INLINE void dma3_fill(void *dst, const void *src, u32 size)
 {   dma_fill(dst, src, size/4, 3, DMA_CPY32);  }
 ```
 
-In all cases, I disable any previously operating transfers first. This may seem redundant if DMA stops the CPU, but remember that DMA transfers can be timed as well – you wouldn't want it to start in the middle of setting the registers. After that, it's simply a matter of filling the registers. Now, it so happens that there is a 2-cycle delay before any transfer really begins. This means that you could lose a transfer if you ask for transfers in immediate succession. I'm not sure if this is very likely though: memory wait-states themselves already take that much time so you *should* be safe.
+在所有情况下，我都会先禁止任何之前正在运行的传输。虽然 DMA 会停止 CPU，这看似多余，但请记住 DMA 传输也可能是定时的——你可不想让它在你设置寄存器到一半时就开始。在那之后，就只是填充寄存器的事了。现在，碰巧任何传输真正开始前都有 2 个周期的延迟。这意味着如果你紧接着请求传输，可能会丢一次传输。不过我不确定这很可能发生：内存等待状态本身就已经花那么多时间了，所以你*应该*是安全的。
 
-Other notes on these routines: the `DMA_TRANSFER()` macro's code sits between a `do {} while(0);` loop. The problem with macros is that when expanded multiple statements might break nesting-blocks. For example, calling it in the body of an `if` without braces around it would have the first line as the body, but the rest fall outside it. This kind of loop is one of the ways of preventing that. Another problem with macros is that if the arguments' names may hide other parts of the macro's code. Like the `src` and `dst` members of the `DMA_REC` struct; which is why they're underscored. The fill routines also have something remarkable going on, which you can read about in the [next subsection](#ssec-func-fill). Lastly, the `dma3` inlines use word-transfers and take the byte-size as their last arguments, making them very similar to the standard `memcpy()` and `memset()`.
+关于这些例程的其他说明：`DMA_TRANSFER()` 宏的代码夹在一个 `do {} while(0);` 循环里。宏的问题在于，展开后多条语句可能会破坏嵌套块。例如，在 `if` 的主体中不带花括号地调用它，会让第一行成为主体，而其余行落在主体之外。这种循环是防止这种情况的方式之一。宏的另一个问题是，参数的名字可能会隐藏宏代码的其他部分。比如 `DMA_REC` 结构体的 `src` 和 `dst` 成员；这也是为什么它们加了下划线。填充例程还发生了一些值得注意的事，你可以在[下一小节](#ssec-func-fill)读到。最后，`dma3` 内联函数使用字传输，并把字节大小作为最后一个参数，使它们非常类似于标准的 `memcpy()` 和 `memset()`。
 <br>  
-I used to have the following macro for my transfers. It uses one of the more exotic capabilities of the preprocessor: the merging-operator ‘##’, which allows you to create symbol names at compile-time. It's scary, totally unsafe and generally unruly, but it does work. The other macro I gave is better, but I still like this thing too.
+我以前有过下面这个用于传输的宏。它使用了预处理器的一种更奇特的能力：合并运算符 '##'，它让你能在编译时创建符号名。它吓人、完全不安全、而且通常难以驾驭，但它确实能用。我给的另一个宏更好，但我仍然喜欢这个东西。
 
 ```c
 #define DMA_TRANSFER(_dst, _src, _count, _ch, _mode)  \
@@ -231,41 +221,41 @@ I used to have the following macro for my transfers. It uses one of the more exo
     REG_DMA##_ch##CNT = (_count) | (_mode)            \
 ```
 
-As long as you are using a literal number for `_ch` it'll form the correct register names. And yes, those comma operators between the statements actually work. They keep the statements separate, and also guard against wrongful nesting just like the `do{} while(0)` construct does.
+只要你对 `_ch` 使用一个字面量数字，它就会形成正确的寄存器名。而且是的，语句之间的那些逗号运算符确实能工作。它们让语句彼此独立，也和 `do{} while(0)` 结构一样防止了错误的嵌套。
 
-### On DMA fills {#ssec-func-fill}
+### 关于 DMA 填充 {#ssec-func-fill}
 
-DMA can be used to fill memory, but there are two problems that you need to be aware of before you try it. The first can be caught by simply paying attention. DMA fills don't work *quite* in the same way as `memset()` does. What you put into `REG_DMAxSAD` isn't the value you want to fill with, but its *address*!
+DMA 可用于填充内存，但在你尝试之前，有两个问题需要注意。第一个只要留心就能避免。DMA 填充的工作方式*并不*完全和 `memset()` 一样。你放入 `REG_DMAxSAD` 的不是你要用来填充的值，而是它的*地址*！
 
-“Very well, I'll put the value in a variable and use its address.” Yes, and that brings us to our second problem, a bug which is almost impossible to find. If you try this, you'll find that it doesn't work. Well it fills with *something*, but usually not what you wanted to fill with. The full explanation is somewhat technical, but basically because you're probably only using the variable's address and not its *value*, the optimizer doesn't ever initialize it. There is a simple solution, one that we've seen before, make it volatile. Or you can use a (inline) function like `dma_fill()`, which has its source argument set as volatile so you can just insert a number just as you'd expect. Note that if you remove the volatile keyword there, it'll fail again.
+"很好，我把值放进一个变量，用它的地址。"是的，而这把我们带到第二个问题，一个几乎不可能找到的 bug。如果你这样做，你会发现它不工作。嗯，它确实填充了*某种东西*，但通常不是你想填充的东西。完整的解释有点技术化，但基本上是因为你可能只用了变量的地址而非它的*值*，优化器就从未初始化它。有一个简单的解决方案，一个我们之前见过的：把它设为 volatile。或者你可以用像 `dma_fill()` 这样的（内联）函数，它的源参数被设为 volatile，所以你可以像预期那样直接插入一个数字。注意如果你去掉那里的 volatile 关键字，它会再次失败。
 <br>  
-In short: DMA fills need addresses, not direct values. Globals will always work, but if you use local variables or arguments you'll need to make them volatile. Note that the same thing holds true for the BIOS call CpuFastSet().
+简而言之：DMA 填充需要地址，而非直接的值。全局变量永远有效，但如果你用局部变量或参数，你需要把它们设为 volatile。注意同样的情况也适用于 BIOS 调用 CpuFastSet()。
 
-### DMA; don't wear it out {#ssec-func-use}
+### DMA：别用过头 {#ssec-func-use}
 
-DMA is fast, there's no question about that. It can be up to [ten times as fast](text.html#ssec-demo-se2) as array copies. However, think twice about using it for every copy. While it is fast, it doesn't quite blow every other transfer routine out of the water. CpuFastSet() comes within 10% of it for copies and is actually 10% faster for fills. The speed gain isn't that big a deal. Another problem is that it stops the CPU, which can screw up [interrupts](interrupts.html), causing seemingly random bugs. It does have its specific uses, usually in conjunction with timers or interrupts, but for general copies, you might consider other things as well. CpuFastSet() is a good routine, but libtonc also comes with `memcpy16()/32()` and `memset16()/32()` routines that are safer than that, and less restrictions. They are assembly routines, though, so you'll need to know how to assemble or use libraries.
+DMA 很快，这毫无疑问。它最高可以比数组复制[快十倍](text.html#ssec-demo-se2)。然而，要考虑两次再决定是否把 DMA 用于每一次复制。虽然它快，但也并非完胜其他所有传输例程。CpuFastSet() 在复制上能接近它 10% 以内，而在填充上实际上快 10%。速度上的收益没那么大。另一个问题是它会停止 CPU，这可能搞乱[中断](interrupts.html)，造成看似随机的 bug。它确实有特定用途，通常与定时器或中断配合使用，但对于通用复制，你也可以考虑其他东西。CpuFastSet() 是个好例程，但 libtonc 还附带了 `memcpy16()/32()` 和 `memset16()/32()` 例程，它们比它更安全，限制也更少。不过它们是汇编例程，所以你需要知道如何汇编或使用库。
 
-## DMA demo : circular windows {#sec-demo}
+## DMA 演示：圆形窗口 {#sec-demo}
 
 <div class="cpt_fr" style="width:240px;">
-<img alt="dma_demo short" src="./img/demo/dma_demo.png" id="fig:dma-demo">
+<img alt="dma_demo 简图" src="./img/demo/dma_demo.png" id="fig:dma-demo">
 
-**{*@fig:dma-demo}**: palette for `dma_demo`.
+**{*@fig:dma-demo}**: `dma_demo` 的调色板。
 </div>
 
-The demo for this chapter may seem a little complicated, but the effect is worth it. The basic use of DMA transfers is so easy that it's hardly worth having a demo of. Use of *triggered* DMA is another matter. In this case, we'll look at HBlank-triggered DMA, or HDMA for short. We'll use it to update the [window](gfx.html#sec-win) sized inside the HBlank to give a circular window effect.
+本章的演示可能看起来有点复杂，但效果是值得的。DMA 传输的基本用法太简单了，几乎不值得专门做个演示。而*触发式* DMA 则是另一回事。在这种情况下，我们来看 HBlank 触发的 DMA，简称 HDMA。我们将用它来更新[HBlank 内调整大小](gfx.html#sec-win)的[窗口](gfx.html#sec-win)，以实现圆形窗口效果。
 
-This is easier said than done, of course. The first step in the design is how to use HDMA for this in the first place. Because we need to copy to `REG_WIN0H` each HBlank, we need to keep the destination fixed. Technically, it needs to be *reset* to the original destination, but with only one halfword to copy this means the same thing. For the source, we'll keep track of the data that needs to be copied there in an array with one entry for each scanline, and we'll progress through the array one scanline at a time (i.e, incrementing source). And of course, the transfer has to occur at *each* scanline, so we set it to repeat. so basically we need this:
+这当然说起来容易做起来难。设计的第一步是，首先怎样才能把 HDMA 用于此。因为我们需要在每个 HBlank 复制到 `REG_WIN0H`，我们需要让目标地址固定。严格来说，它需要*重置*为原始目标地址，但由于只复制一个半字，这意味着同样的事。对于源，我们会在一个数组中跟踪需要复制到那里、每条扫描线对应一项的数据，并每次推进数组一条扫描线（即，递增源）。当然，传输必须在*每条*扫描线发生，所以我们把它设为重复。所以基本上我们需要这个：
 
 ```c
 #define DMA_HDMA    (DMA_ENABLE | DMA_REPEAT | DMA_AT_HBLANK | DMA_DST_RELOAD)
 ```
 
-As for the circle, we need a routine that can calculate the left and right edges of a circle. There are a couple of algorithms around that can draw circles, for example [Bresenham's](http://www.gamedev.net/reference/articles/article767.asp) version. We'll use a modified version of it because we only need to store the left and right points instead of drawing a pixel there. Why left-right and not top-bottom? Because the array is scanline-based, so that indicates the *y*-values already.
+至于圆，我们需要一个能计算圆的左边缘和右边缘的例程。周围有几种能画圆的算法，比如 [Bresenham 的](http://www.gamedev.net/reference/articles/article767.asp) 版本。我们将使用它的修改版，因为我们只需要存储左右点，而不是在那里画一个像素。为何是左右而非上下？因为数组是基于扫描线的，所以那已经表明了 *y* 值。
 
-It doesn't really matter what you use actually, as long as you can find the edges. Once you have, all you need to do is setup the DMA in the VBlank and you're done.
+你实际用什么并不重要，只要你能找到边缘。一旦找到，你只需在 VBlank 中设置好 DMA 就完成了。
 <br>  
-The end result will show something like {@fig:dma-demo}. It's the Brinstar background (again) inside the window, and a striped bg outside. The text indicates the position and radius of the window, which can be moved with the D-pad and scaled by A and B.
+最终结果会显示像 {@fig:dma-demo} 那样的东西。是窗口内的 Brinstar 背景（又是它），以及外面的条纹背景。文字标明了窗口的位置和半径，可以用十字键移动，并用 A 和 B 缩放。
 
 <pre><code class="language-c hljs">
 #include <stdio.h>
@@ -281,8 +271,8 @@ The end result will show something like {@fig:dma-demo}. It's the Brinstar backg
 <span class="bold">u16 g_winh[SCREEN_HEIGHT+1];</span>
 
 //! Create an array of horizontal offsets for a circular window.
-/*! The offsets are to be copied to REG_WINxH each HBlank, either 
-*     by HDMA or HBlank isr. Offsets provided by modified 
+/*! The offsets are to be copied to REG_WINxH each HBlank, either
+*     by HDMA or HBlank isr. Offsets provided by modified
 *     Bresenham's circle routine (of course); the clipping code is not
 *     optional.
 *   \param winh Pointer to array to receive the offsets.
@@ -303,18 +293,18 @@ void win_circle(u16 winh[], int x0, int y0, int rr)
         // Side octs
         tmp  = clamp(x0+y, 0, SCREEN_WIDTH);
         tmp += clamp(x0-y, 0, SCREEN_WIDTH)<<8;
-        
+
         if(IN_RANGE(y0-x, 0, SCREEN_HEIGHT))       // o4, o7
             winh[y0-x]= tmp;
         if(IN_RANGE(y0+x, 0, SCREEN_HEIGHT))       // o0, o3
             winh[y0+x]= tmp;
 
         // Change in y: top/bottom octs
-        if(d >= 0)      
+        if(d >= 0)
         {
             tmp  = clamp(x0+x, 0, SCREEN_WIDTH);
             tmp += clamp(x0-x, 0, SCREEN_WIDTH)<<8;
-            
+
             if(IN_RANGE(y0-y, 0, SCREEN_HEIGHT))   // o5, o6
                 winh[y0-y]= tmp;
             if(IN_RANGE(y0+y, 0, SCREEN_HEIGHT))   // o1, o2
@@ -337,9 +327,9 @@ void init_main()
     REG_BG2CNT= BG_CBB(0)|BG_SBB(30);
 
     // Init BG 1 (mask)
-    const TILE tile= 
+    const TILE tile=
     {{
-        0xF2F3F2F3, 0x3F2F3F2F, 0xF3F2F3F2, 0x2F3F2F3F, 
+        0xF2F3F2F3, 0x3F2F3F2F, 0xF3F2F3F2, 0x2F3F2F3F,
         0xF2F3F2F3, 0x3F2F3F2F, 0xF3F2F3F2, 0x2F3F2F3F
     }};
     tile_mem[0][32]= tile;
@@ -384,25 +374,25 @@ int main()
 
         // Fill circle array
         <span class="bold">win_circle(g_winh, x0, y0, rr);</span>
-    
+
         // Init win-circle HDMA
         <span class="bold">DMA_TRANSFER(&REG_WIN0H, &g_winh[1], 1, 3, DMA_HDMA);</span>
 
         tte_printf("#{es;P}(%d,%d) | %d", x0, y0, rr);
     }
-    
+
     return 0;
-} 
+}
 </code></pre>
 
-The initialization function is mostly just fluff. Mostly, because there is one thing of interest: the calls to `dma_cpy` to copy the Brinstar palette, tiles and map. Aside from that, nothing to see here.
+初始化函数大部分只是些点缀。说大部分，是因为有一件有趣的事：调用 `dma_cpy` 来复制 Brinstar 的调色板、图块和地图。除此之外，这里没什么好看的。
 
-The main function itself is also pretty standard. Of interest here are the call to `win_circle()`, which sets up the source-array, and to `DMA_TRANSFER()` to initialize the HDMA. Note that I'm actually making it start at `g_winh[1]` instead of just `g_winh[0]`. The reason for this is that the HBlank occurs *after* a given scanline, not before it, so we'll lag one otherwise. The `g_winh` array is actually 160+1 long, and both entry 0 and 160 describe the data for scanline 0. What's also important, but not exactly visible here, is that HDMA only occurs on the *visible* HBlanks, not the ones in the VBlank. This saves up a whole lot of trouble determining how many scanlines to correct for when setting it up.
+主函数本身也相当标准。这里有趣的是调用 `win_circle()`（设置源数组）和 `DMA_TRANSFER()`（初始化 HDMA）。注意我其实是让它从 `g_winh[1]` 而不是 `g_winh[0]` 开始。原因是 HBlank 发生在给定扫描线*之后*，而非之前，否则我们会滞后一个。这个 `g_winh` 数组实际上长 160+1，第 0 项和第 160 项都描述扫描线 0 的数据。还有一点重要但此处不太看得出的是：HDMA 只发生在*可见*的 HBlank 上，而非 VBlank 中的那些。这省去了在确定设置时要为多少个扫描线做修正的一大堆麻烦。
 
-And then there's `win_circle()`. If you're aware of how the Bresenham circle algorithm work, you know it calculates an offset for one octant and then uses it for the 7 others via symmetry rules. This happens here as well. What doesn't happen in the original probably is all the clipping (the `clamp()`s and `IN_RANGE()s`). However, these steps are absolutely vital here. Going out of bounds horizontally would mean wrong windowing offsets which would make the window turn in on itself. Going out of bounds vertically means going OOB on `g_winh` for all kind of horrible. Trust me, they are necessary.
+然后就是 `win_circle()`。如果你知道 Bresenham 画圆算法如何工作，你会知道它计算一个八分圆的偏移，然后通过对称规则把它用于其他 7 个八分圆。这里也一样。原版里大概没做的，是所有的裁剪（`clamp()` 和 `IN_RANGE()`）。然而，这些步骤在这里绝对至关重要。水平越界意味着错误的窗口偏移，会让窗口向内卷。垂直越界意味着 `g_winh` 越界，招致各种可怕后果。相信我，它们是必需的。
 
-Also, notice that I wipe the whole array clean first; this can be done inside the loop, but sometimes it's just faster to fill the whole thing first and then only update the parts you need. Lastly, as mentioned before, the first scanline's data is copied to the final entry of the array to account for the way HBlanks happen.
+另外，注意我先清掉了整个数组；这可以在循环内做，但有时先填整个数组、然后只更新需要的部分反而更快。最后，如前所述，第一条扫描线的数据被复制到数组的最后一项，以应对 HBlank 发生的方式。
 <br>  
-And here ends the chapter on DMA. The use of HDMA in this manner is great for all kinds of effects, not just circular windows. All you need is an array containing scanline-data and a function that sets it up beforehand. Be careful you don't get your channels mixed up, though.
+DMA 这一章到此结束。以这种方式使用 HDMA 对各种效果都很棒，不只是圆形窗口。你只需要一个包含扫描线数据的数组，以及一个事先设置它的函数。不过小心别把你的通道搞混了。
 
-DMA is the fastest method of copying, but as you block interrupts using `memcpy32()` is probably safer. The speed difference is only 10% anyway. DMA is also used for sound FIFO, in conjunction with timers. I can't really show you how to use it for sound, but I can tell you how timers work, and will do so in the next chapter.
+DMA 是最快的复制方法，但由于它会阻塞中断，使用 `memcpy32()` 可能更安全。反正速度差异只有 10%。DMA 也用于声音 FIFO，配合定时器使用。我没法真正展示如何用 DMA 做声音，但我可以告诉你定时器如何工作，下一章就会讲。

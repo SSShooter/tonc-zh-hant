@@ -1,23 +1,23 @@
-# 15. Timers
+# 15. 定时器
 
 <!-- toc -->
 
-## Timing is everything {#sec-intro}
+## 时机就是一切 {#sec-intro}
 
-Think of every time you've heard a joke ruined because the punch line came too late or too early; think of all the failed jumps in Super Mario Bros (or any other platform game); all the occasions that you skidded at the start of a Mario Kart race for revving too soon; that your invincibility wore off just *before* you got a red shell up your a\[censored\]s; that you didn't quite dodge that hail of bullets in old-skool shooters because of a sudden slow-down. Think of all this and situations like them and you'll agree that in games, as in life, Timing Is Everything.
+回想一下，有多少次你听到一个笑话因为抖包袱太早或太晚而被毁掉；回想一下超级马里奥（或任何平台游戏）里所有那些失败的跳跃；回想一下在马里奥赛车起步时因为轰油门太早而打滑；你的无敌时间恰恰在红龟壳顶到你屁\[消音\]股之前消失；在老派射击游戏里，因为突然的卡顿而没能躲开那阵弹幕。想到这一切以及类似的场景，你就会同意：在游戏里，正如在生活中，时机就是一切。
 
-Ironically, tim*ers* are of less importance. Throughout video-game history programmers have built their games around one timing mechanism: the vertical refresh rate of the screen. In other words, the VBlank. This is a machine-oriented timer (you count frames) rather than a human-oriented one (where you'd count seconds). For consoles, this works very well as the hardware is always the same. (Except, of course, that some countries use NTSC televisions (@ 60 Hz) and others use PAL TVs (@ 50 Hz). Everyone living in the latter category and has access to both kinds knows the difference and curses the fact that it's the NTSC countries that most games stem from.) While the VBlank timer is pervasive, it is not the only one. The GBA has four clock timers at your disposal. This section covers these timers.
+讽刺的是，定时*器*（timers）反而没那么重要。纵观电子游戏历史，程序员们都是围绕一个计时机制来构建游戏的：屏幕的垂直刷新率。换句话说，就是 VBlank（垂直消隐）。这是一台面向机器的定时器（你按帧数计），而不是面向人的（那种你会按秒计）。对于主机来说，这非常好用，因为硬件总是相同的。（当然，除了有些国家用 NTSC 电视（@ 60 Hz），而另一些用 PAL 电视（@ 50 Hz）。生活在后者阵营且有条件接触两种电视的人都知道差别，并会诅咒一个事实：大多数游戏都源自 NTSC 国家。）虽然 VBlank 定时器无处不在，但它并非唯一。GBA 有 4 个时钟定时器供你使用。本节介绍这些定时器。
 
-## GBA Timers {#sec-tmr}
+## GBA 定时器 {#sec-tmr}
 
-All conceivable timers work in pretty much the same way. You have something that oscillates with a certain fixed frequency (like a CPU clock or the swing of a pendulum). After every full period, a counter is incremented and you have yourself a timer. Easy, innit?
+所有能想得到定时器的工作方式都差不多。你有某个以固定频率振荡的东西（比如 CPU 时钟或钟摆的摆动）。每经过一个完整的周期，计数器就加一，你就有了一个定时器。很简单，不是吗？
 
-The basic frequency of the GBA timers is the CPU frequency, which is 2<sup>24</sup> ≈ 16.78 Mhz. In other words, one <dfn>clock cycle</dfn> of the CPU takes 2<sup>−24</sup> ≈ 59.6 ns. Since this is a very lousy timescale for us humans, the GBA allows for 4 different frequencies (or, rather periods): 1, 64, 256 and 1024 cycles. Some details of these frequencies are shown in {@tbl:tmr-freq}. By clever use of the timer registers, you can actually create timers of any frequency, but more on that later. It should be noted that the screen refreshes every 280,896 cycles, exactly.
+GBA 定时器的基本频率是 CPU 频率，即 2<sup>24</sup> ≈ 16.78 MHz。换句话说，CPU 的一个<dfn>时钟周期</dfn>耗时 2<sup>−24</sup> ≈ 59.6 ns。由于这对我们人类来说是个非常糟糕的时间尺度，GBA 允许 4 种不同的频率（更准确说是周期）：1、64、256 和 1024 个周期。这些频率的一些细节见 {@tbl:tmr-freq}。通过巧妙地使用定时器寄存器，你实际上能创建任意频率的定时器，但稍后再详述。应当指出，屏幕恰好每 280,896 个周期刷新一次。
 
 <div class="lblock">
 <table id="tbl:tmr-freq" class="table-data">
 <caption align="bottom">
-  <b>{*@tbl:tmr-freq}</b>: Timer frequencies
+  <b>{*@tbl:tmr-freq}</b>: 定时器频率
 </caption>
 <col span=4 align="right">
 <tr><th>#cycles<th>frequency<th>period
@@ -28,14 +28,14 @@ The basic frequency of the GBA timers is the CPU frequency, which is 2<sup>24</s
 </table>
 </div>
 
-### Timer registers {#ssec-tmr-regs}
+### 定时器寄存器 {#ssec-tmr-regs}
 
-The GBA has four timers, timers 0 to 3. Each of these has two registers: a data register (`REG_TMxD`) and a control register (`REG_TMxCNT`). The addresses can be found in {@tbl:tmr-reg}.
+GBA 有 4 个定时器，定时器 0 到 3。每个定时器有两个寄存器：一个数据寄存器（`REG_TMxD`）和一个控制寄存器（`REG_TMxCNT`）。地址可以在 {@tbl:tmr-reg} 中找到。
 
 <div class="lblock">
 <table id="tbl:tmr-reg">
 <caption align="bottom">
-  <b>{*@tbl:tmr-reg}</b>: Timer register addresses
+  <b>{*@tbl:tmr-reg}</b>: 定时器寄存器地址
 </caption>
 <tr><th>reg<th>function<th>address
 <tr><td><code>REG_TMxD</code><td>data
@@ -72,66 +72,60 @@ The GBA has four timers, timers 0 to 3. Each of these has two registers: a data 
 <tr class="bg0">
   <td>0-1<td class="rclr2">Fr
   <td>TM_FREQ_y
-  <td>Timer <b>frequency</b>. 0-3 for 1, 64, 256, or 1024 cycles, 
-    respectively. <code>y</code> in the define is the number of 
-    cycles.
+  <td>定时器<b>频率</b>。分别为 1、64、256 或 1024 个周期对应 0-3。</td>
+    <code>y</code> 在该宏中是周期数。
 <tr class="bg1">
   <td> 2 <td class="rclr3">CM
   <td>TM_CASCADE
-  <td><b>Cascade mode</b>. When the counter of the <i>preceding</i> 
-    (<code>x</code>&minus;1) timer overflows (<code>REG_TM(x-1)D= 
-    0xffff</code>), this one will be incremented too. A timer that 
-    has this bit set does <i>not</i> count on its own, though you 
-    still have to enable it. Obviously, this won't work for timer 0.
-    If you plan on using it make sure you understand exactly what I 
-    just said; this place is a death-trap for the unwary.
+  <td><b>级联模式</b>。当<b>前一个</b>（<code>x</code>&minus;1）定时器溢出（<code>REG_TM(x-1)D= 
+    0xffff</code>）时，本定时器也会加一。设置了此位的定时器并<b>不</b>自行计数，不过你仍然需要把它使能。显然，这对于定时器 0 无效。如果你打算用它，请确保你完全理解我刚才说的；此地对疏忽者是个死亡陷阱。
 <tr class="bg0">
   <td> 6 <td class="rclr1">I
   <td>TM_IRQ
-  <td>Raise an interrupt on overflow.
+  <td>溢出时触发中断。
 <tr class="bg1">
   <td> 7 <td class="rclr0">En
   <td>TM_ENABLE
-  <td>Enable the timer.
+  <td>使能定时器。
 </tbody>
 </table>
 </div>
 
 ### REG_TMxD {#ssec-reg-tmxd}
 
-The data register `REG_TMxD` is a 16-bit number that works a little bit differently than you might expect at first, but in the end it makes sense. The number that you **read** from the register is the **current** timer-count. So far, so good. However, the number that you **write** to `REG_TMxD` is the **initial value** that the counter begins at when the timer is either enabled (via `TM_ENABLE`) or overflows. This has number of ‘interesting’ consequences. To make things a little easier, define variables *n* of the initial value (the write-number) and *c* for the current count (the read number).
+数据寄存器 `REG_TMxD` 是一个 16 位数字，它的工作方式与你一开始预期的略有不同，但归根结底它是有道理的。你从寄存器**读**出的值是**当前**的定时器计数值。到目前为止，一切正常。然而，你**写**入 `REG_TMxD` 的值，是计数器在定时器被使能（通过 `TM_ENABLE`）或溢出时开始计数的**初始值**。这有几个"有趣"的后果。为了便于说明，定义变量 *n* 为初始值（写入数），*c* 为当前计数值（读出数）。
 <br>  
-First of all, when you set an *n* (of, say, `c000h`) like this:
+首先，当你像这样设置一个 *n*（比如 `c000h`）：
 
 ```c
     REG_TM2D= 0xc000;
 ```
 
-you will *not* have set the current timer-count *c* to *n* (=`c000h`). In fact, if the timer is disabled, then *c*= 0. However, as soon as you do enable the counter, then *c = n* and proceeds from there. And when the timer overflows, it will reset to this value as well. By the way, because *n* is only the starting value it is important to set *n* first, and enable the timer afterwards.
+你*并没有*把当前定时器计数值 *c* 设为 *n*（=`c000h`）。事实上，如果定时器被禁用，那么 *c*= 0。然而，一旦你使能计数器，那么 *c = n* 并从此处继续。而且当定时器溢出时，它也会重置为该值。顺便说一句，由于 *n* 只是起始值，先设置 *n*、再使能定时器很重要。
 
-Secondly, ask yourself this: what happens when you disable the timer again? Well, the counter retains its current value. However, when you *enable* it afterwards, *c* will reset to *n* again. This is a bit of a drag if you want to disable the timer for a while (during a game-pause for instance) and then pick up where it left of. Well, yeah, but there is a way to make it happen. How? By turning it into a cascade timer via `TM_CASCADE`! Having that bit set in the `REG_TMxCNT` will cause the timer to be increased only when the preceding one overflows. If you prevent that from ever happening (if it's disabled for instance) then you will have effectively disabled your timer.
+其次，问问你自己：当你再次禁用定时器时会发生什么？嗯，计数器保留其当前值。然而，当你随后**使能**它时，*c* 会再次重置为 *n*。如果你想要禁用定时器一段时间（比如游戏暂停时），然后再从它停下的地方继续，这就有点烦人了。嗯，是的，但有办法实现它。怎么做？通过设置 `TM_CASCADE` 把它变成一个级联定时器！在 `REG_TMxCNT` 中设置该位会使定时器仅在前一个定时器溢出时才增加。如果你阻止这种情况发生（比如禁用它），那么你实际上就禁用了你的定时器。
 
-Lastly, given a certain *n*, then the timer will overflow after *T*= `10000h`−*n* increments. Or, thanks to the wonders of two's complement, just *T*= −*n*. Combined with a cascade timer (or interrupts) you can build timers of any frequency, which is what you want from a timer.
+最后，给定某个 *n*，定时器将在 *T*= `10000h`−*n* 次递增后溢出。或者，多亏了补码的美妙，直接就是 *T*= −*n*。配合级联定时器（或中断），你可以构建任意频率的定时器，这正是你想要的定时器。
 
-:::warning Writing to REG_TMxD is weird
+:::warning 写入 REG_TMxD 的方式很怪
 
-Writing into REG_TMxD may not do what you think it does. It does *not* set the timer value. Rather, it sets the *initial* value for the next timer run.
+写入 REG_TMxD 可能并不像你想的那样。它并*不*设置定时器的值。相反，它设置的是下一次定时器运行的*初始*值。
 
 :::
 
-## Timer demo : like clockwork {#sec-demo}
+## 定时器演示：像钟表一样 {#sec-demo}
 
-In today's demo, I'm going to show how to make a simple digital clock with the timers. To do this, we'll need a 1 Hz timer. As that's not available directly, I'm going to set up a cascading timer system with timers 2 and 3. Timer 3 will be set to cascade mode, which is updated when timer 2 overflows. It is possible to set the overflow to happen at a frequency of exactly one Hertz. The clock frequency is 2<sup>24</sup>, or 1024\*0x4000. By setting timer 2 to `TM_FREQ_1024` and to start at −0x4000, the cascading timer 3 will effectively be a 1 Hz counter.
+在今天的演示中，我将展示如何用定时器做一个简单的数字时钟。为此，我们需要一个 1 Hz 的定时器。由于它不能直接得到，我将用定时器 2 和 3 搭建一个级联定时器系统。定时器 3 会被设为级联模式，在定时器 2 溢出时更新。这样就能让溢出恰好以一赫兹的频率发生。时钟频率是 2<sup>24</sup>，也就是 1024\*0x4000。通过将定时器 2 设为 `TM_FREQ_1024` 并从 −0x4000 开始，级联的定时器 3 实际上就成了一个 1 Hz 计数器。
 
 <div class="cpt_fr" style="width:240px;">
-<img alt="Clock demo" src="./img/demo/tmr_demo.png" id="fig:tmr-demo">
+<img alt="时钟演示" src="./img/demo/tmr_demo.png" id="fig:tmr-demo">
 
-**{*@fig:tmr-demo}**: `tmr_demo`.
+**{*@fig:tmr-demo}**: `tmr_demo`。
 </div>
 
-Whenever timer 3 is updated, the demo turns the number of seconds into hours, minutes and seconds and prints that on screen (see {@fig:tmr-demo}). Yes, I am using divisions and moduli here because it is the simplest procedure and I can spare the cycles in this particular demo.
+每当定时器 3 更新时，演示就把秒数转换为时、分、秒并打印在屏幕上（见 {@fig:tmr-demo}）。是的，我在这里用了除法和取模，因为这是最简单的做法，而且在这个特定演示里我消耗得起这些周期。
 
-The demo can be (un)paused with Select and Start. Start disables timer 2, and thus timer 3 too. Select turns timer 2 into a cascade timer as well, and since timer 1 is disabled, doing this also stops timer 2 (and 3). The difference is what happens when you unpause. By disabling a timer, it will start again at the initial value; but stopping it with a cascade actually keeps the timer active and it will simply resume counting once the cascade is removed. The difference is a subtle one, but the latter is more appropriate.
+演示可以用 Select 和 Start 来（取消）暂停。Start 禁用定时器 2，从而也禁用了定时器 3。Select 把定时器 2 也变成一个级联定时器，而由于定时器 1 是禁用的，这样做也会停止定时器 2（和 3）。区别在于你取消暂停时会发生什么。通过禁用一个定时器，它会从初始值重新开始；但用级联停止它实际上让定时器保持活动，一旦级联被移除它就会简单地继续计数。差别很微妙，但后者更合适。
 
 ```c
 // Using a the "Berk" font from headspins font collection.
@@ -188,4 +182,4 @@ int main()
 }
 ```
 
-This was a rather simple use of timers. Of course, I could have just as easily used the VBlank to keep track of the seconds, which is how it's usually done anyway. The hardware timers are usually reserved for timed DMA's, which are used in [sound mixers](https://stuij.github.io/deku-sound-tutorial/g), not for game timers. There is one other use that comes to mind, though, namely profiling: examining how fast your functions are. One of the [text system demos](text.html#ssec-demo-se2) uses that to check the speeds of a few copying routines.
+这只是定时器相当简单的一种用法。当然，我本可以同样轻易地用 VBlank 来记录秒数，而这本来就是通常的做法。硬件定时器通常保留给定时的 DMA 使用，定时的 DMA 用于[声音混音器](https://stuij.github.io/deku-sound-tutorial/g)，而非用于游戏定时器。不过还有一个能想到的用途，即性能剖析：检查你的函数有多快。其中一个[文本系统演示](text.html#ssec-demo-se2)就是用它来检测几个复制例程的速度。

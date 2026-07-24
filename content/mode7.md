@@ -1,20 +1,20 @@
-# 20. Mode 7 Part 1
+# 20. Mode 7 第 1 部分
 
 <!-- toc -->
 
-Right, and now for something cool: mode 7. Not just how to implement it on the GBA, but also the math behind it. You need to know your way around [tiled backgrounds](regbg.html) (especially the [transformable](affbg.html) ones) [interrupts](interrupts.html). Read up on those subjects if you don't. The stuff you'll find here explains the basics of Mode 7. I also have an [advanced page](mode7ex.html), but I urge you to read this one first, since the math is still rather easy compared to what I'll use there.
+好，现在来讲点酷的东西：Mode 7。不仅是在 GBA 上如何实现它，还有它背后的数学。你需要先了解[图块背景](regbg.html)（尤其是[可变换的](affbg.html)那些）以及[中断](interrupts.html)。如果还不了解，请先去读这些主题。这里的内容解释了 Mode 7 的基础。我还有一页[进阶内容](mode7ex.html)，但我强烈建议你先读这一页，因为那里的数学比这里的要难上不少。
 
-## Introduction {#sec-intro}
+## 简介 {#sec-intro}
 
-Way, way back in 1990, there was the Super NES, the 16bit successor to the Nintendo Entertainment System. Apart from the usual improvements that are inherent to new technology, the SNES was the first console to have special hardware for graphic tricks that allowed linear transformations (like rotation and scaling) on backgrounds and sprites. <dfn>Mode7</dfn> took this one step further: it not only rotated and scaled a background, but added a step for perspective to create a 3D look.
+时光倒退回 1990 年，那时有超级任天堂（Super NES），也就是任天堂娱乐系统（NES）的 16 位后继机种。除了新技术天然带来的那些常见改进之外，SNES 还是第一台拥有特殊图形硬件、能对任意背景和精灵进行线性变换（比如旋转和缩放）的家用机。<dfn>Mode7</dfn> 把这一步推得更远：它不仅能旋转和缩放背景，还额外加入了一个透视步骤，从而创造出 3D 观感。
 
-One could hardly call Mode 7 yet another pretty gimmick. For example, it managed to radically change the racing game genre. Older racing games (like Pole Position and Outrun) were limited to simple left and right bends. Mode 7 allowed more interesting tracks, as your vision wasn't limited to the part of the track right in front of you. F-Zero was the first game to use it and blew everything before it out of the water (the original Fire Field is still one of the most vicious tracks around with its hairpins, mag-beams and mines). Other illustrious games were soon to follow, like Super Mario Kart (mmmm, Rainbow Road. 150cc, full throttle all the way through \*gargle\*) and Pilotwings.
+很难说 Mode 7 只是又一个漂亮的噱头。举例来说，它彻底改变了竞速游戏这个类型。更老的竞速游戏（比如 Pole Position 和 Outrun）只能做简单的左右弯。Mode 7 则能呈现更有意思的赛道，因为你的视野不再局限于正前方的那一小段路面。F-Zero 是第一个使用它的游戏，并且把之前的一切都碾压了（原版的 Fire Field 至今仍是最凶残的赛道之一，有着发卡弯、磁力光束和地雷）。其它知名的游戏很快接踵而至，比如超级马里奥赛车（嗯嗯，彩虹之路。150cc，全程油门到底 \*gargle\*）和 Pilotwings。
 
-Since the GBA is essentially a miniature SNES, it stands to reason that you could do Mode7 graphics on it as well. And, you'd be right, although I heard the GBA Mode7 is a little different as the SNES'. On the SNES the video modes really did run up to #7 (see the [SNESdev Wiki](https://snes.nesdev.org/wiki/Backgrounds)) The GBA only has modes 0-5. So technically “GBA Mode 7” is a yet another misnomer. However, for everyone who's not a SNES programmer (which _is_ nearly everyone, me included) the term is synonymous with the graphical effect it was famous for: a perspective view. And you can create a perspective view on the GBA, so in that sense the term's still true.
+由于 GBA 本质上就是一台迷你 SNES，按理说你也能在它上面做 Mode 7 图形。而且，你是对的，尽管我听说 GBA 的 Mode 7 与 SNES 的略有不同。在 SNES 上，视频模式确实一直排到了 #7（参见 [SNESdev Wiki](https://snes.nesdev.org/wiki/Backgrounds)）。GBA 却只有模式 0–5。所以严格来说，“GBA Mode 7”又是一个误称。不过，对于所有不是 SNES 程序员的人来说（这<em>几乎</em>包括了所有人，也包括我），这个词与它所闻名于世的图形效果——一个透视视图——是同义的。而你在 GBA 上确实可以创建一个透视视图，所以从这个意义上说，这个词仍然成立。
 
-I'm not sure about the SNES, but GBA Mode 7 is a very much unlike true 3D APIs like OpenGL and Direct3D. On those systems, you can just give the proper perspective matrix and place it into the pipeline. On the GBA, however, you only have the general 2D transformation matrix **P** and displacement **dx** at your disposal and you have to do all the perspective calculations yourself. This basically means that you have to alter the scaling and translation on every scanline using either the HBlank DMA or the HBlank interrupt.
+我不敢确定 SNES 的情况，但 GBA 的 Mode 7 与 OpenGL 和 Direct3D 这类真正的 3D API 非常不同。在那些系统上，你只需给出正确的透视矩阵，然后把它塞进渲染管线即可。然而在 GBA 上，你手头只有一个通用的 2D 变换矩阵 **P** 和位移 **dx**，而且所有的透视计算都得你自己来做。这基本上意味着，你必须在每条扫描线上改变缩放和位移，使用 HBlank DMA 或 HBlank 中断来达成。
 
-In this tutorial, I will use the 64x64t affine background from the [sbb_aff](affbg.html#sec-demo) demo (which looks a bit like @fig:img-m7-map), do the Mode7 mojo and turn it into something like depicted in @fig:img-m7-persp. The focus will be on showing, in detail, how the magic works. While the end result is given as a HBlank interrupt function; converting to a HBlank DMA case shouldn't be to hard.
+在本教程中，我会使用来自 [sbb_aff](affbg.html#sec-demo) 演示程序的那张 64×64t 仿射背景（长得有点像 @fig:img-m7-map），施展 Mode 7 的魔法，把它变成类似 @fig:img-m7-persp 中所描绘的样子。重点会放在详细展示这魔法究竟是如何运作的。虽然最终结果是以一个 HBlank 中断函数的形式给出的，但改写成 HBlank DMA 的情形应该也不算太难。
 
 <div class="lblock">
   <table>
@@ -23,27 +23,27 @@ In this tutorial, I will use the 64x64t affine background from the [sbb_aff](aff
       <div class="cpt" style="width:256px;">
         <img src="img/mode7/m7_map.png" id="fig:img-m7-map" alt="This is your map.">
         <br>
-        <b>*@fig:img-m7-map</b>: this is your map (well, kinda)
+        <b>*@fig:img-m7-map</b>: 这是你的地图（嗯，差不多）。
       </div>
     <td>
       <div class="cpt" style="width:240px;">
         <img src="img/mode7/m7_persp.png" id="fig:img-m7-persp" alt="This is your map in mode7.">
         <br>
-        <b>*@fig:img-m7-persp</b>: this is your map in mode7.
+        <b>*@fig:img-m7-persp</b>: 这是你的地图在 mode7 下的样子。
       </div>
   </table>
 </div>
 
-## Getting a sense of perspective {#sec-persp}
+## 建立透视感 {#sec-persp}
 
-(If you are familiar with the basics of perspective, you can just skim this section.)  
-If you've ever looked at a world map or a 3D game, you know that when mapping from 3D to 2D, something' has to give. The technical term for this is <dfn>projection</dfn>. There are many types of projection, but the one we're concerned with is <dfn>perspective</dfn>, which makes objects look smaller the further off they are.
+（如果你已经熟悉透视的基础知识，可以只粗略地浏览这一节。）
+如果你曾经看过世界地图或玩过 3D 游戏，你就会知道，当从 3D 映射到 2D 时，总有些东西得做出让步。这件事的术语叫做<dfn>投影</dfn>。投影有许多类型，但我们关心的是<dfn>透视</dfn>，它让物体看起来离得越远就越小。
 
-We start with a 3D space like the one in @fig:img-3dview. In computer graphics, it is customary to have the _x_-axis pointing to the right and the _y_-axis pointing up. The _z_-axis is the determined by the handedness of the space: a <dfn>right-handed</dfn> coordinate system has it pointing to the back (out of the screen), which in a left-handed system it's pointing to the front. I'm using a right-handed system because my mind gets hopelessly confused in a left-handed system when it comes to rotation and calculating normals. Another reason is that this way the screen coordinates correspond to (_x_, _z_) values. It is also customary to have the viewer at the origin (for a different viewer position, simply translate the world in the other direction). For a right-handed system, this means that you're looking down the negative _z_-axis.
+我们从一个类似 @fig:img-3dview 中的 3D 空间开始。在计算机图形学中，习惯上让 _x_ 轴指向右方，_y_ 轴指向上方。_z_ 轴则是由空间的手性（handedness）决定的：在<dfn>右手系</dfn>中它指向后方（屏幕之外），而在左手系中它指向前方。我使用的是右手系，因为一碰到旋转和计算法线，左手系就会把我搞得晕头转向。另一个原因是，这样屏幕坐标就与 (_x_, _z_) 值对应了。把观察者放在原点也是惯例（对于不同的观察者位置，只需把世界向相反方向平移即可）。对于右手系来说，这意味着你是在沿着负的 _z_ 轴看过去。
 
-Of course, you can't see everything: only the objects inside the <dfn>viewing volume</dfn> are visible. For a perspective projection this is defined by the viewer position (the origin in our case) and the <dfn>projection plane</dfn>, located in front of the viewer at a distance _D_. Think of it as the screen. The projection plane has a width _W_ and height _H_. So the viewing volume is actually a <dfn>viewing pyramid</dfn>, though in practice it is usually a viewing _frustum_ (a beheaded pyramid), since there is a minimum and maximum to the distance you can perceive as well.
+当然，你不可能看到一切：只有位于<dfn>视域</dfn>内部的物体才可见。对于透视投影来说，视域由观察者位置（在我们的例子中是原点）和<dfn>投影平面</dfn>定义，后者位于观察者前方距离为 _D_ 的地方。把它想象成屏幕。投影平面有宽度 _W_ 和高度 _H_。所以视域实际上是一个<dfn>视锥</dfn>，尽管在实践中它通常是一个视<em>截台</em>（被砍掉头的金字塔），因为你所能感知的距离同样有最小值和最大值。
 
-{\*@fig:img-side1} shows what the perspective projection actually does. Given is a point (_y_, _z_) which is projected to point (_y_<sub>p</sub>, −*D*) on the projection plane. The projected _z_-coordinate, by definition, is −*D*. The projected _y_-coordinate is the intersection of the projection plane and the line passing through the viewer and the original point:
+{\*@fig:img-side1} 展示了透视投影实际所做的事。给定一个被投影到点 (_y_<sub>p</sub>, −*D*) 的点 (_y_, _z_)。按照定义，投影后的 _z_ 坐标就是 −*D*。投影后的 _y_ 坐标，是投影平面与那条穿过观察者和原始点的直线的交点：
 
 <table id="eq:persp">
   <tr>
@@ -65,15 +65,15 @@ Of course, you can't see everything: only the objects inside the <dfn>viewing vo
       </math>
 </table>
 
-Basically, you divide by
+基本上，你要除以
 <math style="display: inline-block math;">
 <mrow>
 <mi>z</mi>
 <mo lspace="0em" rspace="0em">/</mo>
 <mi>D</mi>
 </mrow>
-</math>.
-Since it is so important a factor it has is own variable: the <dfn>zoom factor</dfn> λ:
+</math>。
+由于它是一个如此重要的因子，它有自己的变量名：<dfn>缩放因子</dfn> λ：
 
 <table id="eq:lambda">
   <tr>
@@ -111,7 +111,7 @@ Since it is so important a factor it has is own variable: the <dfn>zoom factor</
       </math>
 </table>
 
-As a rule, everything in front the projection plane (λ\<1) will be enlarged, and everything behind it (λ\>1) is shrunk.
+通常的规律是：位于投影平面之前（λ\<1）的一切都会被放大，而在它之后（λ\>1）的一切则会被缩小。
 
 <div class="cblock">
   <table>
@@ -121,43 +121,43 @@ As a rule, everything in front the projection plane (λ\<1) will be enlarged, an
           <img src="img/mode7/m7_3dview.png" id="fig:img-3dview" alt="3D coordinate system">
           <br>
           <b>*@fig:img-3dview</b>:
-          3D coordinate system showing the viewing pyramid defined by the origin, and the screen rectangle (<i>W</i>&times;<i>H</i>) at <i>z</i>= &minus;<i>D</i>
+          三维坐标系，展示了由原点和位于 <i>z</i>= &minus;<i>D</i> 处的屏幕矩形（<i>W</i>&times;<i>H</i>）所定义的视锥
         </div>
       <td>
         <div class="cpt" style="width:320px;">
           <img src="img/mode7/m7_side1.png" id="fig:img-side1" alt="projection step, side view">
           <br>
           <b>*@fig:img-side1</b>:
-          Side view; point (<i>y, z</i>) is projected onto the (<i>z</i> = &minus;<i>D</i> plane. The projected point is <i>y</i><sub>p</sub> =  <i>y·D/z</i>
+          侧视图；点 (<i>y, z</i>) 被投影到 (<i>z</i> = &minus;<i>D</i>) 平面上。投影后的点是 <i>y</i><sub>p</sub> =  <i>y·D/z</i>
         </div>
   </table>
 </div>
 
-## Enter Mode 7 {#sec-m7-math}
+## 进入 Mode 7 {#sec-m7-math}
 
-{\*@fig:img-3dview} and @fig:img-side1 describe the general case for perspective projection in a 3D world with tons of objects and viewer orientations. The case for Mode 7 is considerably less complicated than that:
+{\*@fig:img-3dview} 和 @fig:img-side1 描述的是一个拥有大量物体和观察者朝向的 3D 世界中透视投影的普遍情形。Mode 7 的情况要比那简单得多：
 
-- **Objects**. We only work with two objects: the viewer (at point **a** = (_a_<sub>x</sub>, _a_<sub>y</sub>, _a_<sub>z</sub>) ) and the floor (at _y_=0, by definition).
-- **Viewer orientation**. In a full 3D world, the viewer orientation is given by 3 angles: yaw (y-axis), pitch (x-axis) and roll (z-axis). We will limit ourselves to yaw to keep things simple.
-- **The horizon issue**. Because the view direction is kept parallel to the floor, the horizon should go in the center of the screen. This would leave the top half of the screen empty, which is a bit of a waste. To remedy this we only use the bottom half of the viewing volume, so that the horizon is at the top of the screen. Note that even though the top and bottom view-lines are now the same as when you would look down a bit, the cases are _NOT_ equal as the projection plane is still vertical. It is important that you realize the difference.
+- **物体**。我们只处理两个物体：观察者（位于点 **a** = (_a_<sub>x</sub>, _a_<sub>y</sub>, _a_<sub>z</sub>)）和地面（按定义为 _y_=0）。
+- **观察者朝向**。在一个完整的 3D 世界中，观察者朝向由 3 个角度给出：偏航（yaw，y 轴）、俯仰（pitch，x 轴）和翻滚（roll，z 轴）。为了简单，我们只保留偏航。
+- **地平线问题**。由于视线方向与地面保持平行，地平线应当位于屏幕的中央。那样一来屏幕的上半部分就会空着，有点浪费。为了弥补这一点，我们只使用视域的下半部分，从而让地平线处在屏幕的顶端。请注意，尽管现在的上下视线和你略微向下看时是一样的，但两种情况<strong>并不</strong>相等，因为投影平面仍然是竖直的。意识到这一区别很重要。
 
 <div class="lblock">
   <div class="cpt" style="width:320px;">
     <img src="img/mode7/m7_side2.png" id="fig:img-side2" alt="Side view of Mode7 perspective">
-    <b>*@fig:img-side2</b>: side view of Mode 7 perspective
+    <b>*@fig:img-side2</b>: Mode 7 透视的侧视图
   </div>
 </div>
 
-{\*@fig:img-side2} shows the whole situation. A viewer at *y* = *a*<sub>y</sub> is looking in the negative z-direction. At a distance _D_ in front of the viewer is the projection plane, the bottom half of which is displayed on the GBA screen of height _H_ (=160). And now for the fun part. The GBA doesn't have any real 3D hardware capabilities, but you can fake it by cleverly manipulating the scaling and translation `REG_BGxX-REG_BGxPD` for every scanline. You just have to figure out which line of part of the floor goes into which scanline, and at which zoom level. Effectively, you're building a very simple ray-caster.
+{\*@fig:img-side2} 展示了整个情形。一个位于 *y* = *a*<sub>y</sub> 的观察者正沿着负的 z 方向看去。在观察者前方距离 _D_ 处是投影平面，其下半部分显示在高度为 _H_（=160）的 GBA 屏幕上。现在到了有趣的部分。GBA 没有任何真正的 3D 硬件能力，但你可以通过巧妙地操纵每条扫描线上的缩放和位移 `REG_BGxX-REG_BGxPD` 来伪造它。你只需要搞清楚地图的哪一部分落在哪条扫描线上，以及处于哪个缩放级别。实际上，你是在构建一个非常简单的光线投射器（ray-caster）。
 
-### The math {#ssec-math-math}
+### 数学原理 {#ssec-math-math}
 
-Conceptually, there are four steps to Mode 7, depicted in {@fig:img-steps}a-d. Green figures indicate the original map; red is the map after the operation. Given a scanline _h_, here's what we do:
+从概念上讲，Mode 7 包含四个步骤，描绘在 {@fig:img-steps}a–d 中。绿色图形表示原始地图；红色是运算之后的地图。给定一条扫描线 _h_，我们要做的是：
 
-1. **Pre-translation** by **a**= (_a_<sub>x</sub>, _a_<sub>z</sub>). This places the viewer at the origin, which is where we need it for steps b and c.
-2. **Rotation** by α. This takes care of the yaw angle. These steps have been the same as for normal transformable backgrounds so you shouldn't have any difficulty understanding them.
-3. **Perspective division**. Next, we scale the whole thing by 1/λ. From @eq:lambda we have λ = *a*<sub>y</sub>/_h_. The line *z* = *z*<sub>h</sub> is the line that belongs on scanline _h_. The new position of this line after scaling is _z_ = −*D*, since that was the whole point of perspective division.
-4. **Post-translation** by (−**x**<sub>s</sub>). Note the minus sign. After the perspective division, all that remains is moving the fully transformed map back to its proper screen position (the beige area). For obvious reasons the horizontal component should be half the screen width. The vertical move should move the floor-line to the scanline, so the vector is:
+1. **预平移** 通过 **a** = (_a_<sub>x</sub>, _a_<sub>z</sub>)。这把观察者放到了原点，而这正是步骤 b 和 c 所需要的。
+2. **旋转** 通过 α。这处理偏航角。这些步骤与普通的、可变换的背景是一样的，所以理解它们对你来说应该不成问题。
+3. **透视除法**。接下来，我们整体缩放 1/λ。由 @eq:lambda 可知 λ = *a*<sub>y</sub>/_h_。直线 *z* = *z*<sub>h</sub> 是理应落在扫描线 _h_ 上的那条直线。这条直线在缩放之后的新位置是 _z_ = −*D*，因为那正是透视除法的全部意义所在。
+4. **后平移** 通过 (−**x**<sub>s</sub>)。注意那个负号。在透视除法之后，剩下的就是把完全变换过的地图移回它应有的屏幕位置（米黄色区域）。出于显而易见的原因，水平分量应当等于屏幕宽度的一半。竖直方向的移动则应当把地面线移到那条扫描线上，于是这个向量是：
 
 <table id="eq:post-ofs">
 <tr>
@@ -225,7 +225,7 @@ Conceptually, there are four steps to Mode 7, depicted in {@fig:img-steps}a-d. G
 <div class="cblock">
   <table id="fig:img-steps" border=1 cellpadding=4 cellspacing=0>
     <caption align="bottom">
-      {*@fig:img-steps}a-d: The 4 steps of mode 7
+      {*@fig:img-steps}a-d: Mode 7 的四个步骤
     </caption>
     <tr>
       <td><img src="img/mode7/m7_step1.png" alt="pre-translate">
@@ -233,16 +233,16 @@ Conceptually, there are four steps to Mode 7, depicted in {@fig:img-steps}a-d. G
       <td><img src="img/mode7/m7_step3.png" alt="scale">
       <td><img src="img/mode7/m7_step4.png" alt="post-translate">
     <tr>
-      <td>{*@fig:img-steps}a: pre-translate by (<i>a</i><sub>x</sub>, <i>a</i><sub>z</sub>)
-      <td>{*@fig:img-steps}b: rotate by &alpha;
-      <td>{*@fig:img-steps}c: scale by 1/&lambda;
-      <td>{*@fig:img-steps}d: post-translate by (<i>x</i><sub>s</sub>, <i>y</i><sub>s</sub>)
+      <td>{*@fig:img-steps}a: 通过 (<i>a</i><sub>x</sub>, <i>a</i><sub>z</sub>) 预平移
+      <td>{*@fig:img-steps}b: 通过 &alpha; 旋转
+      <td>{*@fig:img-steps}c: 通过 1/&lambda; 缩放
+      <td>{*@fig:img-steps}d: 通过 (<i>x</i><sub>s</sub>, <i>y</i><sub>s</sub>) 后平移
   </table>
 </div>
 
-### Putting it all together {#ssec-math-combine}
+### 汇总整合 {#ssec-math-combine}
 
-While the steps described above are indeed the full procedure, there are still a number of loose ends to tie up. First of all, remember that the GBA's transformation matrix **P** maps from screen space to background space, which is actually the inverse of what you're trying to do. So what you should use is:
+虽然上面描述的步骤确实是完整的过程，但仍有若干松散的线头需要收拢。首先，请记住 GBA 的变换矩阵 **P** 映射的方向是从屏幕空间到背景空间，而这其实与你想要做的方向相反。所以你应该使用的是：
 
 <table id="eq:prs">
 <tr>
@@ -330,7 +330,7 @@ While the steps described above are indeed the full procedure, there are still a
   </table>
 </table>
 
-And yes, the minus sign is correct for a counter-clockwise rotation (**R** is defined as a clockwise rotation). Also remember that the GBA uses the following relation between screen point **q** and background point **p**:
+是的，那个负号对于逆时针旋转是正确的（**R** 被定义为顺时针旋转）。另外请记住，GBA 使用的屏幕点 **q** 与背景点 **p** 之间的关系是：
 
 <table id="eq-ofs-base">
   <tr>
@@ -358,7 +358,7 @@ And yes, the minus sign is correct for a counter-clockwise rotation (**R** is de
       </math>
 </table>
 
-that is, <u>one</u> translation and <u>one</u> transformation. We have to combine the pre- and post-translations to make it work. We've seen this before in eq 4 in the [affine background page](affbg.html#sec-aff-ofs), only with different names. Anyway, what you need is:
+也就是说，是<strong>一次</strong>平移和<strong>一次</strong>变换。我们得把预平移和后平移合并起来，才能让它生效。我们在 [affbg.html#sec-aff-ofs](affbg.html#sec-aff-ofs) 的等式 4 中其实已经见过这个了，只是名字不同。总之，你需要的是：
 
 <table id="eq-aff-ofs">
 <tr>
@@ -430,8 +430,8 @@ that is, <u>one</u> translation and <u>one</u> transformation. We have to combin
                     </mtd>
                   </mtr>
                   <mtr>
-                    <mtd></mtd>
-                    <mtd>
+                    <td></td>
+                    <td>
                       <mi>d</mi>
                       <mi>x</mi>
                       <mo>=</mo>
@@ -456,9 +456,9 @@ that is, <u>one</u> translation and <u>one</u> transformation. We have to combin
     </math>
 </table>
 
-So for each scanline you do the calculations for the zoom, put the **P** matrix of @eq:prs into `REG_BGxPA-REG_BGxPD`, and **a−P·x**<sub>s</sub> into `REG_BGxX` and `REG_BGxY` and presto! Instant Mode 7.
+所以，对于每条扫描线，你计算缩放因子，把 @eq:prs 中的 **P** 矩阵写入 `REG_BGxPA-REG_BGxPD`，再把 **a−P·x**<sub>s</sub> 写入 `REG_BGxX` 和 `REG_BGxY`，然后——搞定！瞬间就做出了 Mode 7。
 
-Well, almost. [Remember](affbg.html#ssec-ao-refpts) what happens when writing to `REG_BGxY` inside an HBlank interrupt: the _current_ scanline is perceived as the screen's origin null-line. In other words, it does the _+h_ part of _y<sub>s</sub>_ automatically. Renaming the true _y_<sub>s</sub> to _y_<sub>s0</sub>, what you _should_ use is
+嗯，差不多。请[记住](affbg.html#ssec-ao-refpts)在 HBlank 中断里写入 `REG_BGxY` 时会发生什么：当前扫描线会被当作屏幕的原点零行。换句话说，它会自动替你完成 _y<sub>s</sub>_ 中那个 _+h_ 的部分。把真正的 _y_<sub>s</sub> 重命名为 _y_<sub>s0</sub>，你<strong>应该</strong>用的是
 
 <table id="eq-yofs">
 <tr>
@@ -496,22 +496,22 @@ Well, almost. [Remember](affbg.html#ssec-ao-refpts) what happens when writing to
     </math>
 </table>
 
-Now, in theory you have everything you need. In practice, though, there are a number of things that can go wrong. Before I go into that, here's a nice, (not so) little demo.
+现在，理论上你已拥有一切所需。不过在实践中，还是有不少地方可能出错。在我深入那些之前，先来看一个漂亮（并不那么小）的演示程序。
 
-## Threefold demo {#sec-demo}
+## 三重演示程序 {#sec-demo}
 
-As usual, there is a demo. Actually, I have several Mode 7 demos, but that's not important right now. The demo is called `m7_demo` and the controls are:
+和往常一样，这里有一个演示程序。其实我有好几个 Mode 7 的演示，但那现在并不重要。这个演示叫做 `m7_demo`，控制方式如下：
 
 <table>
   <col valign="top">
-  <tr><th>D-pad<td>Strafe.
-  <tr><th>L, R<td>turn left and right (i.e., rotate map right and left, respectively)
-  <tr><th>A, B<td>Move up and down, though I forget which is which.
-  <tr><th>Select<td>Switch between 3 different Mode7 types (A, B, C)
-  <tr><th>Start<td>Resets all values (<b>a</b>= (256, 32, 256), &alpha;= 0)
+  <tr><th>D-pad<td>平移（Strafe）。
+  <tr><th>L, R<td>向左和向右转（即，分别把地图向右和向左旋转）
+  <tr><th>A, B<td>向上和向下移动，不过我忘了哪个是哪个。
+  <tr><th>Select<td>在 3 种不同的 Mode7 类型（A、B、C）之间切换
+  <tr><th>Start<td>重置所有数值（<b>a</b>= (256, 32, 256)，&alpha;= 0）
 </table>
 
-“Switch between 3 different Mode7 types”? That's what I said, yes. Make sure you move around in all three types. Please. There's a label in the top-left corner indicating the current type.
+“在 3 种不同的 Mode7 类型之间切换”？没错，正是我说的。请务必在三种类型中都四处移动一下。拜托了。左上角有一个标签，指示当前的类型。
 
 <div class="cblock">
   <table id="img-types">
@@ -519,53 +519,53 @@ As usual, there is a demo. Actually, I have several Mode 7 demos, but that's not
       <td>
         <div class="cpt" style="width:240px;">
           <img src="img/demo/m7_demo_a.png" alt="blocky"><br>
-          <b>Fig 20.7a</b>: Type A: blocked.
+          <b>Fig 20.7a</b>: 类型 A：块状。
         </div>
       <td>
         <div class="cpt" style="width:240px;">
           <img src="img/demo/m7_demo_b.png" alt="sawtooth"><br>
-          <b>Fig 20.7b</b>: Type B: sawtooth.
+          <b>Fig 20.7b</b>: 类型 B：锯齿状。
         </div>
     <tr>
       <td colspan=2 align="center">
         <div class="cpt" style="width:240px;">
           <img src="img/demo/m7_demo_c.png" alt="smooth"><br>
-          <b>Fig 20.7c</b>: Type C: smooth.
+          <b>Fig 20.7c</b>: 类型 C：平滑。
         </div>
   </table>
 </div>
 
-## Order, order! {#sec-order}
+## 顺序，顺序！ {#sec-order}
 
-Fiddled with my demo a bit? Good. Noticed the differences between the three types? Even better! For reference, take a look at Figs 20.7a-c, which correspond to the types. They adequately show what's different.
+稍微摆弄了一下我的演示程序？很好。注意到三种类型之间的差别了？那就更好了！作为参考，看看图 20.7a–c，它们与这些类型一一对应。它们清楚地展示了不同之处。
 
-- Type A is horribly blocky. Those numbers in the red tiles are supposed to be ‘8’s. Heh, numbers? What numbers!
-- Type B is better. The left-hand side is smooth, but there's still some trouble on the right-hand side. But at least you can see eights with some imagination.
-- Type C. Now we're talking! The centerline is clear, which is important since that's what you're looking at most of the time. But even on the sides, things are looking pretty decent.
+- 类型 A 糟糕地呈块状。那些红色图块里的数字本该是“8”。嘿，数字？什么数字！
+- 类型 B 好一些。左侧是平滑的，但右侧仍有些麻烦。不过至少发挥一点想象力，你还是能看到八的。
+- 类型 C。这才像话嘛！中心线很清晰，而这一点很重要，因为你大部分时间看的就是它。但即使在两侧，情况也相当不错。
 
-So we have three very different Mode7 results, but I guarantee you it's all based on the same math. So how come one method looks so crummy, and the other looks great?
+于是我们有了三个截然不同的 Mode 7 结果，但我向你保证，它们全部建立在同样的数学之上。那么，为什么一种方法看起来如此糟糕，而另一种看起来如此出色？
 
-### The code {#ssec-order-code}
+### 代码 {#ssec-order-code}
 
-Here are the two HBlank ISRs that create the types. Types A and B are nearly identical, except for one thing. Type C is very different from the others. If you have a thing for self-torture, try explaining the differences from the code alone. I spent most of yesterday night figuring out what made Type C work, so I have half a mind of leaving you hanging. Fortunately for you, that half's asleep right now.
+这里是创建这些类型的两个 HBlank 中断服务程序（ISR）。类型 A 和 B 几乎一模一样，除了一点。类型 C 则与另外两个大不相同。如果你有自虐倾向，试着仅从代码出发来解释这些差异。我昨晚大半夜都在琢磨到底是什么让类型 C 生效，所以我有一半心思想就让你这么悬着。不过对你来说幸运的是，那一半现在正睡着。
 
 ```c
 #define M7_D   128
 
-extern VECTOR cam_pos;          // Camera position
-extern FIXED g_cosf, g_sinf;    // cos(phi) and sin(phi), .8f
+extern VECTOR cam_pos;          // 摄像机位置
+extern FIXED g_cosf, g_sinf;    // cos(phi) 和 sin(phi)，.8f
 ```
 
-<pre><code class="language-c hljs">// --- Type A ---
+<pre><code class="language-c hljs">// --- 类型 A ---
 <span class="rem">// (offset * zoom) * rotation
-// All .8 fixed</span>
+// 全部为 .8 定点</span>
 void m7_hbl_a()
 {
     FIXED lam, xs, ys;
 
     lam= cam_pos.y*lu_div(REG_VCOUNT)&gt;&gt;16;  // .8*.16/.16 = .8
 
-    // Calculate offsets (.8)
+    // 计算偏移量 (.8)
     xs= 120*lam;
     ys= M7_D*lam;
 
@@ -577,16 +577,16 @@ void m7_hbl_a()
 }
 </code></pre>
 
-<pre><code class="language-c hljs">// --- Type B ---
+<pre><code class="language-c hljs">// --- 类型 B ---
 <span class="rem">// (offset * zoom) * rotation
-// Mixed fixed point: lam, xs, ys use .12</span>
+// 混合定点：lam、xs、ys 使用 .12</span>
 void m7_hbl_b()
 {
     FIXED lam, xs, ys;
 
     lam= cam_pos.y*lu_div(REG_VCOUNT)&gt;&gt;12;  // .8*.16/.12 = .12
 
-    // Calculate offsets (.12f)
+    // 计算偏移量 (.12f)
     xs= 120*lam;
     ys= M7_D*lam;
 
@@ -598,10 +598,10 @@ void m7_hbl_b()
 }
 </code></pre>
 
-<pre><code class="language-c hljs">// --- Type C ---
+<pre><code class="language-c hljs">// --- 类型 C ---
 <span class="rem">// offset * (zoom * rotation)
-// Mixed fixed point: lam, lcf, lsf use .12
-// lxr and lyr have different calculation methods</span>
+// 混合定点：lam、lcf、lsf 使用 .12
+// lxr 和 lyr 有不同的计算方法</span>
 void m7_hbl_c()
 {
     FIXED lam, lcf, lsf, lxr, lyr;
@@ -613,30 +613,30 @@ void m7_hbl_c()
     REG_BG2PA= lcf&gt;&gt;4;
     REG_BG2PC= lsf&gt;&gt;4;
 
-    // Offsets
-    // Note that the lxr shifts down first! 
+    // 偏移量
+    // 注意 lxr 先向下移位！
 
-    // horizontal offset
+    // 水平偏移量
     lxr= 120*(lcf&gt;&gt;4);      lyr= (M7_D*lsf)&gt;&gt;4;
     REG_BG2X= cam_pos.x - lxr + lyr;
 
-    // vertical offset
+    // 竖直偏移量
     lxr= 120*(lsf&gt;&gt;4);      lyr= (M7_D*lcf)&gt;&gt;4; 
     REG_BG2Y= cam_pos.z - lxr - lyr;
 }
 </code></pre>
 
-### The discussion (technical) {#ssec-order-disc}
+### 讨论（技术向） {#ssec-order-disc}
 
-All three versions do the following things: calculate the zoom-factor λ, using eq 2 and a division LUT, calculate the affine matrix using λ and stored versions of cos(φ) and sin(φ), and calculate the affine offsets. Note that only _p_<sub>a</sub> and _p_<sub>c</sub> are actually calculated; because the scanline offset is effectively zero all the time, _p_<sub>b</sub> and _p_<sub>d</sub> have no effect and can be ignored. Those are the similarities, but what's more interesting are the differences:
+三个版本都做了如下这些事：使用等式 2 和一个除法查找表来计算缩放因子 λ，使用 λ 以及 cos(φ)、sin(φ) 的存储版本来计算仿射矩阵，并计算仿射偏移量。请注意，实际上只计算了 _p_<sub>a</sub> 和 _p_<sub>c</sub>；因为扫描线偏移量始终 effectively 为零，_p_<sub>b</sub> 和 _p_<sub>d</sub> 不起作用，可以忽略。这些是相同点，但更有趣的是它们之间的差异：
 
-1.  **Fixed point**. Type A uses .8 fixed point math throughout, but B and C use a combination of .12 and .8 fixeds.
-2.  **Calculation order of the affine offset** The affine displacement **dx** is a combination of 3 parts: scale, rotation and offsets. Type A and B use **dx** = (offset\*scale)\*rotation, while C uses **dx** = offset\*(scale\*rotation). Because type C does the offsets last, it can also use different fixed-points for the offsets.
+1.  **定点数**。类型 A 全程使用 .8 定点数运算，而 B 和 C 则混用了 .12 和 .8 定点数。
+2.  **仿射偏移量的计算顺序** 仿射位移 **dx** 是三个部分组合而成的：缩放、旋转和偏移。类型 A 和 B 使用 **dx** = (offset\*scale)\*rotation，而 C 使用 **dx** = offset\*(scale\*rotation)。因为类型 C 把偏移放在最后做，它也可以为偏移使用不同的定点数。
 
 <div class="cpt_fr">
 <table id="tbl:divs" class="table-data">
   <caption align= bottom>
-      <b>*@tbl:divs</b>: division tables and zoom factors. <i>a</i><sub>y</sub>=32
+      <b>*@tbl:divs</b>: 除法表和缩放因子。<i>a</i><sub>y</sub>=32
   </caption>
   <tr><th>h	<th>1/h			<th>&lambda; (true)	<th>&lambda;(.8)
   <tr><td>157	<td>0.01a16d..h	<td>0.342da7h	<td>0.34h
@@ -646,34 +646,34 @@ All three versions do the following things: calculate the zoom-factor λ, using 
 </table>
 </div>
 
-These two (well, 2 and a half, really) differences are enough to explain the differences in the results. Please remember that the differences in the code are quite subtle: fixed point numbers are rarely used outside consoles, and results changing due to the order of calculation is probably even rarer. Yet is these two items that make all the difference here.
+这两点（嗯，确切地说两点半）差异，足以解释结果上的不同。请记住，代码中的差异相当微妙：定点数在游戏机之外很少被使用，而结果因为计算顺序的不同而改变，可能更加罕见。然而，正是这两点在这里造成了所有的差别。
 
-Let's start with types A and B, which differ only by the fixed-point of `lam`. λ is the ratio of the camera height and the scanline, which will often be quite small – smaller than 1 at any rate. @tbl:divs shows a few of the numbers. Note that using a λ with only 8 fractional bits means that you'll often have the same number for multiple scanlines, which carries through in the later calculations. This is why type A, which plays by the rules and uses a constant fixed-point like a good little boy, is so blocky at low altitudes. The four extra bits of type B gives much better results. Rules are nice and all, but sometimes they needs to be broken to get results.
+让我们从类型 A 和 B 开始，它们仅因 `lam` 的定点数位数而不同。λ 是摄像机高度与扫描线的比值，这个数往往相当小——无论如何都小于 1。@tbl:divs 展示了其中几个数值。请注意，使用一个只有 8 个小数位的 λ，意味着你会经常为多条约扫描线得到相同的数值，而它会一直传递到后续的计算中。这就是为什么类型 A——规规矩矩地像一个乖孩子那样使用固定的 .8 定点数——在低空时会如此呈块状。类型 B 多出的那 4 个位带来了好得多的结果。规矩固然好，但有时为了出成果，它们需要被打破。
 
-Now, you will notice that type B still has a bit of distortion, so why only go to .12 fixeds in type B, why not 16? Well, with 16 you can get into trouble with integer overflow. It'd be alright for calculating `xs` and `ys`, but we still have to rotate these values later on as well. OK, so we'll use 64bit math, then the 32bit overflow wouldn't matter and we could use _even more_ fixed point bits! After all, more == better, right?
+现在，你会注意到类型 B 仍然有一点失真，那么为什么类型 B 只用到 .12 定点数，而不用到 16 呢？嗯，用 16 的话你可能会遭遇整数溢出。对于计算 `xs` 和 `ys` 来说那倒还好，但我们稍后还得对这些值进行旋转。好吧，那我们就用 64 位数学，这样 32 位溢出就无关紧要，从而能用<em>更多</em>的定点位数！毕竟，越多 == 越好，对吧？
 
-Well, no. Bigger/stronger/more does not always mean better (see the DS vs PSP). The remaining distortion is not a matter of the number of fixed-point bits; not exactly. You could use a 128bit math and .32f division and trig tables for all I care; it wouldn't matter here, because that's not were the problem is.
+嗯，不对。更大/更强/更多并不总是意味着更好（看看 DS 对 PSP 就知道了）。余下的失真并非定点数位数的问题；至少不完全是。你大可以用 128 位数学和 .32f 的除法与三角函数表，我无所谓；但在这里那无关紧要，因为问题不在这儿。
 
-The problem, or at least part of it, is the basic algorithm used in types A and B. If you look back to the theory, you'll see that the affine matrix is calculated first, then the offsets. In other words, first combine the scale and rotation, then calculate the offset-correction, **P**·**x**<sub>s</sub>. This is how the affine parameters in the GBA work anyway. However, this is actually only the first step. If you follow that procedure, you'd still get the jagged result. The _real_ reason for these jaggies is the order of calculation of `lxr`.
+问题（或者说至少部分问题）出在类型 A 和 B 使用的基本算法上。如果你回看理论，会发现仿射矩阵是先计算的，然后才是偏移量。换句话说，先把缩放和旋转合并，再计算偏移修正量，**P**·**x**<sub>s</sub>。反正 GBA 里的仿射参数就是这样运作的。然而，这其实只是第一步。如果你照那个流程走，得到的仍然是锯齿状的结果。这些锯齿的<strong>真正</strong>原因，在于 `lxr` 的计算顺序。
 
 ```c
-// Multiply, then shift to .8 (A and B)
+// 先乘，再移位到 .8（A 和 B）
     lxr= (120*lcf)>>4;
 
-// Shift to .8 first, then multiply (C)
+// 先移位到 .8，再乘（C）
     lxr= 120*(lcf>>4);
 ```
 
-Getting `lxr` = *p*<sub>a/c</sub>·_x_<sub>s</sub> requires two parts: multiplication with **P** elements and the shift down to .8 fixeds. You might expect doing the shift last would be better because it has a higher precision. The funny thing is that it **doesn't**! Shifting _p_<sub>a</sub> or _p_<sub>c</sub> down to 8 fractional bits before the multiplication is what gets rid of the remaining distortions, reversing the order of operations doesn't.
+得到 `lxr` = *p*<sub>a/c</sub>·*x*<sub>s</sub> 需要两个部分：与 **P** 元素相乘，以及向下移位到 .8 定点数。你或许会以为最后再做移位更好，因为那样精度更高。有趣的是，它<strong>并非</strong>如此！在乘法<em>之前</em>先把 _p_<sub>a</sub> 或 _p_<sub>c</sub> 向下移位到 8 个小数位，才是消除残余失真的关键，颠倒运算顺序并不会。
 
-As for why, I'm not 100% sure, but I can hazard a guess. The affine transformation takes place around the origin of the screen, and to place the origin somewhere else we need to apply a post-translation by **x**<sub>s</sub>. The crucial point I think is that **x**<sub>s</sub> is a point in screen-space which uses normal integers, not fixed points. However, it only applies to _x_<sub>s</sub> because that _really_ represents an on-screen offset; _y_<sub>s</sub> is actually not a point on the screen but the focal distance of the camera. On the other hand, it might have something to do with the internal registers for the displacement.
+至于为什么，我没有 100% 的把握，但我可以猜一猜。仿射变换是围绕屏幕原点进行的，而为了把原点放到别处，我们需要施加一个通过后平移 **x**<sub>s</sub> 完成的位移。我认为关键的一点是：**x**<sub>s</sub> 是屏幕空间中的一个点，使用的是普通整数，而非定点数。然而，它只适用于 _x_<sub>s</sub>，因为它<em>确实</em>代表一个屏幕上的偏移；而 _y_<sub>s</sub> 其实并不是屏幕上的一个点，而是摄像机的焦距。另一方面，这也可能与位移用的内部寄存器有关。
 
-### The verdict {#ssec-order-verdict}
+### 结论 {#ssec-order-verdict}
 
-Obviously, type C is the one you want. It really bugs the hell out of me that I didn't think of it myself. And the fact that I _did_ use the scale-rotation multiplication but abandoned it because I screwed up with the multiplication by the projection distance _D_ doesn't help either (yes, this sentence makes sense). The code of `m7_hbl_c` shown above works, even though it only uses 32-bit math. As long as you do the scale-rotation multiplication first and shift down to .8 fixeds before you multiply by 120 in the calculation of `wxr` everything should be fine.
+显然，类型 C 才是你想要的那个。我没能自己想到它，这着实让我抓狂。而事实上我曾用过那个缩放-旋转乘法、却因为我搞砸了与投影距离 _D_ 的乘法而把它抛弃了，这也无济于事（是的，这句话是有意义的）。上面展示的 `m7_hbl_c` 代码是有效的，尽管它只用了 32 位数学。只要你先做缩放-旋转乘法，并且在计算 `wxr` 里乘以 120 之前先向下移位到 .8 定点数，一切都会没问题。
 
-## Final Thoughts {#sec-final}
+## 最后的思考 {#sec-final}
 
-This has been one of those occasions that show that programming (especially low-level programming) is as much of a science as an art. Even though the theory for the three mode 7 versions was the same, the slight differences in the order and precision of the calculations in the implementations made for very noticeable differences in the end result. When it comes to mode 7, calculate the affine matrix before the correction offset. But most importantly, the _x_-offset for the screen should not be done in fixed point.
+这一次的情形再次表明：编程（尤其是底层编程）既是一门科学，也是一门艺术。尽管三种 Mode 7 版本的理论是相同的，但实现中计算顺序与精度的微小差异，却在最终结果上造成了非常明显的不同。说到 Mode 7，要先计算仿射矩阵，再做修正偏移。但最重要的是，屏幕的 _x_ 偏移量不应该用定点数来做。
 
-Secondly, this was only the basic theory behind mode 7 graphics. No sprites, no pitch-angle and no horizon, and tailored to the GBA hardware from the start. In the next chapter, we'll derive the theory more extensively following standard 3D theory with linear algebra. This chapter will also show how to position sprites in 3D and how to do other things with them like animating for rotation and sorting, and also present variable-pitch and a horizon. If this sounds complicated, well, I supposed that it is. It's definitely worth a look, though.
+其次，这还只是 Mode 7 图形背后的基础理论。没有精灵，没有俯仰角，也没有地平线，并且从一开始就是为 GBA 硬件量身定做的。在下一章中，我们将遵循标准的 3D 理论、借助线性代数，更详尽地推导出这套理论。那一章还会展示如何在 3D 中摆放精灵，以及如何对它们做其它处理，比如为旋转制作动画和排序，并且还会给出可变俯仰角和一个地平线。如果这听起来很复杂，嗯，我猜确实如此。不过，它绝对值得一看。

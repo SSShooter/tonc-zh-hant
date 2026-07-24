@@ -1,32 +1,32 @@
-# 7. Sprite and background overview
+# 7. 精灵与背景概述
 
 <!-- toc -->
 
-## Sprites and backgrounds introduction {#sec-intro}
+## 精灵与背景简介 {#sec-intro}
 
-Although you can make games based purely on the bitmap modes, you'll find very few that do. The simple reason for this is that all graphics would be rendered by software. No matter how good your code is, that's always going to be a slow process. Now, I'm not saying it can't be done: there are several FPSs on the GBA (Wolfenstein and Doom for example). I *am* saying that unless you're willing to optimize the crap out of your code, you'll have a hard time doing it.
+虽然你可以做完全基于位图模式的游戏，但你会发现极少有游戏这样做。简单的原因是，所有图形都将由软件渲染。无论你的代码多好，那始终是个缓慢的过程。现在，我并不是说它做不到：GBA 上有几个 FPS（比如 Wolfenstein 和 Doom）。我*是*说，除非你愿意把代码优化到极致，否则你会很难做到。
 
-The vast majority uses the GBA's <dfn>hardware graphics</dfn>, which come in the forms of <dfn>sprites</dfn> and <dfn>tiled backgrounds</dfn> (simply “background” or “bg” for short). As I said in the [video introduction](video.html#sec-vid-types), a tiled background is composed of a matrix of tiles (hence the name) and each tile contains an index to an 8x8 pixel bitmap known as a <dfn>tile</dfn>. So what ends up on screen is a matrix of tiles. There are four of these backgrounds with sizes between 128x128 pixels (32x32 tiles) to 1024x1024 pixels (128x128 tiles). Sprites are smaller objects between 8x8 to 64x64 pixels in size. There are 128 of them and you can move them independently of each other. Like backgrounds, sprites are built out of tiles.
+绝大多数使用 GBA 的<dfn>硬件图形</dfn>，它有两种形式：<dfn>精灵</dfn>和<dfn>图块背景</dfn>（简称"background"或"bg"）。正如我在[视频入门](video.html#sec-vid-types)中所说，图块背景由一个图块矩阵（因此得名）构成，每个图块包含一个指向 8x8 像素位图的索引，这个位图被称为<dfn>图块</dfn>。所以最终屏幕上是一个图块矩阵。这里有四个这样的背景，大小从 128x128 像素（32x32 图块）到 1024x1024 像素（128x128 图块）不等。精灵是较小的对象，大小在 8x8 到 64x64 像素之间。一共有 128 个，你可以让它们彼此独立移动。像背景一样，精灵也是由图块构建的。
 
-The hardware takes care of several other aspects of rendering besides mere raster blasting. For one thing, it uses <dfn>color keying</dfn> to exclude some pixels from showing up (i.e., these are transparent). Basically, if the tile's pixel has a value of zero it is transparent. Furthermore, the hardware takes care of a number of other effects like flipping, alpha-blending and [affine transformations](affine.html) like rotation and scaling.
+除了单纯的像素轰击，硬件还负责渲染的若干其他方面。首先，它使用<dfn>颜色键控</dfn>来排除某些像素显示（即，这些像素是透明的）。基本上，如果图块的像素值为零，它就是透明的。此外，硬件还负责许多其他效果，比如翻转、半透明混合，以及[仿射变换](affine.html)如旋转和缩放。
 
-The trick is setting up the process. There are three basic steps to be aware of: <dfn>control</dfn>, <dfn>mapping</dfn> and <dfn>image data</dfn>. The boundaries of these steps are a bit vague, but it helps to see it in this manner since it allows you to see sprites and backgrounds as two sides of the same coin. And unification is a Good Thing®. There are still differences, of course, but only in the details.
+诀窍在于设置好这个过程。需要留意的三个基本步骤是：<dfn>控制</dfn>、<dfn>映射</dfn>和<dfn>图像数据</dfn>。这些步骤的边界有点模糊，但用这种方式看待是有帮助的，因为它让你能把精灵和背景看作同一枚硬币的两面。而统一是件好事®。当然，差异仍然存在，只是体现在细节上。
 <br>  
-This page gives a broad overview of what I will talk about in the next couple of pages. Don't worry if you don't understand right away, that's not really the point right now. Just let it seep into your brain, read the other pages and then you'll see what I'm on about here.
+本页宽泛地概述了我在接下来几页要讲的内容。如果你不能立即理解，别担心，那目前并不是重点。先让它渗入你的大脑，读完其他页面，你就能明白我在这里说的是什么了。
 
-## Sprite and background control {#sec-ctrl}
+## 精灵与背景控制 {#sec-ctrl}
 
-The first step of rendering is control. Control covers things that act on the sprites or backgrounds as a whole, like activation of the things themselves, whether to use 16 or 256 color tiles, and effects like alpha-blending and transformations. First up is whether or not you want to use the things in the first place. This is done by setting the right bits in the display control register [`REG_DISPCNT`](video.html#tbl-reg-dispcnt). Once you've done that there are further control registers for backgrounds: the `REG_BGxCNT` registers (`0400:0008h`-`0400:000Fh`). For sprites there's the <dfn>Object Attribute Memory</dfn>, or OAM, which can be found at `0700:0000h`. Each of the 128 sprites has three so-called <dfn>attributes</dfn> (hence OAM) which covers both the control and mapping aspects of the sprites.
+渲染的第一步是控制。控制涵盖了作用在精灵或背景整体上的东西，比如这些东西本身的激活、是否使用 16 或 256 色图块，以及半透明混合和变换等效果。首先是你是否一开始就想要使用这些东西。这是通过在显示控制寄存器 [`REG_DISPCNT`](video.html#tbl-reg-dispcnt) 中设置正确的位来完成的。一旦你做了这个，还有用于背景的进一步控制寄存器：`REG_BGxCNT` 寄存器（`0400:0008h`-`0400:000Fh`）。对于精灵，有<dfn>对象属性内存</dfn>，即 OAM，位于 `0700:0000h`。128 个精灵中每一个都有三个所谓的<dfn>属性</dfn>（因此叫 OAM），涵盖了精灵的控制和映射两方面。
 
-## Sprite and background mapping {#sec-map}
+## 精灵与背景映射 {#sec-map}
 
-There's a lot of grey area between control and mapping, but here goes. Mapping concerns everything about which tiles to use and where they go. As said, the screen appearance of both sprites and backgrounds are constructed of tiles, laid out side by side. You have to tell the GBA which tiles to blit to what position. {*@fig:tile-gfx}a-c (below) illustrates this. In {@fig:tile-gfx}b you see the tiles. Note that both sprites and backgrounds have their own set of tiles.
+控制和映射之间有很多灰色地带，但还是来吧。映射关乎使用哪些图块以及它们去哪的一切。如前所述，精灵和背景的屏幕外观都是由图块并排排列构建的。你必须告诉 GBA 要 blit 哪些图块到什么位置。{*@fig:tile-gfx}a-c（下）阐释了这一点。在 {@fig:tile-gfx}b 中你看到图块。注意精灵和背景都有自己的一套图块。
 
-In {@fig:tile-gfx}c you see how these tiles are used. The background uses a <dfn>tile-map</dfn>, which works just like an ordinary paletted bitmap except that it's a matrix of <dfn>screenblock entries</dfn> (with tile-indices) instead of pixels (containing color-indices). Excuse me, a what?!? Screenblock entry. Yes, I know the name is a bit silly. The thing is that you need keep a clear distinction between the entries in the map (the screenblock entries, <dfn>SE</dfn> for short) and the image-data (the actual tiles). Unfortunately, the term “tile” is often used for both. I'll stick to tiles for the actual graphical information, and since the tile-map is stored in things called screenblocks, screenblock entries or SE for the map data. Anyway, each SE has its own tile-index. It also contains bits for horizontal and vertical flipping and, if it's a 16-color background, an index for the palbank as well. In {@fig:tile-gfx}c, you only see the tile-index, though.
+在 {@fig:tile-gfx}c 中你看到这些图块是如何被使用的。背景使用一个<dfn>图块地图</dfn>，它工作起来就像一个普通的调色板位图，只是它是由<dfn>屏幕块条目</dfn>（带图块索引）而非像素（含颜色索引）组成的矩阵。抱歉，一个什么？！？屏幕块条目。是的，我知道这名字有点傻。问题是你需要把地图中的条目（屏幕块条目，简称 <dfn>SE</dfn>）和图像数据（实际图块）清楚区分开。不幸的是，"tile" 这个词常用来指两者。我会坚持用 tile 指实际图形信息，而由于图块地图存放在叫屏幕块的东西里，地图数据就叫屏幕块条目或 SE。总之，每个 SE 有自己的图块索引。它还包含用于水平翻转和垂直翻转的位，如果是 16 色背景，还有一个调色板组的索引。不过在 {@fig:tile-gfx}c 中，你只看到图块索引。
 
-For sprites, it's s a bit different, but the basic steps remain. You give *one* tile-index for the whole sprite; the GBA then figures out the other tiles to use by looking at the shape and size of the sprite and the <dfn>sprite mapping-mode</dfn>. I'll explain what this means [later](regobj.html#sec-oam); suffice to say that the mapping mode is either 1D or 2D, depending on `REG_DISPCNT{6}`. In this case, I've used 1D mapping, which states that the tiles that a sprite should use are consecutive. Like backgrounds, there's additional flipping flags and palette-info for 16-color sprites. Unlike backgrounds, these work on the *whole* sprite, not just on one tile. Also, the component tiles of sprites are always adjoining, so you can see a sprite as a miniature tiled-background with some imagination.
+对于精灵，有点不同，但基本步骤不变。你给*整个*精灵一个图块索引；GBA 然后通过查看精灵的形状和大小以及<dfn>精灵映射模式</dfn>来推算出要用的其他图块。我会在[后面](regobj.html#sec-oam)解释这是什么意思；只说映射模式是 1D 或 2D，取决于 `REG_DISPCNT{6}` 就够了。在本例中，我用了 1D 映射，它规定一个精灵应使用的图块是连续的。像背景一样，还有用于 16 色精灵的额外翻转标志和调色板信息。与背景不同，这些作用于*整个*精灵，而非仅一个图块。而且，精灵的组成图块总是相邻的，所以你可以有点想象力地把一个精灵看作一个微型的图块背景。
 
-What belongs to the mapping step as well is the [affine transformation matrix](affine.html), if any. With this 2x2 matrix you can rotate, scale or shear sprites or backgrounds. There seems to be a lot of confusion about how this works so I've written a detailed, mathematical description on how this thing works. Bottom line: the matrix maps from screen space to texture-space, and *not* the other way round. Though all the reference documents do state this in a roundabout way, almost every rotation-scale matrix I've seen so far is incorrect. If your code is based on PERN's, chances are yours is too.
+属于映射步骤的还有[仿射变换矩阵](affine.html)（如果有）。用这个 2x2 矩阵你可以旋转、缩放或错切精灵或背景。关于它如何工作似乎有大量的困惑，所以我写了详细的数学描述来解释它是如何运作的。底线：矩阵从屏幕空间映射到纹理空间，而*不是*反过来。尽管所有参考文档都以迂回的方式说明了这一点，但迄今为止我看到的几乎所有旋转-缩放矩阵都是不正确的。如果你的代码基于 PERN 的，你的很可能也是。
 
 <div class="cblock" id="fig:tile-gfx">
 <table id="img-tile-use">
@@ -35,44 +35,42 @@ What belongs to the mapping step as well is the [affine transformation matrix](a
 <td>
   <div class="cpt" style="width:200px">
   <img src="./img/tile_gfx_render.png"
-    alt="Example of both sprites and background"
+    alt="精灵和背景的示例"
     width=192><br>
-  <b>{*@fig:tile-gfx}a</b>: 2 sprites on a background.
+  <b>{*@fig:tile-gfx}a</b>: 背景上的 2 个精灵。
   </div>
 <td rowspan=2>
   <div class="cpt" style="width:384px">
   <img src="./img/tile_gfx_map.png"
-    alt="Tile usage" width=384><br>
-  <b>{*@fig:tile-gfx}c</b>: tile usage by bgs and 
-    sprites. One tile per SE for 
-    bgs, and the top-left tile for sprites. Default tiles (with 
-	index 0 are omitted for clarity's sake.
+    alt="图块用法" width=384><br>
+  <b>{*@fig:tile-gfx}c</b>: 背景和精灵的图块用法。
+    背景每个 SE 一个图块，精灵则是左上角图块。
+    为清晰起见省略了默认图块（索引 0）。
   </div>
 <tr>
 <td>
   <div class="cpt" style="width:200px">
   <img src="./img/tile_gfx_tileset.png"
-    alt="The bg and sprite tiles"><br>
-  <b>{*@fig:tile-gfx}b</b>: background (above) and
-    sprite (below) tiles. 
-  <!--Note the 'interesting' division of the sprite tiles.-->
+    alt="背景和精灵的图块"><br>
+  <b>{*@fig:tile-gfx}b</b>: 背景（上）和
+    精灵（下）图块。
   </div>
 </table>
 </div>
 
-## Sprite and background image data {#sec-img}
+## 精灵与背景图像数据 {#sec-img}
 
-Image data is what the GBA actually uses to produce an image. This means two things: tiles and palettes.
+图像数据是 GBA 实际用来生成图像的。这意味着两样东西：图块和调色板。
 
-### Tiles {#ssec-img-tiles}
+### 图块 {#ssec-img-tiles}
 
-Sprites and backgrounds are composed of a matrix of smaller bitmaps called <dfn>tile</dfn>s. Your basic tile is an 8x8 bitmap. Tiles come in 4bpp (16 colors / 16 palettes) and 8bpp (256 colors / 1 palette) variants. In analogy to floating point numbers, I refer to these as <dfn>s-tiles</dfn> (single-size tile) and <dfn>d-tiles</dfn> (double-size tiles). An s-tile is 32 (20h) bytes long, a d-tile 64 (40h) bytes. The default type of tile is the 4bpp variant (the s-tile). If I talk about tiles without mentioning which type, it either doesn't matter or it's an s-tile. Just pay attention to the context.
+精灵和背景由一个叫<dfn>图块</dfn>的较小位图矩阵组成。你基本的图块是一个 8x8 位图。图块有 4bpp（16 色 / 16 个调色板）和 8bpp（256 色 / 1 个调色板）两种变体。类比浮点数，我称它们为<dfn>s-图块</dfn>（单尺寸图块）和<dfn>d-图块</dfn>（双尺寸图块）。一个 s-图块长 32（20h）字节，一个 d-图块 64（40h）字节。默认的图块类型是 4bpp 变体（s-图块）。如果我说图块而不提哪种类型，那要么无所谓，要么就是 s-图块。只要注意上下文就好。
 
-There is sometimes a misunderstanding about what working in tiles really means. In tiled modes, VRAM is *not* a big bitmap out of which tiles are selected, but a collection of 8x8 pixel bitmaps (i.e., the tiles). It is important that you understand the differences between these two methods! Consider an 8x8 rectangle in a big bitmap, and an 8x8 tile. In the big bitmap, the data after the first 8 pixels contain the next 8 pixels of the same scanline; the next line of the ‘tile’ can be found further on. In tiled modes, the next scanline of the tile immediately follows the current line.
+有时人们误解了"以图块工作"真正意味着什么。在图块模式中，VRAM *不是*一个从中选取图块的大位图，而是一堆 8x8 像素位图（即，图块）的集合。理解这两种方法的区别很重要！考虑一个大位图中的 8x8 矩形，和一个 8x8 图块。在大位图中，前 8 个像素之后的数据包含同一条扫描线的接下来 8 个像素；"图块"的下一行可以在更远处找到。在图块模式中，图块的下一扫描行紧跟当前行。
 
-Basically, VRAM works as an 8×*N*·8 bitmap in the tiled modes. Because such a small width is impractical to work with, they're usually presented as a wider bitmap anyway. An example is the VBA tile viewer, which displays char blocks as a 256x256 bitmap; I do something similar in {@fig:tile-as}a. It is important to remember that these do not accurately mimic the contents of VRAM; to reproduce the actual content of VRAM you'd need something like {@fig:tile-as}b, but, of course, no-one is insane enough to edit bitmaps in that manner. In all likelihood, you need a tool that can break up a bitmap into 8x8 chunks. Or restructure it to a bitmap with a width of 8 pixels, which in essence is the same thing.
+基本上，在图块模式下 VRAM 工作为一个 8×*N*·8 的位图。因为这么小的宽度用起来不实际，它们通常还是被呈现为更宽的位图。一个例子是 VBA 的图块查看器，它把字符块显示为 256x256 的位图；我在 {@fig:tile-as}a 中做了类似的事。重要的是记住这些并不能准确模仿 VRAM 的内容；要重现 VRAM 的实际内容，你需要像 {@fig:tile-as}b 那样的东西，但，当然，没谁会疯到用那种方式编辑位图。很可能你需要一个能把位图拆成 8x8 块的工具。或者把它重排成宽度为 8 像素的位图，本质上是一回事。
 
-As with all bitmaps, it is the programmer's responsibility (that means you!) that the bit-depth of the tiles that sprites and backgrounds correspond to the bit-depth of the data in VRAM. If this is out of sync, something like {@fig:tile-as}a may appear as {@fig:tile-as}c. Something like this is likely to happen sooner or later, because all graphics need to be converted outside of the system before use; one misplaced conversion option is all it takes.
+像所有位图一样，让精灵和背景的图块位深与 VRAM 中数据的位深对应是程序员的责任（意思是你！）。如果不同步，{@fig:tile-as}a 那样的东西可能会显示为 {@fig:tile-as}c。这种事迟早可能发生，因为所有图形在使用前都需要在系统外转换；一个放错位置的转换选项就足以酿成。
 
 <div class="cblock" id="fig:tile-as">
 <table id="img-bad-bpp">
@@ -80,64 +78,64 @@ As with all bitmaps, it is the programmer's responsibility (that means you!) tha
 <td>
   <div class="cpt" style="width:192px">
   <img src="./img/tile_8as8.png" width=192 
-    alt="8 bpp tiles">
-  <b>{*@fig:tile-as}a</b>: 8bpp tiles.
+    alt="8 bpp 图块">
+  <b>{*@fig:tile-as}a</b>: 8bpp 图块。
   </div>
 </td>
 <td>
   <div class="cpt" style="width:192px">
   <img src="./img/tile_as_bm.png" width=192 
-    alt="8 bpp tiles as bitmap">
-  <b>{*@fig:tile-as}b</b>: 8bpp tiles as bitmap.
+    alt="8 bpp 图块作为位图">
+  <b>{*@fig:tile-as}b</b>: 8bpp 图块作为位图。
   </div>
 </td>
 <tr>
 <td colspan=2>
   <div class="cpt" style="width:384px">
   <img src="./img/tile_8as4.png" width=384
-    alt="as before, but interpreted as 4 bpp">
-  <b>{*@fig:tile-as}c</b>: the data of 
-    {@fig:tile-as}a, interpreted as 4bpp data. 
-    If you see something like this (and you will), you now know why.
+    alt="如前，但被解释为 4 bpp">
+  <b>{*@fig:tile-as}c</b>: 
+    {@fig:tile-as}a 的数据，被解释为 4bpp 数据。
+    如果你看到像这样的东西（你会的），现在你知道为什么了。
   </div>
 </td>
 </table>
 </div>
 
-:::tip Tiled graphics considerations
+:::tip 图块图形注意事项
 
-Remember and understand the following points:
+记住并理解以下几点：
 
-1.  The data of each tile are stored sequentially, with the next row of 8 pixels immediately following the previous row. VRAM is basically a big bitmap 8 pixels wide. Graphics converters should be able to convert bigger bitmaps into this format.
-2.  As always, watch your bitdepth.
-
-:::
-
-:::tip Tip for graphics converters
-
-If you want to make your own conversion tools, here's a little tip that'll help you with tiles. Work in stages; do *not* go directly from a normal, linear bitmap to writing the data-file. Create a tiling function that takes a bitmap and arranges the tiles into a bitmap 1 tile wide and *H* tiles high. This can then be exported normally. If you allow for a variable tile-width (not hard-coding the 8-pixel width), you can use it for other purposes as well. For example, to create 16x16 sprites, first arrange with width=16, then with width=8.
+1.  每个图块的数据是顺序存储的，下一组 8 个像素紧跟上一行之后。VRAM 基本上是一个宽 8 像素的大位图。图形转换器应该能把更大的位图转换成这种格式。
+2.  一如既往，留意你的位深。
 
 :::
 
-### Tile blocks (aka charblocks) {#ssec-img-cbb}
+:::tip 图形转换器小技巧
 
-All the tiles are stored in <dfn>charblocks</dfn>. As much as I'd like them to be called tile-blocks because that's what they're blocks *of*, tradition has it that tiles are characters (not to be confused with the programming type of characters: an 8bit integer) and so the critters are called charblock. Each charblock is 16kb (4000h bytes) long, so there's room for 512 (4000h/20h) s-tiles or 256 (4000h/40h) d-tiles. You can also consider charblocks to be matrices of tiles; 32x16 for s-tiles, 16x16 (or 32x8) for d-tiles. The whole 96kb of VRAM can be seen as 6 charblocks.
-
-As said, there are 6 tile-blocks, that is 4 for backgrounds (0-3) and 2 for sprites (4-5). For tiled backgrounds, tile-counting starts at a given <dfn>character base block</dfn> (block for the character base, CBB for short), which are indicated by `REG_BGxCNT`\{2-3\}. Sprite tile-indexing always starts at the lower sprite block (block 4, starting at `0601:0000h`).
-
-It'd be nice if tile-indexing followed the same scheme for backgrounds and sprites, but it doesn't. For sprites, numbering always follows s-tiles (20h offsets) even for d-tiles, but backgrounds stick to their indicated tile-size: 20h offsets in 4bpp mode, 40h offsets for 8bpp mode.
-
-:::warning Bg vs sprite tile indexing
-
-Sprites always have 32 bytes between tile indices, bg tile-indexing uses 32 or 64 byte offsets, depending on their set bitdepth.
+如果你想做自己的转换工具，这里有个小技巧能帮你处理图块。分阶段工作；*不要*直接从普通的线性位图写到数据文件。创建一个平铺函数，它接受一个位图并把图块排成宽 1 个图块、高 *H* 个图块的位图。然后它可以正常导出。如果你允许可变的图块宽度（不把 8 像素宽度写死），你也可以把它用于其他目的。例如，要创建 16x16 精灵，先用 width=16 排列，再用 width=8。
 
 :::
 
-Now, both regular backgrounds and sprites have 10 bits for tile indices. That means 1024 allowed indices. Since each charblock contains 512 s-tiles, you can access not only the base block, but also the one after that. And if your background is using d-tiles, you can actually access a total of four blocks! Now, since tiled backgrounds can start counting at any of the four background charblocks, you might be tempted to try to use the sprite charblocks (blocks 4 and 5) as well. On the emulators I've tested, this does indeed work. On a real GBA, however, it does not. This is one of the reasons why you *need* to test on real hardware. For more on this subject see the [background tile subtleties](regbg.html#ssec-map-subtle) and the [`cbb_demo`](regbg.html#sec-demo).
+### 图块块（又称字符块） {#ssec-img-cbb}
 
-Another thing you need to know about available charblocks is that in one of the [bitmap](bitmaps.html) modes, the bitmaps extend into the lower sprite block. For that reason, you can only use the higher sprite block (containing tiles 512 to 1023) in this case.
+所有图块都存储在<dfn>字符块</dfn>中。尽管我很希望它们被称为 tile-block（图块块），因为那正是它们*所*由之组成的块，但传统上图块被称为字符（不要与编程类型的字符：一个 8 位整数混淆），所以这些家伙被称为 charblock。每个字符块长 16kb（4000h 字节），所以有 512（4000h/20h）个 s-图块或 256（4000h/40h）个 d-图块的空间。你也可以把字符块看作图块的矩阵；s-图块是 32x16，d-图块是 16x16（或 32x8）。整个 96kb 的 VRAM 可以看作 6 个字符块。
 
-Thanks to the wonderful concept of `typedef`s, you can define types for tiles and charblocks so that you can quickly come up with the addresses of tiles by simple array-accesses. An alternative to this is using macros or inline functions to calculate the right addresses. In the end it hardly matters which method you choose, though. Of course, the typedef method allows the use of the `sizeof` operator, which can be quite handy when you need to copy a certain amount of tile. Also, struct-copies are faster than simple loops, and require less C-code too.
+如前所述，有 6 个图块块，即 4 个用于背景（0-3）和 2 个用于精灵（4-5）。对于图块背景，图块计数从一个给定的<dfn>字符基块</dfn>（字符基的块，简称 CBB）开始，由 `REG_BGxCNT`\{2-3\} 指示。精灵图块索引总是从较低的精灵块（块 4，从 `0601:0000h` 开始）开始。
+
+如果图块索引用背景和精灵同样的方案就好了，但事实并非如此。对于精灵，编号总是遵循 s-图块（20h 偏移），即使是 d-图块，但背景坚持它们指示的图块大小：4bpp 模式下 20h 偏移，8bpp 模式下 40h 偏移。
+
+:::warning 背景与精灵的图块索引
+
+精灵的图块索引之间总是相隔 32 字节，背景图块索引使用 32 或 64 字节偏移，取决于它们设置的位深。
+
+:::
+
+现在，常规背景和精灵都有 10 位用于图块索引。这意味着 1024 个允许的索引。由于每个字符块包含 512 个 s-图块，你不仅能访问基块，也能访问它后面的那个块。而如果你的背景用 d-图块，你实际上能访问总共四个块！现在，由于图块背景可以从四个背景字符块中的任何一个开始计数，你可能会想尝试也用精灵字符块（块 4 和 5）。在我测试过的模拟器上，这确实能工作。然而，在真实 GBA 上，它不行。这正是你*需要*在真实硬件上测试的原因之。关于这个主题的更多内容，见[背景图块微妙之处](regbg.html#ssec-map-subtle)和 [`cbb_demo`](regbg.html#sec-demo)。
+
+关于可用字符块你需要知道的另一件事是，在某种[位图](bitmaps.html)模式中，位图会延伸到较低的精灵块中。因此，在这种情况下，你只能使用较高的精灵块（包含图块 512 到 1023）。
+
+多亏了 `typedef` 这个美妙的概念，你可以为图块和字符块定义类型，这样就能通过简单的数组访问快速得出图块的地址。另一种方法是使用宏或内联函数来计算正确的地址。不过，最终你选哪种方法几乎无所谓。当然，typedef 方法允许使用 `sizeof` 运算符，当你需要复制一定数量的图块时会很方便。而且，结构体复制比简单循环更快，需要的 C 代码也更少。
 
 ```c
 // tile 8x8@4bpp: 32bytes; 8 ints
@@ -158,88 +156,86 @@ TILE *ptr= &tile_mem[4][12];   // block 4 (== lower object block), tile 12
 tile_mem[4][12] = *(TILE*)spriteData;
 ```
 
-### Palettes and tile colors {#ssec-img-clr}
+### 调色板与图块颜色 {#ssec-img-clr}
 
-Sprites and backgrounds have separate palettes. The background palette goes first at `0500:0000h`, immediately followed by the sprite palette (`0500:0200h`). Both palettes contain 256 entries of 15bit colors.
+精灵和背景有独立的调色板。背景调色板先位于 `0500:0000h`，紧接着是精灵调色板（`0500:0200h`）。两个调色板都包含 256 个 15 位颜色项。
 
-In 8-bit color mode, the pixel value in the tiles is palette-index for that pixel. In 4-bit color mode, the pixel value contains the lower nybble of the palette index; the high nybble is the <dfn>palbank</dfn> index, which can be found in either the sprite's attributes, or the upper nybble of the tiles. If the pixel-value is 0, then that pixel won't be rendered (i.e., will be transparent).
+在 8 位颜色模式下，图块中的像素值是该像素的调色板索引。在 4 位颜色模式下，像素值包含调色板索引的低半字节；高半字节是<dfn>调色板组</dfn>索引，它可以在精灵的属性中找到，也可以在图块的高半字节中找到。如果像素值为 0，那么该像素不会被渲染（即，将是透明的）。
 
-Because of 16-color mode and the transparency issue, it is *essential* that your bitmap editor leaves the palette intact. I know from personal experience that MS-Paint and the Visual C bitmap editor don't, so you might want to use something else. Favorites among other GBA developers are [Graphics Gale](https://graphicsgale.com/us/) and [GIMP](http://www.gimp.org). Of course, since I have my [my own bitmap editor](http://www.coranac.com/projects/#usenti), I prefer to use that.
+因为 16 色模式和透明问题，你的位图编辑器保持调色板完好*至关重要*。我根据个人经验知道 MS-Paint 和 Visual C 位图编辑器做不到，所以你可能想用别的东西。其他 GBA 开发者的最爱是 [Graphics Gale](https://graphicsgale.com/us/) 和 [GIMP](http://www.gimp.org)。当然，既然我有[自己的位图编辑器](http://www.coranac.com/projects/#usenti)，我更偏好用它。
 
-## Summary {#sec-summary}
+## 总结 {#sec-summary}
 
-This is a short list of various attributes of sprites and backgrounds. It's alright if you don't understand it right away; I'll explain in more detail in the following pages.
+这是精灵和背景各种属性的简短列表。如果你不能立即理解也没关系；我会在接下来的页面更详细地解释。
 
 <div class="cblock">
 <table id="tbl:sum" class="table-data" width="70%">
 <col span=3 valign="top">
-<tr><th width="30%">Subject		<th>Backgrounds		<th>Sprites
-<tr><td>Number		<td>4 (2 affine)	<td>128	(32 affine)
+<tr><th width="30%">项目		<th>背景		<th>精灵
+<tr><td>数量		<td>4 (2 仿射)	<td>128	(32 仿射)
 <tr>
-  <td>Max size
+  <td>最大尺寸
   <td><b>reg</b>: 512x512<br><b>aff</b>: 1024x1024		<td>64x64
-<tr><td>Control			<td><code>REG_BGxCNT</code>		<td>OAM
-<tr><td>Base tile block		<td>0-3						<td>4
+<tr><td>控制			<td><code>REG_BGxCNT</code>		<td>OAM
+<tr><td>基图块块		<td>0-3						<td>4
 <tr>
-  <td>Available tiles <i>id</i>s
+  <td>可用图块 <i>id</i>
   <td><b>reg</b>: 0-1023 <br><b>aff</b>: 0-255
   <td><b>modes 0-2</b>: 0-1023 <br><b>modes 3-5</b>: 512-1023
 <tr>
-  <td>Tile memory offsets
-  <td>Per tile size: <br><b>4bpp</b>: start= base + <i>id</i>*32
+  <td>图块内存偏移
+  <td>按图块大小: <br><b>4bpp</b>: start= base + <i>id</i>*32
   <br><b>8bpp</b>: start= base + <i>id</i>*64
-  <td>Always per 4bpp tile size: <br>start= base + <i>id</i>*32
+  <td>始终按 4bpp 图块大小: <br>start= base + <i>id</i>*32
 <tr>
-  <td>Mapping
-  <td><b>reg</b>: the full map is divided into map-blocks of 
-    32&times;32 tegels. (banked map)<br>
-    <b>aff</b>: one matrix of tegels, just like a normal bitmap (flat 
-    map)
-  <td>If a sprite is <i>m &times; n</i> tiles in size:<br>
-    <b>1D mapping</b>: the <i>m*n</i> successive tiles are used, 
-    starting at 
-    <i>id</i><br>
-    <b>2D mapping</b>: tile-blocks are 32&times;32 matrices; the 
-    used tiles 
-    are the <i>n</i> columns of the <i>m</i> rows of the matrix, 
-    starting at <i>id</i>.
+  <td>映射
+  <td><b>reg</b>: 完整地图被分成 32&times;32 图块的地图块。
+    （分块地图）<br>
+    <b>aff</b>: 一个图块矩阵，就像一个普通位图（扁平
+    地图）
+  <td>如果一个精灵大小为 <i>m &times; n</i> 个图块:<br>
+    <b>1D 映射</b>: 使用 <i>m*n</i> 个连续图块，
+    从 <i>id</i> 开始<br>
+    <b>2D 映射</b>: 图块块是 32&times;32 矩阵；使用的图块
+    是矩阵 <i>m</i> 行中的 <i>n</i> 列，
+    从 <i>id</i> 开始。
 <tr>
-  <td>Flipping
-  <td>Each tile can be flipped individually
-  <td>Flips the whole sprite
-<tr><td>Palette		<td><code>0500:0000h</code>	<td><code>0500:0200h</code>
+  <td>翻转
+  <td>每个图块可以单独翻转
+  <td>翻转整个精灵
+<tr><td>调色板		<td><code>0500:0000h</code>	<td><code>0500:0200h</code>
 </table>
 </div>
 
-## What's in a name? {#sec-name}
+## 名字里有什么？ {#sec-name}
 
-Well, since you are a programmer you should know the answer: plenty. If you disagree, visit the [How To Write Unmaintanable Code](https://www.mindprod.com/jgloss/unmain.html) website and look at a number of their entries. My naming scheme is a bit different from that of the GBA community. I don't do this just because I feel like being contrary. I find some of the conventional names are incomplete, misleading and ambiguous. I feel little need, at least at present, to follow tradition simply because everyone else does. But you still need to know the traditional names, simply because everyone else does. So here's a list of differences in names.
+嗯，既然你是程序员你就该知道答案：太多了。如果你不同意，访问 [How To Write Unmaintanable Code](https://www.mindprod.com/jgloss/unmain.html) 网站，看看他们的一些条目。我的命名方案与 GBA 社区的有点不同。我这么做不只是因为我想唱反调。我发现一些传统名字不完整、有误导性且含糊。我目前几乎没动力仅仅因为别人都这么做就遵循传统。但你仍然需要知道传统名字，就因为别人都知道。所以这里有一份名字差异列表。
 
 <div class="cblock">
 <table id="tbl:name" class="table-data" width="70%">
 <col span=3 valign="top">
-<tr><th>Subject		<th>Traditional		<th>Tonc
+<tr><th>项目		<th>传统		<th>Tonc
 <tr>
-  <td>Sprite and bg image data
+  <td>精灵和背景图像数据
   <td>tiles
   <td>tiles
 <tr>
-  <td>Tile-map entries
-  <td>tiles  (can you feel the confusion?)
+  <td>图块地图条目
+  <td>tiles  (你能感受到困惑吗？)
   <td>screenblock entries / SE
 <tr>
-  <td>Matrix for transformations
+  <td>变换矩阵
   <td>Rot/Scale matrix
   <td>affine matrix / <b>P</b>
-<tr><td>Sprite types		<td>?? vs Rot/Scale	<td> regular vs affine
-<tr><td>Background types	<td>text vs rot	<td> regular vs affine
+<tr><td>精灵类型		<td>?? vs Rot/Scale	<td> regular vs affine
+<tr><td>背景类型	<td>text vs rot	<td> regular vs affine
 <tr>
-  <td>Depository for sprite tiles (<code>0601:0000</code>)
-  <td><code>OAMData</code> (i.e., not the <i>real</i> OAM, which is
-    at <code>0700:0000</code>)
+  <td>精灵图块的存放处（<code>0601:0000</code>）
+  <td><code>OAMData</code> (即，不是<i>真正的</i> OAM，它在
+    <code>0700:0000</code>)
   <td><code>tile_mem_obj</code>
-<tr><td>OAM (<code>0700:0000</code>)
-  <td><code>OAMData</code> or <code>OAMMem</code>
+<tr><td>OAM（<code>0700:0000</code>）
+  <td><code>OAMData</code> 或 <code>OAMMem</code>
   <td><code>oam_mem</code>
 </table>
 </div>

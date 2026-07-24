@@ -1,18 +1,18 @@
-# 4. Introduction to GBA Graphics
+# 4. GBA 图形入门
 
 <!-- toc -->
 
-## General introduction {#sec-intro}
+## 总体介绍 {#sec-intro}
 
-The GBA has an LCD screen that is 240 pixels wide, 160 pixels high and is capable of displaying 32768 (15 bit) colors. The refresh rate is just shy of 60 frames per second (59.73 Hz). The GBA has 5 independent layers that can contain graphics: 4 <dfn>backgrounds</dfn> and one <dfn>sprite</dfn> layer and is capable of some special effects that include blending two layers and mosaic and, of course, rotation and scaling.
+GBA 拥有一块 240 像素宽、160 像素高的 LCD 屏幕，能够显示 32768（15 位）种颜色。刷新率略低于每秒 60 帧（59.73 Hz）。GBA 有 5 个可以包含图形的独立图层：4 个<dfn>背景</dfn>层和 1 个<dfn>精灵</dfn>层，并且能够实现一些特殊效果，包括混合两个图层、马赛克，当然还有旋转和缩放。
 
-Whereas sound and joypad functionality have to make do with only a few measly registers, the video system has a great deal of memory at its disposal (relatively speaking). Apart from a multitude of registers in I/O memory, there's the 96kb of video memory (starting at `0600:0000h`), palette memory (`0500:0000h`) and OAM memory (`0700:0000h`).
+声音和按键功能只能将就着用为数不多的几个寒酸寄存器，而视频系统则拥有一大笔可供支配的内存（相对而言）。除了 I/O 内存中的大量寄存器外，还有 96kb 显存（从 `0600:0000h` 开始）、调色板内存（`0500:0000h`）和 OAM 内存（`0700:0000h`）。
 
-## Draw and blank periods {#sec-blanks}
+## 绘制与消隐周期 {#sec-blanks}
 
-As said, the entire GBA screen is refreshed every 60th of a second, but there's more to it than that. After a scanline has been drawn (the HDraw period, 240 pixels), there is a pause (HBlank, 68 pixels) before it starts drawing the next scanline. Likewise, after the 160 scanlines (VDraw) is a 68 scanline blank (VBlank) before it starts over again. To avoid tearing, positional data is usually updated at the VBlank. This is why most games run at 60 or 30 fps. (FYI, syncing at the VBlank is also why we in PAL countries often had slower games: PAL TVs run (ran) at 50Hz, hence only 50 fps instead of 60, hence a 17% slower game if nobody bothered to account for it. Few companies ever did <kbd>:(</kbd> ).
+如前所述，整个 GBA 屏幕每 1/60 秒刷新一次，但事情不止于此。一条扫描线绘制完（HDraw 周期，240 像素）后，在开始绘制下一条扫描线之前，会有一个停顿（HBlank，68 像素）。同样，在 160 条扫描线（VDraw）之后，有 68 条扫描线的消隐（VBlank），然后才重新开始。为避免画面撕裂，位置数据通常在 VBlank 更新。这就是为什么大多数游戏以 60 或 30 fps 运行。（顺带一提，在 VBlank 同步也正是我们 PAL 国家游戏常常更慢的原因：PAL 电视以 50Hz 运行（过去是），因此只有 50 fps 而非 60，如果没人费心去处理，游戏就会慢 17%。很少有公司这么做过 <kbd>:(</kbd> 。）
 
-Both the [CowBite Spec](http://www.cs.rit.edu/~tjh8300/CowBite/CowBiteSpec.htm#Graphics%20Hardware%20Overview) and [GBATEK](https://problemkaputt.de/gbatek.htm#lcddimensionsandtimings) give you some interesting details about the timings of the display. A full screen refresh takes exactly 280896 cycles, divided by the clock speed gives a framerate of 59.73. From the Draw/Blank periods given above you can see that there are 4 cycles per pixel, and 1232 cycles per scanline. You can find a summary of timing details in table 4.1.
+[CowBite Spec](http://www.cs.rit.edu/~tjh8300/CowBite/CowBiteSpec.htm#Graphics%20Hardware%20Overview) 和 [GBATEK](https://problemkaputt.de/gbatek.htm#lcddimensionsandtimings) 都给出了关于显示时序的一些有趣细节。一次完整的屏幕刷新恰好需要 280896 个周期，除以时钟速度得到 59.73 的帧率。从上面给出的绘制/消隐周期可以看出，每个像素有 4 个周期，每条扫描线有 1232 个周期。你可以在表 4.1 中找到时序细节的摘要。
 
 <br>  
 
@@ -21,71 +21,71 @@ Both the [CowBite Spec](http://www.cs.rit.edu/~tjh8300/CowBite/CowBiteSpec.htm#G
   <td>
   <div class="cpt" style="width:192px;">
   <img src="./img/gba_draw.png" id="fig:gba-draw" alt=""><br>
-  <b>{*@fig:gba-draw}</b>: vdraw, vblank and hblank periods.
+  <b>{*@fig:gba-draw}</b>: vdraw、vblank 与 hblank 周期。
   </div>
 
   <td>
 	<table id="tbl:disp-timing" class="table-data">
 	<caption align="bottom">
-	  <b>{*@tbl:disp-timing}</b>: Display timing details
+	  <b>{*@tbl:disp-timing}</b>: 显示时序细节
 	</caption>
 	<col>
 	<col span=2 align="right">
 	<tr align="center">
-	  <th>subject	<th>length		<th>cycles
+	  <th>项目	<th>长度		<th>周期
 	<tr>
-	  <td>pixel		<td>     1		<td>     4
+	  <td>像素		<td>     1		<td>     4
 	<tr>
 	  <td>HDraw		<td>   240px	<td>   960
 	<tr>
 	  <td>HBlank	<td>    68px	<td>   272
 	<tr>
-	  <td>scanline	<td>Hdraw+Hbl	<td>  1232
+	  <td>扫描线	<td>Hdraw+Hbl	<td>  1232
 	<tr>
-	  <td>VDraw 	<td>160*scanline<td>197120
+	  <td>VDraw 	<td>160*扫描线<td>197120
 	<tr>
-	  <td>VBlank	<td>68*scanline	<td> 83776
+	  <td>VBlank	<td>68*扫描线	<td> 83776
 	<tr>
-	  <td>refresh	<td>VDraw+Vbl	<td>280896
+	  <td>刷新	<td>VDraw+Vbl	<td>280896
 	</table>
 </table>
 
-## Colors and palettes {#sec-colors}
+## 颜色与调色板 {#sec-colors}
 
-The GBA is capable of displaying 16bit colors in a 5.5.5 format. That means 5 bits for red, 5 for green and 5 for blue; the leftover bit is unused. Basically, the bit-pattern looks like this: “<code>x<font color=blue>bbbbb</font><font color= green>ggggg</font><font color= red>rrrrr</font></code>”. There are a number of defines and macros in `color.h` that will make dealing with color easier.
+GBA 能够显示 5.5.5 格式的 16 位颜色。这意味着红色 5 位、绿色 5 位、蓝色 5 位；多出来的那一位未使用。基本上，位模式看起来像这样："<code>x<font color=blue>bbbbb</font><font color= green>ggggg</font><font color= red>rrrrr</font></code>"。在 `color.h` 中有一些 define 和宏能让处理颜色更容易。
 <br>  
-Now, as for palettes...  
+现在，关于调色板……
 
 `<rant>`  
-_Guys, the word here is **“palette”**! One ‘l’, two ‘t’s and an ‘e’ at the end. It is not a **“pallet”**, which is “a low, portable platform, usually double-faced, on which materials are stacked for storage or transportation, as in a warehouse”, nor is it a **“pallette”**, meaning “a plate protecting the armpit, in a suit of armor”. The word **“pallete”**, its most common variant, isn't even in the dictionary, thus not even worth considering. It's “palette”, people, “palette”._  
+_伙计们，这里的词是 **“palette”**！一个 ‘l’，两个 ‘t’，末尾一个 ‘e’。它不是 **“pallet”**，后者是"一种低矮、可移动的台子，通常是双面的，用来堆放材料以便仓储或运输，比如在仓库里"；也不是 **“pallette”**，意思是"一副盔甲中保护腋窝的护板"。其最常见变体 **“pallete”** 甚至不在词典里，因此根本不值得考虑。是“palette”，各位，是“palette”。_  
 `</rant>`
 
-Anyhoo, the GBA has two palettes, one for sprites (objects) and one for backgrounds. Both palettes contain 256 entries of 16bit colors (512 bytes, each). The background palette starts at `0500:0000h`, immediately followed by the sprite palette at `0500:0200h`. Sprites and backgrounds can use these palettes in two ways: as a single palette with 256 colors (8 bits per pixel); or as 16 sub-palettes or <dfn>palette banks</dfn> of 16 colors (4 bits per pixel).
+总之，GBA 有两个调色板，一个用于精灵（对象），一个用于背景。两个调色板都包含 256 个 16 位颜色项（各 512 字节）。背景调色板从 `0500:0000h` 开始，紧跟着是 `0500:0200h` 处的精灵调色板。精灵和背景可以用两种方式使用这些调色板：作为包含 256 种颜色（每像素 8 位）的单一调色板；或作为 16 个包含 16 种颜色（每像素 4 位）的子调色板或<dfn>调色板组</dfn>。
 
-One final thing about palettes: index 0 is the <dfn>transparency index</dfn>. In paletted modes, pixels with a value of 0 will be transparent.
+关于调色板最后一件事：索引 0 是<dfn>透明索引</dfn>。在调色板模式中，值为 0 的像素将是透明的。
 
-## Bitmaps, backgrounds and sprites {#sec-vid-types}
+## 位图、背景与精灵 {#sec-vid-types}
 
-All things considered, the GBA knows 3 types of graphics representations: <dfn>bitmaps</dfn>, <dfn>tiled backgrounds</dfn> and <dfn>sprites</dfn>. The bitmap and tiled background (also simply known as background) types affect how the whole screen is built up and as such cannot both be activated at the same time.  
-In bitmap mode, video memory works just like a *w*×*h* bitmap. To plot a pixel at location (*x,y*), go to location *y\*w+x* and fill in the color. Note that you cannot build up a screen-full of individual pixels each frame on the GBA, there are simply too many of them.
+总而言之，GBA 知道 3 种图形表示：<dfn>位图</dfn>、<dfn>图块背景</dfn>和<dfn>精灵</dfn>。位图和图块背景（也简称为背景）类型影响整个屏幕的构建方式，因此无法同时被激活。  
+在位图模式中，显存的工作方式就像一个 *w*×*h* 的位图。要在位置 (*x,y*) 处画一个像素，就走到 *y\*w+x* 的位置并填入颜色。注意，你无法在 GBA 上每帧都构建一整屏单独的像素，它们的数量实在太多了。
 
-Tiled backgrounds work completely different. First, you store 8x8 pixel <dfn>tile</dfn>s in one part of video memory. Then, in another part, you build up a tile-map, which contains indices that tells the GBA which tiles go into the image you see on the screen. To build a screen you'd only need a 30x20 map of numbers and the hardware takes care of drawing the tiles that these numbers point to. This way, you *can* update an entire screen each frame. There are very few games that do not rely on this graphics type.
+图块背景的工作方式完全不同。首先，你把 8x8 像素的<dfn>图块</dfn>存放在显存的某一部分。然后，在另一部分，你构建一个图块地图，其中包含索引，告诉 GBA 哪些图块进入你在屏幕上看到的图像。要构建一屏，你只需要一个 30x20 的数字地图，硬件就会负责绘制这些数字所指向的图块。这样一来，你*可以*每帧更新整个屏幕。极少有游戏不依赖这种图形类型。
 
-Finally, we have sprites. Sprites are small (8x8 to 64x64 pixels) graphical objects that can be transformed independently from each other and can be used in conjunction with either bitmap or tilemap background types.
+最后，我们有精灵。精灵是小型（8x8 到 64x64 像素）的图形对象，可以彼此独立地变换，并可与位图或图块地图背景类型配合使用。
 
-:::tip Prefer tile modes over bitmap modes
+:::tip 优先使用图块模式而非位图模式
 
-In almost all types of games, the tile modes will be more suitable. Most other tutorials focus on bitmap modes, but that's only because they are easier on beginners, not because of their practical value for games. The vast majority of commercial games use tile modes; that should tell you something.
+在几乎所有类型的游戏中，图块模式都更合适。大多数其他教程聚焦于位图模式，但那仅仅是因为它们对新手更友好，而非因为它们对游戏有实际价值。绝大多数商业游戏都使用图块模式；这应该能说明些什么。
 
 :::
 
-Those are the three basic graphical types, though other classifications also spring to mind. For example, the bitmap and tiled backgrounds types, since they're mutually exclusive and use the entire screen, constitute the <dfn>background</dfn>-types. Also, it so happens that the tiles of tiled backgrounds and the sprites have the same memory layout (namely, in groups of 8x8 pixel tiles). This makes tiled backgrounds and sprites the tiled-types.
+这就是三种基本图形类型，尽管也能想到其他分类方式。例如，位图和图块背景类型，由于它们互斥且使用整个屏幕，构成了<dfn>背景</dfn>类型。此外，碰巧图块背景的图块与精灵有着相同的内存布局（即，以 8x8 像素图块为一组）。这使图块背景和精灵成为图块类型。
 
-## Display registers: REG_DISPCNT, REG_DISPSTAT and REG_VCOUNT {#sec-vid-regs}
+## 显示寄存器：REG_DISPCNT、REG_DISPSTAT 与 REG_VCOUNT {#sec-vid-regs}
 
-There are three I/O registers that you will encounter when doing anything graphical: the display control `REG_DISPCNT (0400:0000h)`, the display status `REG_DISPSTAT (0400:0004h)` and the scanline counter `REG_VCOUNT (0400:0006h)`. Those names are simply defines to the memory locations and can, in principle, be chosen at will. However, we will use the names as they appear in the [Pern Project](http://www.drunkencoders.com), which are the most common.
+在做任何图形相关的事时，你会遇到三个 I/O 寄存器：显示控制 `REG_DISPCNT (0400:0000h)`、显示状态 `REG_DISPSTAT (0400:0004h)` 和扫描线计数器 `REG_VCOUNT (0400:0006h)`。这些名字只是到内存位置的 define，原则上可以随意选择。然而，我们将使用它们在 [Pern Project](http://www.drunkencoders.com) 中出现的名字，因为它们最常见。
 
-The REG_DISPCNT register is the primary control of the screen. The bit-layout of this register and their meanings can be found in the following table. This is the general format I will use for registers or register-like sections. The details of the format have already been explained in the [preface](intro.html#ssec-note-reg).
+REG_DISPCNT 寄存器是屏幕的主要控制。该寄存器的位布局及其含义可以在下表中找到。这是我用于寄存器或类寄存器区域的一般格式。该格式的细节已经在[前言](intro.html#ssec-note-reg)中解释过了。
 
 <div class="reg">
 <table class="table-reg" id="tbl:reg-dispcnt">
@@ -121,54 +121,42 @@ The REG_DISPCNT register is the primary control of the screen. The bit-layout of
 <tr class="bg0">
   <td>0-2 <td class="rclr0">Mode
   <td>DCNT_MODEx. <i>DCNT_MODE#</i>
-  <td>Sets video mode. 0, 1, 2 are tiled modes; 3, 4, 5 are bitmap modes.
+  <td>设置视频模式。0、1、2 是图块模式；3、4、5 是位图模式。
 <tr class="bg1">
   <td class="rof">3   <td class="rclr7">GB
   <td>DCNT_GB
-  <td>Is set if cartridge is a GBC game. Read-only.
+  <td>如果卡带是 GBC 游戏则置位。只读。
 <tr class="bg0">
   <td>4   <td class="rclr3">PS
   <td>DCNT_PAGE
-  <td>Page select. Modes 4 and 5 can use page flipping for smoother 
-    animation. This bit selects the displayed page (and allowing the 
-    other one to be drawn on without artifacts).
+  <td>页选择。模式 4 和 5 可以使用页翻转来实现更流畅的动画。该位选择显示的页（并允许在另一页上绘制而不产生瑕疵）。
 <tr class="bg1">
   <td>5   <td class="rclr5">HB
   <td>DCNT_OAM_HBL
-  <td>Allows access to OAM in an HBlank. OAM is normally locked in VDraw.
-    Will reduce the amount of sprite pixels rendered per line.
+  <td>允许在 HBlank 中访问 OAM。OAM 在 VDraw 中通常锁定。会减少每行渲染的精灵像素数。
 <tr class="bg0">
   <td>6   <td class="rclr2">OM
   <td>DCNT_OBJ_1D
-  <td>Object mapping mode. Tile memory can be seen as a 32x32 
-    matrix of tiles. When sprites are composed of multiple tiles 
-    high, this bit tells whether the next row of tiles lies 
-    beneath the previous, in correspondence with the matrix 
-    structure (2D mapping, <code>OM</code>=0), or right next to 
-    it, so that memory is arranged as an array of sprites (1D 
-    mapping <code>OM</code>=1). More on this in the 
-    <a href="regobj.html">sprite</a> chapter.
+  <td>对象映射模式。图块内存可以看作一个 32x32 的图块矩阵。当精灵由多个图块竖向组成时，该位告诉下一个图块行是位于前一个下方（符合矩阵结构，2D 映射，<code>OM</code>=0），还是紧挨着它（使内存排列为精灵数组，1D 映射 <code>OM</code>=1）。更多内容见[精灵](regobj.html)章。
 <tr class="bg1">
   <td>7   <td class="rclr6">FB
   <td>DCNT_BLANK
-  <td>Force a screen blank.
+  <td>强制屏幕消隐。
 <tr class="bg0">
   <td>8-C  <td class="rclr1">BG0-BG3, Obj
   <td>DCNT_BGx, DCNT_OBJ. <i>DCNT_LAYER#</i>
-  <td>Enables rendering of the corresponding background and sprites.
+  <td>启用相应背景和精灵的渲染。
 <tr class="bg1">
   <td>D-F <td class="rclr4">W0-OW
   <td>DCNT_WINx, DCNT_WINOBJ
-  <td>Enables the use of windows 0, 1 and Object window, respectively.
-    Windows can be used to mask out certain areas (like the 
-    lamp did in Zelda:LTTP).
+  <td>分别启用窗口 0、1 和对象窗口的使用。窗口可用于遮罩某些区域（就像《塞尔达：众神的三角力量》里那盏灯做的那样）。
 </tbody>
 </table>
 </div>
 
-Setting the display control is probably the first thing you'll be doing. For simple demos, you can just set it once and leave it at that, though switching between the video-modes can have some interesting results.
+设置显示控制大概是你最先会做的事。对于简单的演示程序，你可以只设置一次就保持不动，尽管在视频模式之间切换能产生一些有趣的效果。
 <br>  
-Now the other two registers I mentioned, `REG_DISPSTAT` and `REG_VCOUNT`. The latter tells you the scanline that is currently being worked on. Note that this counter keeps going into the VBlank as well, so it counts to 227 before starting at 0 again. The former gives you information about the Draw/Blank status and is used to set display [interrupts](interrupts.html). You can also do some really cool stuff with the interrupts that you can enable here. For one thing, the HBlank interrupt is used in creating [Mode 7](mode7.html) graphics, and you want to know how that works, don't you?
+现在说我提到的另外两个寄存器，`REG_DISPSTAT` 和 `REG_VCOUNT`。后者告诉你当前正在处理的扫描线。注意这个计数器会一直进入到 VBlank，所以它会数到 227 才重新从 0 开始。前者给你关于绘制/消隐状态的信息，并用于设置显示[中断](interrupts.html)。你也可以用这里能启用的中断做一些很酷的事。比如，HBlank 中断就用于创建 [Mode 7](mode7.html) 图形，而你肯定想知道它是怎么工作的，不是吗？
 
 <div class="reg">
 <table class="table-reg" id="tbl:reg-dispstat">
@@ -198,36 +186,32 @@ Now the other two registers I mentioned, `REG_DISPSTAT` and `REG_VCOUNT`. The la
 <tr class="bg0">
   <td>0<td class="rclr0">VbS
   <td>DSTAT_IN_VBL
-  <td>VBlank status, read only. Will be set inside VBlank, clear in VDraw.
+  <td>VBlank 状态，只读。会在 VBlank 内置位，在 VDraw 内清除。
 <tr class="bg1">
   <td>1 <td class="rclr1">HbS
   <td>DSTAT_IN_HBL
-  <td>HBlank status, read only. Will be set inside HBlank.
+  <td>HBlank 状态，只读。会在 HBlank 内置位。
 <tr class="bg0">
   <td>2 <td class="rclr2">VcS
   <td>DSTAT_IN_VCT
-  <td>VCount trigger status. Set if the current scanline matches the 
-    scanline trigger ( <code>REG_VCOUNT</code> == 
-    <code>REG_DISPSTAT</code>{8-F} )
+  <td>VCount 触发状态。如果当前扫描线与扫描线触发器匹配则置位（<code>REG_VCOUNT</code> == 
+    <code>REG_DISPSTAT</code>{8-F}）
 <tr class="bg1">
   <td>3 <td class="rclr0">VbI
   <td>DSTAT_VBL_IRQ
-  <td>VBlank interrupt request. If set, an interrupt will be fired at 
-    VBlank.
+  <td>VBlank 中断请求。如果置位，将在 VBlank 触发中断。
 <tr class="bg0">
   <td>4 <td class="rclr1">HbI
   <td>DSTAT_HBL_IRQ
-  <td>HBlank interrupt request. 
+  <td>HBlank 中断请求。
 <tr class="bg1">
   <td>5 <td class="rclr2">VcI
   <td>DSTAT_VCT_IRQ
-  <td>VCount interrupt request. Fires interrupt if current scanline 
-    matches trigger value.
+  <td>VCount 中断请求。如果当前扫描线匹配触发值则触发中断。
 <tr class="bg0">
   <td>8-F <td class="rclr3">VcT
   <td><i>DSTAT_VCT#</i>
-  <td>VCount trigger value. If the current scanline is at this value, 
-    bit 2 is set and an interrupt is fired if requested.
+  <td>VCount 触发值。如果当前扫描线处于此值，第 2 位置位，并在被请求时触发中断。
 </tbody>
 </table>
 </div><br>
@@ -252,14 +236,14 @@ Now the other two registers I mentioned, `REG_DISPSTAT` and `REG_VCOUNT`. The la
 <tbody valign="top">
 <tr class="bg0">
   <td>0-7 <td class="rclr0">Vc
-  <td>Vertical count. Range is [0,227]
+  <td>垂直计数。范围是 [0,227]
 </tbody>
 </table>
 </div>
 
-## Vsyncing part I, the busy-wait loop {#sec-vsync1}
+## 垂直同步 第一部分：忙等待循环 {#sec-vsync1}
 
-As said, use the VBlank as a timing mechanism and to update the game data. This is called <dfn>vsync</dfn> (**v**ertical **sync**hronisation). There are a number of ways to vsync. The two most common methods use a while loop and check `REG_VCOUNT` or `REG_DISPSTAT`. For example, since the VBlank starts at scanline 160, you could see when `REG_VCOUNT` goes beyond this value.
+如前所述，把 VBlank 用作计时机制并更新游戏数据。这被称为 <dfn>vsync</dfn>（**v**ertical **sync**hronisation，垂直同步）。有若干种 vsync 的方法。两种最常用的方法使用 while 循环并检查 `REG_VCOUNT` 或 `REG_DISPSTAT`。例如，由于 VBlank 从扫描线 160 开始，你可以观察 `REG_VCOUNT` 何时超过这个值。
 
 ```c
 #define REG_VCOUNT *(u16*)0x04000006
@@ -268,11 +252,11 @@ void vid_vsync()
 {    while(REG_VCOUNT < 160);   }
 ```
 
-Unfortunately, there are a few problems with this code. 
+不幸的是，这段代码有几个问题。
 
-First of all, if you're simply doing an empty `while` loop to wait for 160, the compiler may try to get smart, notice that the loop doesn't change `REG_VCOUNT` and put its value in a register for easy reference. Since there is a good chance that that value will be below 160 at some point, you have a nice little infinite loop on your hand. To prevent this, use the keyword _`volatile`_ (see `tonc_memmap.h` and `tonc_types.h`).
+首先，如果你只是做一个空的 `while` 循环来等待 160，编译器可能会自作聪明，注意到循环不会改变 `REG_VCOUNT`，于是把它的值放进寄存器以便快速引用。由于这个值很可能在某个时刻低于 160，你就得到了一个漂亮的小无限循环。为防止这一点，请使用关键字 _`volatile`_（见 `tonc_memmap.h` 和 `tonc_types.h`）。
 
-Second, in small demos simply waiting for the VBlank isn't enough; you may still be in that VBlank when you call `vid_sync()` again, which will be blazed through immediately. That does not sync to 60 fps. To do this, you first have to wait until the *next* VDraw. This makes our `vid_sync` look a little like this:
+其次，在小演示程序里，仅仅等待 VBlank 还不够；当你再次调用 `vid_sync()` 时，你可能仍处在那个 VBlank 内，它会立即通过。这并不能同步到 60 fps。为此，你必须先等到*下一个* VDraw。这使我们的 `vid_sync` 看起来像这样：
 
 ```c
 #define REG_VCOUNT *(vu16*)0x04000006
@@ -284,6 +268,6 @@ void vid_vsync()
 }
 ```
 
-This will always wait until the start of the next VBlank occurs. And `REG_VCOUNT` is now _`volatile`_ (the “`vu16`” is `typedef`ed as a <u>v</u>olatile <u>u</u>nsigned (<u>16</u>bit) short. I'll be using a lot of this kind of shorthand, so get used to it). That's one way to do it. Another is checking the last bit in the display status register, `REG_DISPSTAT`\{0\}.
+这总会等到下一次 VBlank 开始。而 `REG_VCOUNT` 现在是 _`volatile`_（"vu16" 被 <u>v</u>olatile <u>u</u>nsigned（<u>16</u>位）short typedef 而来。我会大量使用这类简写，所以习惯它吧）。这是一种做法。另一种是检查显示状态寄存器 `REG_DISPSTAT`\{0\} 中的最后一位。
 <br>  
-So we're done here, right? Errm ... no, not exactly. While it's true that you now have an easy way to vsync, it's also a very poor one. While you're in the while loop, you're still burning CPU cycles. Which, of course, costs battery power. And since you're doing absolutely nothing inside that while-loop, you're not just using it, you're actually wasting battery power. Moreover, since you will probably make only small games at first, you'll be wasting a *LOT* of battery power. The recommended way to vsync is putting the CPU in low-power mode when you're done and then use interrupts to bring it back to life again. You can read about the procedure [here](swi.html#sec-vsync2), but since you have to know how to use [interrupts](interrupts.html) and [BIOS calls](swi.html), you might want to wait a while.
+所以我们搞定了，对吧？呃……不，不完全是。虽然你现在有一个简单的 vsync 方法，但它也是一种非常糟糕的方法。当你在 while 循环里时，你仍在消耗 CPU 周期。这当然耗电。而且由于你在这个 while 循环里啥也不干，你不只是用了它，你实际上是在浪费电量。此外，由于你一开始大概只会做小游戏，你将浪费*大量*的电量。推荐的 vsync 方法是：在事情做完后让 CPU 进入低功耗模式，然后用中断把它唤醒。你可以在[这里](swi.html#sec-vsync2)读到这个过程，但既然你必须知道如何使用[中断](interrupts.html)和 [BIOS 调用](swi.html)，你或许想等一会儿。

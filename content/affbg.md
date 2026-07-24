@@ -1,21 +1,21 @@
-# 12. Affine backgrounds
+# 12. 仿射背景
 
 <!-- toc -->
 
-## Introduction {#sec-intro}
+## 简介 {#sec-intro}
 
-This section covers <dfn>affine backgrounds</dfn>: the ones on which you can perform an affine transformation via the **P** matrix. And that's all it does. If you haven't read – and understood! – the [sprite/bg overview](objbg.html) and the sections on [regular backgrounds](regbg.html) and the [affine transformation matrix](affine.html), do so before continuing.
+本节讲解<dfn>仿射背景</dfn>：也就是你可以通过 **P** 矩阵施加仿射变换的那些背景。而它也就仅此而已。如果你还没读——并且理解！——[精灵/背景概述](objbg.html)以及关于[常规背景](regbg.html)和[仿射变换矩阵](affine.html)的章节，请先去读那些再继续。
 
-If you know how to build a regular background and have understood the concepts behind the affine matrix, you should have little problems here. The theory behind an affine backgrounds are the same as for regular ones, the practice can be different at a number of very crucial points. For example, you use different registers for positioning and both the map-layout and their format are different.
+如果你知道如何构建常规背景，并且理解了仿射矩阵背后的概念，那么这里你应该没什么问题。仿射背景在理论层面与常规背景相同，但在若干非常关键的实践要点上会有所不同。举例来说，你使用的是不同的定位寄存器，而且它们的地图布局及其格式也各不相同。
 
-Of the four backgrounds the GBA has, only the last two can be used as affine backgrounds, and only in specific video modes (see {@tbl:bg-types}). The sizes are also different for affine backgrounds. You can find a list of sizes in {@tbl:bga-size}.
+GBA 拥有的四个背景中，只有最后两个能用作仿射背景，并且仅限于特定的视频模式（见 {@tbl:bg-types}）。仿射背景的尺寸也与常规背景不同。你可以在 {@tbl:bga-size} 中找到尺寸列表。
 
 <div class="cblock">
   <table>
     <tr>
       <td>
         <table id="tbl:bg-types" border=1 cellpadding=2 cellspacing=0 width=128 class="table-data">
-          <caption align="bottom"><b>{*@tbl:bg-types}</b>: video modes and background type</caption>
+          <caption align="bottom"><b>{*@tbl:bg-types}</b>: 视频模式与背景类型</caption>
           <tbody align="center">
             <tr>
               <th>mode</th>
@@ -53,7 +53,7 @@ Of the four backgrounds the GBA has, only the last two can be used as affine bac
       <td width="10%"></td>
       <td style="vertical-align: top;">
         <table id="tbl:bga-size" border=1 cellpadding=2 cellspacing=0 width=144 class="table-data">
-          <caption align="bottom"><b>{*@tbl:bga-size}</b>: affine bg sizes</caption>
+          <caption align="bottom"><b>{*@tbl:bga-size}</b>: 仿射背景尺寸</caption>
           <col>
           <col class="def">
           <tbody align="center">
@@ -94,13 +94,13 @@ Of the four backgrounds the GBA has, only the last two can be used as affine bac
   </table>
 </div>
 
-## Affine background registers {#sec-regs}
+## 仿射背景寄存器 {#sec-regs}
 
-Like their regular counterparts, the primary control for affine backgrounds is `REG_BGxCNT`. If you've forgotten what it does, you can read a description [here](regbg.html#tbl-reg-bgxcnt). The differences with regular backgrounds are the sizes, and that `BG_WRAP` actually does something now. The other important registers are the <dfn>displacement vector</dfn> **dx** (`REG_BGxX` and `REG_BGxY`), and the <dfn>affine matrix</dfn> **P** (`REG_BGxPA`-`REG_BGxPD`). You can find their addresses in {@tbl:aff-regs}.
+与常规背景一样，仿射背景的主要控制寄存器是 `REG_BGxCNT`。如果你忘了它的作用，可以读[这里的描述](regbg.html#tbl-reg-bgxcnt)。与常规背景的差异在于尺寸，以及 `BG_WRAP` 现在真正起作用了。其它重要的寄存器是<dfn>位移向量</dfn> **dx**（`REG_BGxX` 和 `REG_BGxY`），以及<dfn>仿射矩阵</dfn> **P**（`REG_BGxPA`–`REG_BGxPD`）。你可以在 {@tbl:aff-regs} 中找到它们的地址。
 
 <div class="lblock">
   <table id="tbl:aff-regs" class="table-data">
-    <caption align="bottom"><b>{*@tbl:aff-regs}</b>: Affine background register addresses. Note that <i>x</i> is 2 or 3 only!</caption>
+    <caption align="bottom"><b>{*@tbl:aff-regs}</b>: 仿射背景寄存器地址。注意 <i>x</i> 只能是 2 或 3！</caption>
     <col span=2 align="right">
     <tr>
       <th>Register</th>
@@ -130,11 +130,11 @@ Like their regular counterparts, the primary control for affine backgrounds is `
   </table>
 </div>
 
-There are a couple of things to take note of when it comes to displacement and transformation of affine backgrounds. First, the displacement *dx* uses different registers than regular backgrounds: `REG_BGxX` and `REG_BGxY` instead of `REG_BGxHOFS` and `REG_BGxVOFS`. A second point here is that they are 24.8 fixed numbers rather than pixel offsets. (Actually, they are 20.8 fixed numbers but that's not important right now.)
+在处理仿射背景的位移和变换时，有几点需要留意。首先，位移 *dx* 使用的是与常规背景不同的寄存器：`REG_BGxX` 和 `REG_BGxY`，而不是 `REG_BGxHOFS` 和 `REG_BGxVOFS`。第二点是，它们是 24.8 格式的定点数，而非像素偏移量。（实际上它们是 20.8 定点数，不过眼下这不重要。）
 
-I usually use the affine parameters via BG_AFFINE struct instead of `REG_BGxPA`, etc. The memory map in *tonc_memmap.h* contains a `REG_BG_AFFINE` for this purpose. Setting the registers this way is advantageous at times because you'll usually have a BG_AFFINE struct set up already, which you can then copy to the registers with a single assignment. An example of this is given below.
+我通常通过 BG_AFFINE 结构体来使用仿射参数，而非 `REG_BGxPA` 等。*tonc_memmap.h* 中的内存映射为此提供了一个 `REG_BG_AFFINE`。以这种方式设置寄存器有时更有优势，因为你通常已经准备好了一个 BG_AFFINE 结构体，然后只需一次赋值就能把它复制到寄存器。下面给出一个例子。
 
-The elements of the affine transformation matrix **P** works exactly like they do for affine sprites: 8.8 fixed point numbers that describe the transformation from screen to texture space. However for affine backgrounds they are stored consecutively (2 byte offset), whereas those of sprites are at an 8 byte offset. You can use the `bg_aff_foo` functions from *tonc_bg_affine.c* to set them to the transformation you want.
+仿射变换矩阵 **P** 的元素，其工作方式与仿射精灵完全相同：它们是 8.8 格式的定点数，描述从屏幕空间到纹理空间的变换。不过对于仿射背景，它们是连续存放的（偏移 2 字节），而精灵的那些则是以 8 字节为偏移。你可以使用 *tonc_bg_affine.c* 中的 `bg_aff_foo` 函数来把它们设为你想要的变换。
 
 <div id="cd-bga-types">
 
@@ -159,17 +159,17 @@ const BG_AFFINE bg_aff_default= { 256, 0, 0, 256, 0, 0 };
 REG_BG_AFFINE[2] = bg_aff_default;
 ```
 
-:::warning Regular vs affine tilemap scrolling
+:::warning 常规 vs 仿射图块地图的滚动
 
-  Affine tilemaps use **different** scrolling registers! Instead of REG_BG*x*HOFS and REG_BG*x*VOFS, they use REG_BG*x*X and REG_BG*x*Y. Also, these are 32bit fixed point numbers, not halfwords.
+  仿射图块地图使用的是<strong>不同的</strong>滚动寄存器！它们用的是 REG_BG*x*X 和 REG_BG*x*Y，而不是 REG_BG*x*HOFS 和 REG_BG*x*VOFS。而且，这些是 32 位的定点数，而非半字。
 
 :::
 
-## Positioning and transforming affine backgrounds {#sec-aff-ofs}
+## 仿射背景的定位与变换 {#sec-aff-ofs}
 
-Now that we know what the displacement and transformation registers are, now let's look at what they do. This is actually a lot trickier subject that you might think, so pay attention. Warning: this is gonna get mathematical again.
+既然我们知道了位移和变换寄存器是什么，现在就来看看它们的作用。这实际上比你可能以为的要棘手得多，所以请集中注意力。警告：接下来又要进入数学了。
 
-The displacement vector **dx** works the same as for regular backgrounds: **dx** contains the background-coordinates that are mapped to the screen origin. (And *not* the other way around!) However, this time **dx** is in fixed number notation. Likewise, the affine transformation matrix **P** works the same as for affine sprites: **P** describes the transformation from screen space to texture space. To put it mathematically, if we define
+位移向量 **dx** 的作用与常规背景相同：**dx** 包含被映射到屏幕原点的那些背景坐标。（而<strong>不是</strong>相反！）不过这一次 **dx** 是以定点数记法表示的。同样地，仿射变换矩阵 **P** 的作用也与仿射精灵相同：**P** 描述从屏幕空间到纹理空间的变换。用数学语言表达，如果我们定义
 
 <table id="eq:defs">
   <tr>
@@ -185,7 +185,7 @@ The displacement vector **dx** works the same as for regular backgrounds: **dx**
   </tr>
 </table>
 
-then
+那么
 
 <table id="eq:aff-defs">
   <tr>
@@ -198,33 +198,33 @@ then
   </tr>
 </table>
 
-where
+其中
 
 <table cellpadding=1 cellspacing=0>
   <tr>
     <th>p</th>
-    <td>is a point in texture space,</td>
+    <td>是纹理空间中的一个点，</td>
   </tr>
   <tr>
     <th>q</th>
-    <td>is a point in screen space,</td>
+    <td>是屏幕空间中的一个点，</td>
   </tr>
   <tr>
     <th>dx</th>
-    <td>is the displacement vector (<code>REG_BGxX</code> and <code>REG_BGxY</code>).</td>
+    <td>是位移向量（<code>REG_BGxX</code> 和 <code>REG_BGxY</code>）。</td>
   </tr>
   <tr>
     <th>A</th>
-    <td>is the transformation from texture to screen space,</td>
+    <td>是从纹理空间到屏幕空间的变换，</td>
   </tr>
   <tr>
     <th>P</th>
-    <td>is the transformation screen from to texture space, (<code>REG_BGxPA</code>-<code>REG_BGxPD</code>).</td>
+    <td>是从屏幕空间到纹理空间的变换（<code>REG_BGxPA</code>–<code>REG_BGxPD</code>）。</td>
   </tr>
 </table>
 <br>
 
-The problem with {@eq:aff-defs} is that these only describe what happens if you use either a displacement or a transformation. So what happens if you want to use both? This is an important question because the order of transformation matters (like we have seen in the [affine sprite demo](affobj.html#sec-demo)), and this is true for the order of transformation and displacement as well. As it happens, translation goes first:
+{@eq:aff-defs} 的问题在于，它们只描述了当你单独使用位移或变换时会发生什么。那么如果你两者都要用呢？这是一个重要的问题，因为变换的顺序是有影响的（就像我们在[仿射精灵演示](affobj.html#sec-demo)中看到的那样），而变换与位移的先后顺序同样如此。事实证明，平移是先做的：
 
 <table id="eq:ofs">
   <tr>
@@ -254,7 +254,7 @@ The problem with {@eq:aff-defs} is that these only describe what happens if you 
   </tr>
 </table>
 
-Another way to say this is that the transformation always uses the top left of the screen as its origin and the displacement tells which background pixels is put there. Of course, this arrangement doesn't help very much if you want to, say, rotate around some other point on the screen. To do that you'll have to pull a few tricks. To cover them all in one swoop, we'll combine {@eq:ofs} and the general coordinate transformation equation:
+换一种说法：变换始终以屏幕的左上角作为自己的原点，而位移则告诉你哪个背景像素被放到那里。当然，这种安排在你想要围绕屏幕上某个其它点旋转时没什么帮助。要做到这一点，你得玩几个小花招。为了一次性把它们都涵盖，我们把 {@eq:ofs} 与一般的坐标准换等式合并起来：
 
 <table id="eq:aff-ofs">
   <tr>
@@ -290,15 +290,15 @@ Another way to say this is that the transformation always uses the top left of t
   </tr>
 </table>
 
-So what the hell does *that* mean? It means that if you use this **dx** for your displacement vector, you perform your transformation around texture point **p**<sub>0</sub>, which then ends up at screen point **q**<sub>0</sub>; the **P**·**q**<sub>0</sub> term is the correction in texture-space you have to perform to have the rotation point at **q**<sub>0</sub> instead of (0,0). So what the hell does *that* mean? It means that before you try to use this stuff you should think about which effect you are actually trying to pull off and that you have *two* coordinate systems to work with, not one. When you do, the meaning of {@eq:aff-ofs} will become apparent. In any case, the function I use for this is `bg_rotscale_ex()`, which basically looks like this:
+那么，这玩意儿到底是什么意思？它的意思是：如果你把这个 **dx** 用作位移向量，你就是围绕纹理点 **p**<sub>0</sub> 进行变换，而该点最终会出现在屏幕点 **q**<sub>0</sub> 上；其中的 **P**·**q**<sub>0</sub> 项，是你在纹理空间中必须施加的修正量，目的是让旋转中心落在 **q**<sub>0</sub> 而非 (0,0)。所以——这玩意儿到底是什么意思？它的意思是：在你打算使用这些东西之前，应该先想清楚你实际想要达成的是什么效果，并且你要面对的是<strong>两套</strong>坐标系，而不是一套。想清楚之后，{@eq:aff-ofs} 的含义就会变得显而易见。无论如何，我所使用的函数是 `bg_rotscale_ex()`，它大体上长这样：
 
 ```c
 typedef struct tagAFF_SRC_EX
 {
-    s32 tex_x, tex_y;   // vector p0: origin in texture space (24.8f)
-    s16 scr_x, scr_y;   // vector q0: origin in screen space (16.0f)
-    s16 sx, sy;         // scales (8.8f)
-    u16 alpha;          // CCW angle ( integer in [0,0xFFFF] )
+    s32 tex_x, tex_y;   // 向量 p0：纹理空间中的原点（24.8f）
+    s16 scr_x, scr_y;   // 向量 q0：屏幕空间中的原点（16.0f）
+    s16 sx, sy;         // 缩放量（8.8f）
+    u16 alpha;          // 逆时针角度（[0,0xFFFF] 内的整数）
 } ALIGN4 AFF_SRC_EX;
 
 void bg_rotscale_ex(BG_AFFINE *bgaff, const AFF_SRC_EX *asx)
@@ -318,20 +318,21 @@ void bg_rotscale_ex(BG_AFFINE *bgaff, const AFF_SRC_EX *asx)
 }
 ```
 
-This is very similar to the `obj_rotscale_ex()` function covered in the [off-center object transformation](affobj.html#sec-combo) section. The math is identical, but the terms have been reshuffled a bit. The background version is actually simpler because the affine offset correction can be done in texture space instead of screen space, which means no messing about with **P**'s inverse matrix. Or with sprite-size corrections, thank IPU. For the record, yes you can apply the function directly to `REG_BG_AFFINE`.
+这与[偏心对象变换](affobj.html#sec-combo)一节中讲到的 `obj_rotscale_ex()` 函数非常相似。数学是一样的，只是各项被稍微重新排布了一下。背景版本实际上更简单，因为仿射偏移修正可以在纹理空间中完成，而不必在屏幕空间中，这意味着无需去折腾 **P** 的逆矩阵。也无需处理精灵尺寸修正（多亏了 IPU）。作为记录，是的，你可以直接把这个函数用到 `REG_BG_AFFINE` 上。
 
-### Internal reference point registers {#ssec-bga-refpts}
+### 内部参考点寄存器 {#ssec-bga-refpts}
 
-There's one more important thing left to mention about the displacement and transformation registers. Quoting directly from [GBATEK](https://problemkaputt.de/gbatek.htm#lcdiobgrotationscaling) (except the bracketed parts):
+关于位移和变换寄存器，还有一件重要的事要提。下面直接引用 [GBATEK](https://problemkaputt.de/gbatek.htm#lcdiobgrotationscaling)（方括号里的部分除外）：
 
-> The above reference points \[the displacement registers\] are automatically copied to internal registers during each vblank, specifying the origin for the first scanline. The internal registers are then incremented by dmx \[`REG_BGxPB`\] and dmy \[`REG_BGxPD`\] after each scanline.
-> Caution: Writing to a reference point register by software outside of the Vblank period does immediately copy the new value to the corresponding internal register, that means: in the current frame, the new value specifies the origin of the *current* scanline (instead of the topmost scanline).
+> 上述参考点［即位移寄存器］会在每次 VBlank 期间被自动复制到内部寄存器，指定了第一条扫描线的原点。随后，这些内部寄存器会在每条扫描线之后，由 dmx［`REG_BGxPB`］和 dmy［`REG_BGxPD`］递增。
 
-Normally this won't matter to you, but if you try to write to `REG_BGxY` during an HBlank things, might not go as expected. As I learned the hard way when I tried to get my Mode 7 stuff working. This only affects affine backgrounds, though; regular ones use other registers.
+> 注意：在 VBlank 期间之外，由软件写入某个参考点寄存器，会立即把新值复制到相应的内部寄存器，也就是说：在当前这一帧中，新值指定的是<em>当前</em>扫描线的原点（而非最顶上的那条扫描线）。
 
-## Mapping format {#sec-map}
+通常这不会对你造成影响，但如果你试图在 HBlank 期间写入 `REG_BGxY`，事情可能就不会如你所愿。这是我在尝试让我的 Mode 7 代码跑起来时，付出了代价才学到的。不过这只影响仿射背景；常规背景使用的是其它寄存器。
 
-Both the map layout and screen entries for affine backgrounds are very different from those of regular backgrounds. Ironically, they are also a lot simpler. While regular backgrounds divide the full map into quadrants (each using one full screenblock), the affine backgrounds use a flat map, meaning that the normal equation for getting a screenentry-number *n* works, making things a whole lot easier.
+## 映射格式 {#sec-map}
+
+仿射背景的地图布局与屏幕项，都与常规背景大不相同。讽刺的是，它们其实也要简单得多。常规背景会把整张地图切分为四个象限（每个使用一个完整的屏幕块），而仿射背景使用的是扁平（flat）地图，这意味着用于取得屏幕项编号 *n* 的常规等式仍然成立，从而让事情简单了一大截。
 
 <table id="eq:aff-sid">
   <tr>
@@ -340,54 +341,54 @@ Both the map layout and screen entries for affine backgrounds are very different
   </tr>
 </table>
 
-The screen entries themselves are also different from those of regular backgrounds as well. In affine maps, they are *1 byte long* and only contain the index of the tile to use. Additionally, you can *only* use 256 color tiles. This gives you access to all the tiles in the base charblock, but not the one(s) after it.
+屏幕项本身也与常规背景的不同。在仿射地图中，它们是<strong>1 字节长</strong>，并且只包含要使用的图块索引。此外，你<strong>只能</strong>使用 256 色图块。这让你能访问基础字符块（charblock）里的所有图块，却访问不到它后面的那些。
 
-And that's about it, really. No, wait there's one more issue: you have to be careful when filling or changing the map because *VRAM can only be accessed 16 or 32 bits at a time*. So if you have your map stored in an array of bytes, you'll have to cast it to `u16` or `u32` first. Or use [DMA](dma.html). OK, now I'm done.
+大致上也就这些了。不，等等还有一件事：在填充或更改地图时要小心，因为 <strong>VRAM 每次只能以 16 或 32 位的方式访问</strong>。所以，如果你的地图存放在一个字节数组中，你得先把它转换成 `u16` 或 `u32`。或者使用 [DMA](dma.html)。好，我讲完了。
 
-:::warning Regular vs affine tilemap mapping differences
+:::warning 常规 vs 仿射图块地图的映射差异
 
-  There are two important differences between regular and affine map formats. First, affine screen entries are merely one-byte tile indices. Secondly, the maps use a linear layout, rather than the division into 32x32t maps that bigger regular maps use.
+  常规地图与仿射地图的格式有两个重要区别。首先，仿射屏幕项仅仅是一个单字节的图块索引。其次，仿射地图使用的是线性布局，而非更大的常规地图所采用的、被切分为 32×32t 地图的那种布局。
 
 :::
 
-## *sbb_aff* demo {#sec-demo}
+## *sbb_aff* 演示程序 {#sec-demo}
 
 <div class="cpt_fr" style="width:240px">
   <img id="fig:sbb-aff" src="./img/demo/sbb_aff.png" alt="sbb_aff demo">
-  <b>{*@fig:sbb-aff}</b>: <i>sbb_aff</i> demo.
+  <b>{*@fig:sbb-aff}</b>: <i>sbb_aff</i> 演示程序。
 </div>
 
-*sbb_aff* is to affine backgrounds what *sbb_reg* was to regular ones, with a number of extras. The demo uses a 64x64 tile affine background, shown in {@fig:sbb-aff}. This is divided into 16 parts of 256 bytes, each of which is filled with tiles of one color and the number of that part on it. Now, if the map-layout for affine backgrounds was the same as regular ones, each part would form a 16x16t square. If it is a flat memory layout, each part would be a 64x16t strip. As you can see in {@fig:sbb-aff}, it is the latter. You can also see that, unlike regular backgrounds, this map doesn't wrap around automatically at the edges.
+*sbb_aff* 之于仿射背景，就如同 *sbb_reg* 之于常规背景，只是多了一些额外内容。这个演示程序使用一张 64×64 图块的仿射背景，如 {@fig:sbb-aff} 所示。它被分成 16 个各 256 字节的部分，每一部分都用一种颜色的图块填满，并标有该部分的编号。现在，如果仿射背景的地图布局和常规背景相同，那么每个部分会形成一块 16×16t 的正方形。如果它是扁平的内存布局，那么每个部分就是一条 64×16t 的条带。正如你在 {@fig:sbb-aff} 中看到的那样，是后者。你还可以看到，与常规背景不同，这张地图在边缘处并不会自动环绕。
 
-The most interesting thing about the demo are the little black and white crosshairs. The white crosshairs indicates the rotation point (the anchor). As I said earlier, you cannot simply pick a map-point **p**<sub>0</sub> and say that that is ‘the’ rotation point. Well you could, but it wouldn't give the desired effect. Simply using a map-point will give you a rotating map around that point, but on screen it'll always be in the top-left corner. To move the map anchor to a specific location on the screen, you need an anchor there as well. This is **q**<sub>0</sub>. Fill both into {@eq:aff-ofs} to find the displacement vector you need: **dx** = **p**<sub>0</sub>−**P·q**<sub>0</sub>. This **dx** is going to be quite different from both **p**<sub>0</sub> and **q**<sub>0</sub>. Its path is indicated by the black crosshairs.
+这个演示程序最有趣的地方，是那些小小的黑白十字准星。白色十字准星指示的是旋转点（锚点）。正如我之前所说，你不能简单地挑一个地图点 **p**<sub>0</sub> 然后说它就是“那个”旋转点。嗯，你可以这么做，但它不会给出想要的效果。仅仅使用一个地图点，会给你一个围绕该点旋转地图的效果，但在屏幕上它永远会待在左上角。要把地图锚点移动到屏幕上的特定位置，你还需要在那里放一个锚点。这就是 **q**<sub>0</sub>。把两者都代入 {@eq:aff-ofs}，就能求出你需要的位移向量：**dx** = **p**<sub>0</sub>−**P·q**<sub>0</sub>。这个 **dx** 会与 **p**<sub>0</sub> 和 **q**<sub>0</sub> 都大不相同。它的路径由黑色十字准星标出。
 
-The demo lets you control both **p**<sub>0</sub> and **q**<sub>0</sub>. And rotation and scaling, of course. The full list of controls is.
+这个演示程序让你可以同时控制 **p**<sub>0</sub> 和 **q**<sub>0</sub>。当然还有旋转和缩放。完整的控制列表如下。
 
 <div class="lblock">
   <table cellpadding=1 cellspacing=0>
     <tr>
       <th>D-pad</th>
-      <td>move map rotation point, <b>p</b><sub>0</sub></td>
+      <td>移动地图旋转点，<b>p</b><sub>0</sub></td>
     </tr>
     <tr>
       <th>D-pad + A</th>
-      <td>move screen rotation point, <b>q</b><sub>0</sub></td>
+      <td>移动屏幕旋转点，<b>q</b><sub>0</sub></td>
     </tr>
     <tr>
       <th>L,R</th>
-      <td>rotate the background.</td>
+      <td>旋转背景。</td>
     </tr>
     <tr>
       <th>B(+Se)</th>
-      <td>scale up and down.</td>
+      <td>放大和缩小。</td>
     </tr>
     <tr>
       <th>St</th>
-      <td>Toggle wrapping flag.</td>
+      <td>切换环绕标志。</td>
     </tr>
     <tr>
       <th>St+Se</th>
-      <td>Reset anchors and <b>P</b></td>
+      <td>重置锚点和 <b>P</b></td>
     </tr>
   </table>
 </div>
@@ -496,7 +497,6 @@ void sbb_aff()
         }
         // rotate
         asx.alpha -= 128*key_tri_shoulder();
-
 
         // B: scale up ; B+Se : scale down
         if(key_is_down(KEY_B))

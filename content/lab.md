@@ -1,34 +1,34 @@
-# 24. The Lab
+# 24. 实验室
 
 <!-- toc -->
 
-## Lab introduction {#sec-intro}
+## 实验室简介 {#sec-intro}
 
-The Lab stands for “laboratory”, a place for me to toy with new stuff. If I have something new that may be useful, but isn't quite ready to be up anywhere else yet, I'll put it here for a while. It does mean it may get messy at times, but that's alright because that's what laboratories are for anyway. As a by-product, “lab” may double for “labyrinth”, but that's just a little bonus <kbd>:)</kbd>.
+Lab 代表"laboratory"（实验室），一个我摆弄新玩意的地方。如果我有某个可能有用、但还没完全准备好放到别处的新东西，我会先把它放在这里一阵子。这确实意味着这里有时会变得凌乱，但那没关系，因为实验室本来就是干这个的。作为副产品，"lab" 可能也双关"labyrinth"（迷宫），不过那只是个小小的额外彩蛋 <kbd>:)</kbd>。
 
-## Priority and drawing order {#sec-prio}
+## 优先级与绘制顺序 {#sec-prio}
 
-This section covers the last of the bits in the background and object control that I haven't discussed yet: <dfn>priority</dfn>. There are four priority levels, 0-3, and you can set the priority for backgrounds in [REG_BGxCNT](regbg.html#tbl-reg-bgxcnt) bits 0 and 1, and for objects in [attribute 2](regobj.html#tbl-oe-attr2), bits 10 and 11. The concept of priority is simple: higher priorities are rendered first, so they appear behind things with a lower priority. This will allow you to have objects behind backgrounds, for example.
+本节涵盖背景和对象控制中我尚未讨论的最后一点：<dfn>优先级</dfn>。有四个优先级等级，0-3，你可以在 [REG_BGxCNT](regbg.html#tbl-reg-bgxcnt) 的位 0 和 1 中设置背景的优先级，在 [attribute 2](regobj.html#tbl-oe-attr2) 的位 10 和 11 中设置对象的优先级。优先级的概念很简单：优先级越高越先渲染，所以它们在优先级更低的东西后面。这会让你能让对象位于背景之后，例如。
 
-This all sounds very simple, and it is, but there is a little more to the order of the rendering process than this. On the one hand you have the priority settings, on the other you have the obj and bg <dfn>numbers</dfn>. Objects are numbered 0 to 127, backgrounds from 0 to 3. Again, higher numbers appear behind lower numbers: in a stack of objects, obj 0 is on top; bg 0 covers the others, and objects are drawn in front of backgrounds. This is *not* due to the priority settings; in fact the whole point of priorities is so that the default order can be altered.
+这一切听起来非常简单，也确实如此，但渲染过程的顺序比这还要多一点内容。一方面你有优先级设置，另一方面你有 obj 和 bg 的<dfn>编号</dfn>。对象编号为 0 到 127，背景为 0 到 3。同样，编号越大越靠后：在一堆对象中，obj 0 在最上面；bg 0 覆盖其他背景，且对象绘制在背景前面。这*不是*由于优先级设置；实际上，优先级的全部意义就在于可以改变默认顺序。
 
-The above is true for objects and backgrounds of *the same* priority. You could argue that the final obj/bg order is composed of both the priority and the obj/bg number, where priority is the most significant part. So if, for example you have obj 1 and bg 2 at priority 0, and obj 0 and bg 1 at priority 1, the order would be obj1 (prio0), bg2 (prio0), obj0 (prio1), bg1 (prio1).
+以上对于*同一*优先级的对象和背景是成立的。你可以说最终的 obj/bg 顺序是由优先级和 obj/bg 编号共同组成的，其中优先级是最高有效部分。所以举个例子，如果你有优先级 0 的 obj 1 和 bg 2，以及优先级 1 的 obj 0 和 bg 1，顺序将是 obj1（prio0）、bg2（prio0）、obj0（prio1）、bg1（prio1）。
 
-Well, *mostly* …
+嗯，*大体上*……
 
-### The object-priority bug and object sorting {#ssec-prio-objsort}
+### 对象优先级 bug 与对象排序 {#ssec-prio-objsort}
 
-For the most part, the order is as mentioned above, except for the parts where obj 0 and obj 1 overlap. Due to a, well I guess you can call it a design flaw, the notion of order = priority.number isn't quite true: if you have two objects in which the priorities and numbers are asymmetrical and there is a background in between, the object that's supposed to be below the background will shine through the background in the region where the two objects overlap. This sounds very complicated, but that's just because words can't really capture what happens. Basically, something like obj1+prio0, bg0+prio0, obj0+prio1 will cause a pretty nasty graphical artifact if the rectangles of these objects overlap. However, obj0+prio0, bg0+prio0, obj1+prio1 will work fine, because the object numbers are now in line with the priorities.
+在大多数情况下，顺序如上所述，除了 obj 0 和 obj 1 重叠的部分。由于一个，嗯，我想你可以称之为设计缺陷，顺序 = 优先级.编号 这个概念并不完全成立：如果你有两个对象，其优先级和编号不对称，并且中间有一个背景，那么本应在背景之下的那个对象会在两个对象重叠的区域"穿透"背景显现出来。这听起来非常复杂，但那只是因为文字无法真正捕捉发生了什么。基本上，类似 obj1+prio0、bg0+prio0、obj0+prio1 这样的情况，如果这些对象的矩形重叠，就会产生相当难看的图形瑕疵。然而，obj0+prio0、bg0+prio0、obj1+prio1 会正常工作，因为对象编号现在与优先级一致了。
 
-Which brings us to <dfn>object sorting</dfn>: the process of making sure the object that should be first will actually *be* first, i.e., have a lower obj number. This is actually a separate issue from priorities, but it's nice to do them both in one go. In principle, an object sort is a sort like any other: you have an array or list of things, in this case OBJ_ATTR's, and you have to put them into order via some sort of <dfn>key</dfn>, a value that indicates what the sorted order should be.
+这就引出了<dfn>对象排序</dfn>：确保本应排第一的对象确实*是*第一，即拥有更小的 obj 编号。这其实是与优先级独立的问题，但一次性把它们都做了很好。原则上，对象排序就像任何排序一样：你有一个事物的数组或列表，这里是 OBJ_ATTR，而且你必须通过某种<dfn>键</dfn>——一个指示排序顺序应该是什么的值——把它们排好序。
 
-Now, the key can basically be anything. A lot of top-down or isometric games use Y-sorting, as higher Y-values means the object is more in the foreground. 3D and mode 7 games can use Z-sorting, of which Y-sorting is technically a special case.
+现在，键基本上可以是任何东西。许多俯视或等距游戏使用 Y 排序，因为更高的 Y 值意味着对象更靠前。3D 和 mode 7 游戏可以使用 Z 排序，而 Y 排序在技术上它是它的一个特例。
 
-You'll also need a sorting algorithm. There are plenty of them to choose from the [wiki on sorting algorithms](https://en.wikipedia.org/wiki/Sorting_algorithm). When picking an algorithm, remember that the number of items to sort here is maybe about a hundred tops, and that it's likely that the items don't change order all that often. Finally, you need a way to put the whole thing together; make it work with the sprite and OBJ_ATTR structs that you have.
+你还需要一个排序算法。有大量算法可供选择，见[排序算法 wiki](https://en.wikipedia.org/wiki/Sorting_algorithm)。选择算法时，请记住这里要排序的项数顶多大约一百个，而且这些项的顺序可能并不常变。最后，你需要一种把整个东西组合起来的方法；让它能与你拥有的精灵和 OBJ_ATTR 结构体配合工作。
 
-For the moment, I've chosen primarily for *simplicity*, not speed. The sorter, `id_sort_shell()`, uses a slightly modified version of the [Shell sort](https://en.wikipedia.org/wiki/Shellsort) algorithm found in Numerical Recipes (ch 8, pp 321). Its parameters are an array of key values and the number of elements. However, it does not sort these directly (which would be fairly pointless as they're not tied to objects here), but keeps track of the sorting results in an index table, `ids[]`.
+目前，我主要选择了*简单*，而非速度。这个排序器 `id_sort_shell()` 使用了 Numerical Recipes（第 8 章，第 321 页）中 [Shell 排序](https://en.wikipedia.org/wiki/Shellsort) 算法的一个略作修改的版本。它的参数是一个键值数组和元素个数。不过，它并不直接排序这些（那会相当无意义，因为它们在这里没有绑定到对象），而是把排序结果保存在一个索引表 `ids[]` 中。
 
-An <dfn>index table</dfn> is, well, a table of indices, obviously; it will provide the sorted order of the keys after the routine has finished. This strategy allows me to keep the object double buffer intact, which I like because it makes sprite management simpler. Also, I don't have to swap whole structs (although that's usually done by pointers anyway), and it makes the routine usable as a general sorter, not just for objects. The choice of bytes as the type for the index table does limit this, but that's just one of those space trade-offs one has to make sometimes. Changing it to use full integers isn't exactly hard, of course.
+<dfn>索引表</dfn>嘛，显然就是一张索引的表；它会在例程结束后提供键的排序顺序。这个策略让我能保持对象双缓冲完好无损，我喜欢这样，因为它让精灵管理更简单。而且，我不必交换整个结构体（尽管那通常是通过指针完成的），还让这个例程能作为通用排序器使用，而不仅仅是用于对象。选择字节作为索引表的类型确实限制了它，但那只是有时必须做的空间取舍之一。当然，把它改成用完整整数并非难事。
 
 <div id="cd-oe-sort1">
 
@@ -96,34 +96,34 @@ void foo()
 
 </div>
 
-Note that I intend the routine to be in IWRAM (and compiled as ARM code) because it's so **very f%#\$@\*g slow**! Or perhaps I shouldn't say slow, just costly.
+注意我有意让这个例程位于 IWRAM（并编译为 ARM 代码），因为它**实在慢得要命**！或者也许我不该说慢，只是代价高。
 
-Think of how a basic sort works. You have *N* elements to sort. In principle, each of these has to be checked with every other element, so that the routine's speed is proportional to *N*<sup>2</sup>, usually expressed as *O*(*N*<sup>2</sup>), where the *O* stands for order of magnitude. For sorting, *O*(*N*<sup>2</sup>) is bad. For example, when *N*=128, you would be looking at 16k checks. Times the number of cycles that the actual checks and updates would take. Not pleasant.
+想想一个基础排序是如何工作的。你有 *N* 个元素要排序。原则上，其中每一个都要与其他每一个比较，所以这个例程的速度正比于 *N*<sup>2</sup>，通常记作 *O*(*N*<sup>2</sup>)，其中 *O* 代表数量级。对于排序，*O*(*N*<sup>2</sup>) 是糟糕的。例如，当 *N*=128 时，你要面对 16k 次比较。再乘以实际比较和更新所花的周期数。不愉快。
 
-Fortunately, there are faster methods, you'd want at least an *O*(*N*·log<sub>2</sub>(*N*)) for sorting algorithms, and as you can see from the aforementioned wiki, there are plenty of those and shellsort is one of them. Unfortunately, even this can be quite expensive. Again, with *N*=128 this is still about 900, and you can be sure the multiplier can be high, as in 80+. With ARM+IWRAM, I can manage to bring that down to 20-30, and a simple exercise in assembly gives me an acceptable 13 to 22 × *N*·log<sub>2</sub>(*N*).
+幸运的是，有更快的方法，你会想要至少 *O*(*N*·log<sub>2</sub>(*N*)) 的排序算法，而且正如从上述 wiki 看到的，有很多这样的算法，shellsort 就是其中之一。不幸的是，即便这个也可能相当昂贵。同样，当 *N*=128 时这仍然大约是 900，而且你可以肯定乘数可能很高，比如 80+。用 ARM+IWRAM，我能把它降到 20-30，而一次简单的汇编练习给了我一个可接受的 13 到 22 × *N*·log<sub>2</sub>(*N*)。
 
-:::note The Big O Notation
+:::note 大 O 记号
 
-The ‘Big O’ or order notation is a useful expression for comparing algorithms. The notation is *O*( f(*N*) ), where *N* is the number of elements to work on and f(*N*) a function, usually a combination of powers and logarithms. It shows how the runtime of an algorithm rises with increasing *N*. As lower order functions will eventually be overtaken by higher order ones, the former is generally preferable.
+"大 O"或数量级记号是比较算法的一个有用表达。记号是 *O*( f(*N*) )，其中 *N* 是要处理的元素个数，f(*N*) 是一个函数，通常是幂和对数的组合。它展示了一个算法的运行时间如何随 *N* 增大而上升。由于低阶函数最终会被高阶函数超过，前者通常更可取。
 
-The keyword here, though, is ‘eventually’. It does not mention the scale of the algorithm, which varies from case to case. In some cases if *N* is low enough and the scales are different enough, a higher-order routine may actually outperform a lower-order one.
+不过，这里的关键词是"最终"。它没说明算法的规模，而规模因情况而异。在某些情况下，如果 *N* 足够低且规模差异足够大，一个高阶例程实际上可能胜过一个低阶例程。
 
 :::
 
-Now, I'll be the first to admit that the current design isn't exactly optimal anyway. Using linked lists instead of an index table may work faster, and there are other things too (the division isn't a problem, as [it can be faked](fixed.html#sec-rmdiv)). However, then it wouldn't be quite as simple anymore, which is what I was going for here.
+现在，我得承认第一个承认当前设计本身并不完全是优化的。用链表代替索引表可能更快，还有其他事情也是（除法不是问题，因为[它可以伪造](fixed.html#sec-rmdiv)）。然而，那样它就不会像现在这样简单了，而这正是我在这里所追求的。
 
-Once `id_sort_shell()` is finished, we have an table of indices arranged in such a way that `obj_buffer[sort_ids[ii]]` gives the sorted OAM entries, which is used to update to the real OAM.
+一旦 `id_sort_shell()` 完成，我们就有一张排列好的索引表，使得 `obj_buffer[sort_ids[ii]]` 给出排序后的 OAM 项，它被用来更新真实的 OAM。
 
-### Caged DNA {#ssec-prio-demo}
+### 笼中 DNA {#ssec-prio-demo}
 
-The demo for this section is probably the coolest and most complicated one yet. It features a double helix of objects, revolving around the center of a toroidal cage (see {!@fig:prio-demo}). All four backgrounds are used here, one for text (little as there is of that), and three parts of the cage: one front end, which obscures the objects, one back end that lies behind everything else and the middle of the toroid around which the the object rotate, i.e., they pass both in front and behind it at different times. And then there are the objects that form the helix. The two strands each consist of 48 spherical 16x16 objects. The strands are distinguishable by their colors: one is red and the other cyan. These will turn to dark red and cyan as they pass behind the central plane. Priority settings are used to allow the objects to pass behind nearer backgrounds, and priorities *and* sorting make the object order smooth and avoid the previously mentioned obj-bg-obj bug. To summarize:
+本节的演示大概是目前最酷也最复杂的一个。它展示了一个由对象组成的双螺旋，环绕着一个环面笼子的中心旋转（见 {!@fig:prio-demo}）。这里用了全部四个背景，一个用于文字（文字少得可怜），以及笼子的三部分：一个遮住对象的前端面，一个位于其他一切之后的后端，以及对象环绕其旋转的环面中部，即它们会在不同时刻从它前面和后面经过。然后是构成螺旋的那些对象。两条链各由 48 个球形 16x16 对象组成。这两条链通过颜色区分：一条是红色，另一条是青色。当它们经过中心平面之后时，会变成暗红和暗青。优先级设置用于让对象能经过更近的背景之后，而优先级*和*排序让对象顺序平滑，并避免前述的 obj-bg-obj bug。总结一下：
 
--   4 backgrounds with varying priority settings
--   96 objects revolving (in 3D) around a central pillar.
--   Object priorities and number sorting to ensure proper order.
--   Palette swapping to distinguish near from far objects.
+-   4 个具有不同优先级设置的背景
+-   96 个环绕（在 3D 中）中心柱旋转的对象。
+-   对象优先级和编号排序以确保正确顺序。
+-   调色板交换以区分近处与远处的对象。
 
-You can see a schematic representation of the whole thing in {@fig:prio-demo}b; @tbl:prio-demo-x explains the colors.
+你可以在 {@fig:prio-demo}b 中看到一个整体的示意图；@tbl:prio-demo-x 解释了颜色。
 
 <div class="cblock">
 <table id="fig:prio-demo"
@@ -133,47 +133,47 @@ You can see a schematic representation of the whole thing in {@fig:prio-demo}b; 
 <td>
   <div class="cpt_fr" style="width:240px;">
   <img src="img/demo/prio_demo.png"
-    alt="Priority demo"><br>
-  <b>{*@fig:prio-demo}a</b> (left): 
-    Priority and sprite order demo.
+    alt="优先级演示"><br>
+  <b>{*@fig:prio-demo}a</b> (左)：
+    优先级与精灵顺序演示。
   </div>
 <td>
   <div class="cpt_fr" style="width:240px;">
   <img src="img/demo/prio_demo_x.png"
-    alt="Priority demo schematic"><br>
-  <b>{*@fig:prio-demo}b</b>: 
-    schematic of {!@fig:prio-demo}a.
+    alt="优先级演示示意图"><br>
+  <b>{*@fig:prio-demo}b</b>：
+    {!@fig:prio-demo}a 的示意图。
   </div>
 </tbody>
 </table>
 
 <table id="tbl:prio-demo-x" class="table-data">
 <caption align="bottom">
-  <b>*@tbl:prio-demo-x</b>: legend for 
-  {!@fig:prio-demo}b.
+  <b>*@tbl:prio-demo-x</b>: 
+  {!@fig:prio-demo}b 的图例。
 </caption>
 <tr>
-  <th>color	<th>description		<th>obj/bg	<th>prio
+  <th>颜色	<th>描述		<th>obj/bg	<th>优先级
 <tr>
-  <th>yellow <td>cage near	<td>bg1	<td>prio0
+  <th>黄色 <td>近处笼子	<td>bg1	<td>prio0
 <tr>
-  <th>green	<td>cage center	<td>bg2	<td>prio1
+  <th>绿色	<td>笼子中部	<td>bg2	<td>prio1
 <tr>
-  <th>blue	<td>cage far	<td>bg3	<td>prio2
+  <th>蓝色	<td>远处笼子	<td>bg3	<td>prio2
 <tr>
-  <th>red	<td>strand 1	<td>obj_buffer[00..47]	<td>var
+  <th>红色	<td>链 1	<td>obj_buffer[00..47]	<td>var
 <tr>
-  <th>cyan	<td>strand 2	<td>obj_buffer[48..95]	<td>var
+  <th>青色	<td>链 2	<td>obj_buffer[48..95]	<td>var
 <tr>
-  <th>lt red/cyan	<td>near orbs	<td>OAM[0..47]	<td>prio 1
+  <th>浅红/青	<td>近处球	<td>OAM[0..47]	<td>prio 1
 <tr>
-  <th>dark red/cyan	<td>far orbs	<td>OAM[48..95]	<td>prio 2
+  <th>暗红/青	<td>远处球	<td>OAM[48..95]	<td>prio 2
 </table>
 </div>
 
-#### Sprites and the helix pattern
+#### 精灵与螺旋图案
 
-As you can imagine, the sprite part is the trickiest thing about this demo. The helix is inherently a three dimensional path, so we need a 3D vector for each orb's position, with the coordinates being fixed-point numbers, of course. It also needs an index to the OAM shadow, linking a sprite (the orb) to the right OBJ_ATTR (the object on screen).
+你可以想象，精灵部分是这个演示最棘手的东西。螺旋本质上是一条三维路径，所以我们需要为每个球的位置准备一个 3D 向量，坐标当然是定点数。它还需要一个到 OAM 影子缓冲的索引，把一个精灵（球）链接到正确的 OBJ_ATTR（屏幕上的对象）。
 
 ```c
 typedef struct tagSPR_BASE
@@ -189,11 +189,11 @@ SPR_BASE sprites[SPR_COUNT];    // Sprite list
 
 <div class="cpt_fr" style="width:144px;">
 <img src="img/math/helix.png" id="fig:helix" 
-  alt="3 periods of a helix" width=144><br>
-<b>*@fig:helix</b>: 3 periods of a helix.
+  alt="螺旋的 3 个周期" width=144><br>
+<b>*@fig:helix</b>: 螺旋的 3 个周期。
 </div>
 
-A helix is simply a circle parameterization extruded in the direction of its normal axis (see @fig:helix). Note the directions of the three principal axes: it is a right-handed system, with *x* and *y* following the directions of the screens axes, and *z* pointing into the screen. A helix rotating around the *y*-axis can be described by the following relation:
+螺旋只是一个圆参数化沿其法线轴方向挤出（见 @fig:helix）。注意三个主轴的方向：这是一个右手坐标系，*x* 和 *y* 遵循屏幕轴的方向，*z* 指向屏幕内部。一个绕 *y* 轴旋转的螺旋可以用下面的关系描述：
 
 <!--
 \textbf{x}(y,t)=\begin{bmatrix}
@@ -276,9 +276,9 @@ A \cdot \sin(k\cdot y+\omega t)
 </tr>
 </table>
 
-*A* is the radius of the helix, *k* is the wave number (*k*=2π/λ) and ω the angular velocity (ω=2π/*T*). The wave number defines the spacing between the layers of the helix (i.e., the pitch), the angular velocity gives the speed of rotation. Note that to create the helix in @fig:helix I actually need a negative wave number, but that's not really important right now.
+*A* 是螺旋的半径，*k* 是波数（*k*=2π/λ），ω 是角速度（ω=2π/*T*）。波数定义了螺旋各层之间的间距（即螺距），角速度给出旋转速度。注意，要创建 @fig:helix 中的螺旋，我其实需要一个负的波数，但那现在并不重要。
 
-In the actual code I'm going to make a slight change to the formula above to make ω variable without upsetting the whole helix. Instead of simply ω*t*, I'll use the integration of it for the initial phase angle: φ<sub>0</sub>=∫ω(*t*)d*t*. φ<sub>0</sub> will be a parameter to the function that creates the helix, and managed elsewhere. Another parameter for the pattern is **p**<sub>0</sub>, the reference point of the helix. You gotta have one of those.
+在实际代码中，我要对上述公式做一个小小的改动，让 ω 可变而不扰乱整个螺旋。我用它的积分作为初始相位角：φ<sub>0</sub>=∫ω(*t*)d*t*，而不是简单地 ω*t*。φ<sub>0</sub> 将是创建螺旋函数的参数，并在别处管理。图案的另一个参数是 **p**<sub>0</sub>，螺旋的参考点。你总得有一个这样的点。
 
 ```c
 // some constants
@@ -315,11 +315,11 @@ void spr_helix(const VECTOR *p0, int phi0)
 }
 ```
 
-The routine is fairly straightforward. A running counter for the *y* is kept in the form of `dp.y`, which is used to calculate the full phase, from which we get our sines and cosines. Since the red and cyan helices are in counter-phase, I can simply get the *x* and *z* offsets for one by switching the signs of the other. The only really tricky part is managing the different fixed point scales for the phase; when dealing with fixed point math, always indicate the number of fractional bits, it's so very easy to get lost there.
+这个例程相当直接。*y* 的运行计数器以 `dp.y` 的形式保存，它被用来计算完整相位，从中我们得到正弦和余弦。由于红色和青色螺旋是反相的，我可以简单地通过切换另一个的符号来得到其中一个的 *x* 和 *z* 偏移。唯一真正棘手的部分是管理相位的不同定点标度；在处理定点数数学时，始终标明小数位数，在那里太容易迷路了。
 
 
 
-Now that we have the double helix pattern, we need a way to link it to the objects, complete with sorting and all.
+现在我们已经有了双螺旋图案，我们需要一种方法把它链接到对象上，包括排序和一切。
 
 ```c
 void spr_update()
@@ -365,32 +365,32 @@ void spr_update()
 }
 ```
 
-The big loop here updates the OAM shadow, *not the real OAM*! It updates the object's position using the sprites *x* and *y* (corrected for fixed point, of course), and uses *z* to set the priority: 1 if it's on the near side (before the central pillar), and 2 if it's on the far side (behind the pillar). It *also* does something funky with the palette, which is the first hack in the function, shortly followed by the second one.
+这里的大循环更新的是 OAM 影子缓冲，*不是真实的 OAM*！它用精灵的 *x* 和 *y*（当然针对定点数做了修正）更新对象的位置，并用 *z* 设置优先级：如果在近侧（中心柱之前）则为 1，如果在远侧（柱之后）则为 2。它*还*对调色板做了些古怪的事，那是函数里的第一个 hack，紧接着很快就是第二个。
 
 <div class="cpt_fr"  style="width:120px;">
 <table id="tbl:prio-hack1" class="table-data">
 <caption align="bottom">
-  <b>*@tbl:prio-hack1</b>: object palette banks.
+  <b>*@tbl:prio-hack1</b>: 对象调色板组。
 </caption>
-<tr><th>bank	<th>color
-<tr><td>4		<td>light red
-<tr><td>5		<td> dark red
-<tr><td>6		<td>light cyan
-<tr><td>7		<td> dark cyan
+<tr><th>组	<th>颜色
+<tr><td>4		<td>浅红
+<tr><td>5		<td> 暗红
+<tr><td>6		<td>浅青
+<tr><td>7		<td> 暗青
 </table>
 </div>
 
-**Hack 1**. I've arranged the object palette in such a way that the reds are in palette banks 4 and 5, and the cyans in banks 6 and 7 (@tbl:prio-hack1). This means that I can switch between the light and dark versions by toggling the first pal-bank bit, attr2 bit 12.
+**Hack 1**。我把对象调色板安排成这样：红色在调色板组 4 和 5，青色在组 6 和 7（@tbl:prio-hack1）。这意味着我可以通过切换第一个调色板组位，即 attr2 位 12，在浅色和深色版本之间切换。
 
-Immediately after this is the second hack, creating the sort key.
+紧接其后的是第二个 hack，创建排序键。
 
-**Hack 2**. The sort key is a combination of the priority (2 bits) and the depth *z* (the rest). The lower 30 bits of `zz` work as a **signed** offset for the priority levels, so that each priority has its own depth range of \[-2\<\<30,2\<\<30⟩ if one is necessary. The problem is that the keys are also signed, which would mean that priorities 2 and 3 would count as negative and therefore be sorted in front of prio 0 and 1, which would be bad. To remedy this, I subtract 0x60000000, which shifts the range of priority 0 to the most negative range where it should be.
+**Hack 2**。排序键是优先级（2 位）和深度 *z*（其余部分）的组合。`zz` 的低 30 位作为优先级等级的**有符号**偏移，这样每个优先级都有自己的深度范围 \[-2\<\<30,2\<\<30⟩，如果需要的话。问题是键也是有符号的，这意味着优先级 2 和 3 会被算作负数，从而被排在 prio 0 和 1 之前，那就糟了。为补救这一点，我减去 0x60000000，把优先级 0 的范围移到它本应在的最负的范围内。
 
-The last part of the function updates the OAM shadow to OAM, either with or without sorting.
+函数的最后一部分把 OAM 影子缓冲更新到 OAM，可以带排序也可以不带。
 
-:::note Sorting disabled objects
+:::note 排序被禁用的对象
 
-Incidentally, you could easily modify the sort-key creation to account for disabled/hidden objects. All you'd have to do is assign the highest (signed) value to the sort-key, in this case 0x7FFFFFFF.
+顺便说一句，你可以轻松修改排序键的创建来顾及被禁用/隐藏的对象。你只需给排序键赋最高的（有符号）值，此例中为 0x7FFFFFFF。
 
 ```c
 if( (oe->attr0&ATTR0_MODE_MASK) != ATTR0_HIDE )
@@ -401,9 +401,9 @@ else
 
 :::
 
-#### Rest of code
+#### 其余代码
 
-The rest of the code is just `main()` and the initializer code. Most of the initializer code is pretty standard stuff: loading graphics, register inits and so on. The only interesting part is the object initialization, which sets the pal-banks to 0x4000 and 0x6000 for the red and cyan orbs. And because the sorting uses an index table instead of changing the object buffer itself, this is all I'll ever have to keep the primary colors correct.
+其余代码就只是 `main()` 和初始化代码。大部分初始化代码是相当标准的东西：载入图形、寄存器初始化等等。唯一有趣的部分是对象初始化，它为红色和青色的球把调色板组设为 0x4000 和 0x6000。而且因为排序用的是索引表而非直接改变对象缓冲区本身，这就是我为了一直保持原色正确所需要做的全部。
 
 ```c
 #define S_AUTO  0x0001
@@ -504,15 +504,15 @@ int main()
 <div class="cpt_fr" style="width:240px;">
 <img src="img/demo/prio_demo2.png" id="fig:prio-demo2" 
   alt=""><br>
-<b>*@fig:prio-demo2</b>: Sorting switched off.
+<b>*@fig:prio-demo2</b>: 排序已关闭。
 </div>
 
-The main loop checks for state changes, advances and updates the sprites and objects and prints the current angular velocity.
+主循环检查状态变化、推进并更新精灵和对象，并打印当前的角速度。
 
-There are two state switches in `g_state`, one that toggles the sorting procedure (`S_SORT`, with the **Select** Button), and one that sets the rotation to automatic or not (`S_AUTO`, with the **Start** Button). Toggling the sorting is interesting because you can see what happens if you just set the priorities. This has two effects (see @fig:prio-demo2: first, the orb-order in each strand would be fixed and every object would partially obscure the one on its left, which is incorrect for the receding parts of the strands. This is most visible at the right-most side, where the strands seem broken. The second effect is the object priority/number order bug where the deeper object can show through the background that's supposed to be occluding it.
+`g_state` 中有两个状态开关，一个切换排序过程（`S_SORT`，用 **Select** 键），一个设置旋转是否为自动（`S_AUTO`，用 **Start** 键）。切换排序很有意思，因为你能看到如果只设置优先级会发生什么。这有两个效果（见 @fig:prio-demo2）：首先，每条链中的球顺序会被固定，每个对象都会部分遮挡它左边的那一个，这对于链中后退的部分是不正确的。这在最右侧最明显，那里链看起来是断裂的。第二个效果是对象优先级/编号顺序 bug，即更深的对象会穿透本应遮挡它的背景显示出来。
 
-The start button toggles between automatic and manual rotation. During automatic mode, you can change ω with the **L** and **R** Buttons. In manual mode, L and R update the phase with the current angular speed. By setting the speed really low, you can examine what happens in more detail. For example, you can clearly see that the objects in the vertical centerline are in front of both their left and right neighbors, exactly what one would expect. Unless the sorting is off, that is.
+Start 键在自动和手动旋转之间切换。在自动模式下，你可以用 **L** 和 **R** 键改变 ω。在手动模式下，L 和 R 用当前角速度更新相位。把速度设得真的很低，你可以更细致地观察发生了什么。例如，你可以清楚地看到处于垂直中心线的对象位于它左右邻居的前面，正是人们所预期的。除非排序被关掉，那就是了。
 
-And that concludes the topic of priorities and object sorting. Remember that the priorities of objects and backgrounds aren't the only thing that determine the rendering order, the obj or bg number is also important for each priority level. Once you start mixing objects and background priorities, make sure that the object numbers follow the same order as their priorities, and that often means object sorting.
+到此为止关于优先级和对象排序的话题就结束了。请记住，对象和背景的优先级并非决定渲染顺序的唯一因素，obj 或 bg 编号对每个优先级等级也很重要。一旦你开始混合对象和背景优先级，请确保对象编号遵循与它们的优先级相同的顺序，而这通常意味着对象排序。
 
-I've discussed a simple and flexible sorting method, but I warn you that it does take its time. If it's good enough, by all means use it. If it's not, faster methods can certainly be created. Linked lists, range checks, handcrafted assembly (see *id_sort_shell2.s* in the *prio_demo* directory for example) can all help make it faster. but the final implementation will be up to you.
+我讨论了一种简单而灵活的排序方法，但我警告你它确实费时。如果它够好，尽管用。如果不够，更快的方法肯定能造出来。链表、范围检查、手工汇编（例如见 *prio_demo* 目录中的 *id_sort_shell2.s*）都能帮助它更快。但最终的实现将取决于你。

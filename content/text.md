@@ -1,16 +1,16 @@
-# 19. Text systems
+# 19. 文本系统
 
 <!-- toc -->
 
 
 
-:::note Deprecation notice
+:::note 弃用通知
 
-This chapter has been superceded by [TTE](tte.html). Information from this chapter can still be useful, but for serious work, TTE should be preferred.
+本章已被 [TTE](tte.html) 取代。本章中的信息仍可能有用，但若用于严肃工作，应优先使用 TTE。
 
 :::
 
-## Introduction {#sec-intro}
+## 简介 {#sec-intro}
 
 <div id="{#cd-hello}">
 
@@ -26,44 +26,44 @@ int main()
 
 </div>
 
-Aaah, yes, “Hello world”: the canonical first example for every C course and system. Except for consoles. While printing text on a PC is the easiest thing in the world, it is actually a little tricky on a console. It's not that there's no `printf()` function, but rather that there is nowhere for it to write to or even a font to write with (and that's hardly the full list of things to consider). Nope, if you want to be able to display text, you'll have to build the whole thing from scratch yourself. And you do want to be able to write text to the screen,
+啊，没错，“Hello world”：每个 C 语言课程和系统的经典第一个例子。主机（console）除外。虽然在 PC 上打印文本是世界上最简单的事，但在主机上其实有点棘手。倒不是因为没有 `printf()` 函数，而是因为根本没地方让它往里写，甚至也没有用来写字的字体（而且需要考虑的东西远不止这些）。不，如果你想显示文本，就得完全从零自己构建。而你确实希望能在屏幕上写字，
 
-So, what do we need for a text system? Well, that's actually not a simple question. Obviously, you need a font. Just a bitmap with the various characters here, no need to depress ourselves with vector-based fonts on a GBA. Second, you need a way of taking specific characters and show them on the screen.
+那么，文本系统需要什么？嗯，这其实不是个简单的问题。显然，你需要一个字体。就是一张包含各种字符的位图，在 GBA 上没必要用矢量字体让自己郁闷。其次，你需要一种方法把特定字符显示到屏幕上。
 
-But wait a minute, which video mode are we using? There's tilemaps, bitmap modes and sprites to choose from, all of which need to be dealt with in entirely different ways. Are we settling for one of them, or create something usable for all? Also, what is the font we're using, and what are the character sizes? Fixed width or variable width? Variable width and sizes aren't much of a problem for the bitmap modes, but it's a bitch to splice them for tiles. Also, just for tiles, do we keep the full font in VRAM? If so, that's a lot of tiles, especially considering you'll hardly be using all of them at the same time. It would be more VRAM efficient to only copy in the glyphs that you're using at that time. This will take some management, though.
+不过等等，我们用的是哪种视频模式？有图块、位图模式和精灵可供选择，它们全都需要用完全不同的方式来处理。我们是只支持其中一种，还是做一个对所有模式都适用的东西？另外，我们用的字体是什么，字符尺寸多大？定宽还是变宽？变宽和变尺寸在图块模式下问题不大，但要把它们拼接到图块里就麻烦了。还有，仅就图块而言，我们要把整个字体都保留在 VRAM 里吗？那样会占用大量图块，尤其是考虑到你几乎不会同时用到所有字符。只把当时用到的字形复制进去对 VRAM 更省，但这需要一些管理。
 
-Just with these items, you'd have enough options for over 20 different text system implementations, all incompatible in very subtle ways. At the very least you'll need `putc()` and `puts()` for each. And then perhaps a `printf()`-like function too; for each text-type, mind you, because glyph placement goes on the inside. Maybe a screen clear too; or how about scrolling functionality. Well, you get the idea.
+仅凭这些条目，就足以衍生出 20 多种互不兼容的文本系统实现，它们之间的差异非常微妙。至少每种都需要一个 `putc()` 和一个 `puts()`。也许还需要一个 `printf()` 之类的函数；注意，是针对每种文本类型各写一个，因为字形摆放是在内部进行的。也许还需要清屏功能；或者滚动功能怎么样？嗯，你大概明白了。
 
-I suppose it's possible to create a big, complicated system, tailoring to every need anyone could possibly have. But I'm not going to. Firstly, because it's a bit waste of time: the chances you'll need the ability to run, say, bitmap and tilemap modes concurrently are virtually –if not actually– nil. Most of the time, you'll use a single video mode and stick to that. Spending time (and space) for allow every variation imaginable, when hardly any will ever be used is probably not worth the trouble. Besides, writing tons of code that is almost identical except for some small detail in the heart of the routine is just plain bleh.
+我觉得做一个庞大、复杂的系统，去迎合任何人可能有的所有需求是有可能的。但我不会这么做。首先，因为这有点浪费时间：你几乎（甚至根本）不可能需要同时运行位图和图块地图模式。大多数时候，你会只用一种视频模式并坚持用它。为所有可能的变体花时间（和空间），而它们几乎永远不会被用到，可能并不值得。此外，写大量几乎一模一样、只是在例程核心处有细微差别的代码，实在很无聊。
 
-The point of this chapter is to show how to build and use a set of simple, lightweight text writers. Don't expect the mother of all text systems, I'm mainly interested in getting the essential thing done, namely getting the characters of a string on the screen. This is a core text system, with the following features:
+本章的目的在于展示如何构建并使用一组简单、轻量的文本写入函数。别指望什么终极文本系统，我主要感兴趣的是把本质的事做完，也就是把字符串里的字符显示到屏幕上。这是一个核心文本系统，具备以下特性：
 
-- Bitmap (mode 3, 4, 5), regular tilemap (mode 0, 1) and sprite support.
-- There will be a `xxx_puts()` for showing the string, and a `xxx_clrs()` to wipe it. Their arguments will a string, the position to plot to, and some color information. If you want scrolling and/or format specifiers, I'll leave that up to you.
-- The font is a fixed width, monochrome font with one 8x8 tile per character. The glyphs can be smaller than 8x8, and I'll even leave in hooks that allow variable widths, but things just get horrible if I'd allowed for multi-tile fonts.
-- A variable character map. This is a great feature if you plan on using only a small set of characters, or non-ascii glyph orders.
+- 位图（模式 3、4、5）、常规图块地图（模式 0、1）和精灵支持。
+- 会有一个 `xxx_puts()` 用于显示字符串，还有一个 `xxx_clrs()` 用于清除它。它们的参数是字符串、要绘制到的位置，以及一些颜色信息。如果你想要滚动和/或格式说明符，我留给你自己实现。
+- 字体是定宽、单色的字体，每个字符对应一个 8x8 图块。字形可以小于 8x8，我甚至会留下支持变宽的钩子，但要是允许多图块字体事情就糟透了。
+- 可变的字符映射。如果你想只用一小部分字符，或非 ascii 的字形排列顺序，这是个很棒的特性。
 
-This arrangement allows for the most basic cases and allows for some variations in set-up, but very little on the side. However, those extras would probably be very game specific anyway, and might be ill suited for a general text system. If you want extras, it shouldn't be too hard to write them yourself.
+这种安排能覆盖最基本的情况，并允许在设置上有一些变化，但在其他方面变化很少。然而，那些额外的功能多半与具体游戏强相关，可能并不适合放到通用文本系统里。如果你想要额外功能，自己写应该不难。
 
-:::note No printf(). O rly?
+:::note 没有 printf()。真的吗？
 
-I said that there is no `printf()` on the GBA, but this isn't quite true; not anymore, anyway. It is possible to hook your own IO-system to the standard IO-routines, which is done in `libgba`.
-
-:::
-
-:::note Semi-obsolete
-
-I have another text system here that is much more powerful (as in, really working on every video mode and has a printf too) than what's described in this page. However, it's rather large, not completely finished and it would take some time to write the description page and alter the text to fit the demos again. A libtonc version that has the relevant changes can be found at [http://www.coranac.com/files/misc/tonclib-1.3b.rar](http://www.coranac.com/files/misc/tonclib-1.3b.rar).
+我说过 GBA 上没有 `printf()`，但这并不完全正确；至少现在不成立了。可以把自己的 IO 系统挂接到标准 IO 例程上，这正是 `libgba` 所做的。
 
 :::
 
-## Text system internals {#sec-in}
+:::note 半过时
 
-### Variables {#ssec-in-tb}
+我这里还有另一个文本系统，比本页描述的要强大得多（也就是真正能在每种视频模式下工作，并且也有 printf）。不过它相当庞大，尚未完全完成，而且要写描述页面、把文本改得适合这些演示程序还需要花些时间。带有相关改动的 libtonc 版本可以在 [http://www.coranac.com/files/misc/tonclib-1.3b.rar](http://www.coranac.com/files/misc/tonclib-1.3b.rar) 找到。
 
-For keeping track of the text-system's state, we'll need a couple of variables. The obvious variables are a font and a character map. Because I like to keep things flexible, I'll also use two pointers for these so that you can use your own font and char-map if you want. You also need to know where it is you want to write to, which is done via a base-destination pointer. As extras, I'll also have character size variables for variable glyph spacing, and even a pointer to a char-width array, for a possible variable-width font.
+:::
 
-I'll use a struct to store these, partially because it's easier for me to maintain, but also because the CPU and compiler can deal with them more efficiently. I'll also leave a few bytes empty for any eventual expansion. Finally, an instance of this struct, and a pointer to it so you can switch between different systems if you ever need to (which is unlikely, but still). Yes, I am wasting a few bytes, but if you max out IWRAM over this, I dare say you have bigger problems to worry about.
+## 文本系统内部原理 {#sec-in}
+
+### 变量 {#ssec-in-tb}
+
+为了跟踪文本系统的状态，我们需要几个变量。最明显的变量是字体和字符映射。因为我喜欢保持灵活，我还会为它们各用一个指针，这样你就可以用自己的字体和字符映射（如果你愿意）。你还需要知道要往哪里写，这通过一个基准目标指针来实现。作为额外项，我还会为可变字形间距准备字符尺寸变量，甚至还有一个指向字符宽度数组的指针，用于可能的变宽字体。
+
+我会用一个结构体来存储这些，部分是因为我维护起来更容易，也因为 CPU 和编译器能更高效地处理结构体。我还会留几个字节的空位以便将来扩展。最后，是这个结构体的一个实例，以及一个指向它的指针，以便你在需要时能（虽然不太可能，但依然可以）在不同系统间切换。是的，我是在浪费几个字节，但如果你因为这个把 IWRAM 用爆了，我敢说你还有更大的麻烦要操心。
 
 ```c{#cd-txt-base}
 // In text.h
@@ -85,25 +85,25 @@ TXT_BASE __txt_base;                Main TXT_BASE instance
 TXT_BASE *gptxt= &__txt_base;        and a pointer to it
 ```
 
-### The font {#ssec-in-font}
+### 字体 {#ssec-in-font}
 
 <div class="lblock">
   <div class="cpt" style="width:400px;">
     <img src="img/tonc_font.png" alt="Default tonc font" id="fig:img-tonc-font">
     <br>
 
-**{\*@fig:img-tonc-font}**: Default tonc font: mini-ascii, monochrome, 8x8 pixels per glyph.
+**{\*@fig:img-tonc-font}**：默认的 tonc 字体：mini-ascii，单色，每字形 8x8 像素。
 
   </div>
 </div>
 
-@fig:img-tonc-font shows the font I'll be using. This particular font is monochrome and each of the glyphs fits into an 8x8 box. The 96 glyphs themselves a subset of the full ASCII that I'll refer to as <dfn>mini-ascii</dfn>. It's the lower ascii half that contains the majority of the standard ASCII table, but leaves out ASCII 0-31 because they're escape codes and not really part of the printable characters anyway.
+@fig:img-tonc-font 展示了我将要使用的字体。这个特定字体是单色的，每个字形都装进一个 8x8 的方框里。这 96 个字形本身是整个 ASCII 的一个子集，我称之为 <dfn>mini-ascii</dfn>。它是包含标准 ASCII 表大部分内容的下半部分，但去掉了 ASCII 0-31，因为它们是转义码，本来就不是可打印字符。
 
-It is possible to use a different font with another glyph order, but the functions I'll present below rely on one tile per glyph, _and_ in tile layout. I need this arrangement because I intend to use it for all modes, and non single-tile formats would be hell in tile modes.
+也可以使用另一种字形排列顺序的不同字体，但我下面给出的函数依赖每个字形只用一个图块、而且是图块布局。我需要这种排列，因为我要让它对所有模式都适用，而非单图块的格式在图块模式下简直是噩梦。
 
-Another restriction is that the font must be bitpacked to 1bpp. I have a couple of reasons for this. First, there is the size consideration. A 96 glyph, 16bit font (for modes 3/5) would take up 12kB. Pack that to 1bpp and it's less that one kB! Yes, you're restricted to monochrome, but for a font, that's really not much of a problem. Often fonts are monochrome anyway and using 16 bits where you only need one seems a bit of a waste. Secondly, how would you get a 16bpp font to work for 4bpp or 8bpp tiles? Going from a low bpp to a higher one is just a lot easier. Of course, if you don't like this arrangement, feel free to write your own functions.
+另一个限制是字体必须被打包成 1bpp。我有几个理由。首先，是体积考虑。一个 96 字形、16 位的字体（用于模式 3/5）会占用 12kB。打包成 1bpp 后不到 1kB！是的，你被限制为单色，但对字体来说这其实问题不大。字体通常本来就是单色的，而只用 1 位却用了 16 位似乎有点浪费。其次，你怎么让一个 16bpp 字体用于 4bpp 或 8bpp 图块？从低位深到高位深要容易得多。当然，如果你不喜欢这种安排，尽管自己写函数。
 
-As for the font data itself, here is the whole thing.
+至于字体数据本身，就是下面这一整坨。
 
 <pre id="cd-toncfont"><code class="language-c hljs">const unsigned int toncfontTiles[192]=
 {
@@ -136,15 +136,15 @@ As for the font data itself, here is the whole thing.
 };
 </code></pre>
 
-Yes, this is the _entire_ font, fitting nicely on one single page. This is what bitpacking can do for you but, like any compression method, it may be a little tricky seeing that it is indeed the font given earlier, so here's a little explanation of what you got in front of you.
+是的，这就是 _整个_ 字体，很整齐地放在一页上。这就是位打包（bitpacking）能为你做的事，但就像任何压缩方法一样，要看出这确实是前面那个字体可能有点费劲，所以这里对眼前所见稍作解释。
 
-#### Bitpacking
+#### 位打包
 
 <div class="cpt_fr">
 <table id="tbl:endian" class="table-data">
 <caption align="bottom">
-  <b>{@tbl:endian}</b>: Big endian vs little 
-  endian interpretation of byte-sequence 01h, 02h, 03h, 04h
+  <b>{@tbl:endian}</b>: 大端（big endian）与小端（little 
+  endian）对字节序列 01h、02h、03h、04h 的解释对比
 </caption>
 <tbody align="center">
 <tr>
@@ -161,13 +161,13 @@ Yes, this is the _entire_ font, fitting nicely on one single page. This is what 
 </table>
 </div>
 
-Bitpacking isn't hard to understand. Data is little more a big field of bits. In bitpacking, you simply drop bits at regular intervals and tie the rest back together. Our font is monochrome, meaning we only have one bit of information. Now, even in the smallest C datatype, bytes, this would leave 7 bits unused if you were to use one byte per pixel. However, you could also cram eight pixels into one byte, and thus save a factor 8 in space. For the record, that's a compression level of 88%, pretty good I'd say. Of course, if you read all the other pages already, you'd have already recognized instances of bitpacking: 4bpp tiles are bitpacked with 2 pixels/byte. So this stuff shouldn't be completely new.
+位打包并不难理解。数据不过是一个庞大的比特场。在位打包中，你只需按固定间隔把比特丢进去，再把剩下的重新拼接起来。我们的字体是单色的，意味着我们只有 1 比特的信息。现在，即使在最小的 C 数据类型——字节里，如果你每个像素用一字节，也会留下 7 个比特没用。但你也可以把 8 个像素塞进一个字节，从而节省 8 倍的空间。顺便说一下，这相当于 88% 的压缩率，我觉得相当不错。当然，如果你读过所有其他页面，你已经见过位打包的例子了：4bpp 图块就是用每字节 2 像素的方式打包的。所以这些东西不该完全陌生。
 
-Bitpacking can save a lot of room, and in principle, it's easy to do, as it's just a matter of masking and shifting. There is one major catch, however: <dfn>endianness</dfn>. You already seen one incarnation of this in other data-arrays: the word `0x01234567` would actually be stored as the byte-sequence `0x67`, `0x45`, `0x23`, `0x01` on ARM (and intel) systems. This is called <dfn>little-endian</dfn>, because the little end (the lower bytes of a multi-byte type) of the word are stored in the lower addresses. There is also <dfn>big-endian</dfn>, which stores the most significant bytes first. You can see the differences in @tbl:endian. Some hex editors or memory viewers (in VBA for example) allow you to switch viewing data as bytes, halfwords or words, so you can see the differences interactively there. Please remember that the data itself does _not_ change because of this, you just _look_ at it in a different way.
+位打包能节省大量空间，原则上也很容易做，因为它无非是掩码和移位。但有一个大陷阱：<dfn>字节序（endianness）</dfn>。你在其他数据数组里已经见过它的一个样子了：在 ARM（和 intel）系统上，字 `0x01234567` 实际上会存储为字节序列 `0x67`、`0x45`、`0x23`、`0x01`。这被称为 <dfn>小端（little-endian）</dfn>，因为字的低位端（多字节类型的低字节）被存储在低地址。也有 <dfn>大端（big-endian）</dfn>，它先把最高有效字节存起来。你可以在 @tbl:endian 中看到差异。某些十六进制编辑器或内存查看器（例如在 VBA 中）允许你切换以字节、半字或字的方式查看数据，因此你可以在那里交互式地看到差异。请记住数据本身并不会因此改变，你只是以不同方式 _看_ 它。
 
-For bitpacking, you also have to deal with endianness at the bit level. The font data is packed in a consistent bit-little and byte-little format for three reasons. First, this is how GBA bitpacked stuff works anyway, so you can use the BIOS BitUnpack routine for it. Second, it is a more natural form in terms of counting: lower bits come first. Third, because you can shift down all the time and discard covered bits that way, masking is easier and faster. Now, big-endian would be more natural visually due to the fact we write numbers that way too, so bitmaps are often bit-little as well. Windows BMP files, for example, these have their leftmost pixels in the most significant bits, making them bit-big. However, Windows runs on Intel architecture, which is actually _byte_ little-endian, for maximum confusion. Sigh. Oh well.
+对于位打包，你还要在比特层面处理字节序。字体数据采用一致的“比特小端、字节小端”格式打包，原因有三。首先，GBA 的位打包数据本来就是这样工作的，所以你可以用 BIOS 的 BitUnpack 例程来处理它。其次，就计数而言它是一种更自然的形式：低位比特先来。第三，因为你始终可以向下移位并用这种方式丢弃被覆盖的比特，掩码操作更简单、更快。而大端在视觉上更自然，因为我们写数字也是大端的，所以位图通常也是比特小端。例如 Windows 的 BMP 文件，其最左像素在最高有效位里，使它成为比特大端。然而，Windows 运行在 Intel 架构上，而 Intel 实际上是 _字节_ 小端的，这造成了最大的混乱。唉。算了。
 
-In case it's still a bit hazy, @fig:img-fontpack shows how the ‘F’ is packed from 8x8 pixels into 2 words. All 64 pixels are numbered 0 to 63. These correspond to the bit-numbers. Each eight successive bits form a byte: 0-7 make up byte 0, 8-15 form byte 1, etc. Note how the bits seem to mirror horizontally, because we generally write numbers big-endian. So try to forget about that and think of bits in memory to walk through from 0 to 63. You can also view the bits as words, bits 0-31 for word 0 and 32-63 for word 1.
+如果还是有点模糊，@fig:img-fontpack 展示了‘F’是如何从 8x8 像素打包成 2 个字的。所有 64 个像素被编号为 0 到 63。它们对应比特编号。每 8 个连续比特组成一个字节：0-7 组成字节 0，8-15 组成字节 1，依此类推。注意比特看起来像是水平镜像了，因为我们通常大端地写数字。所以试着忘掉那个，把内存里的比特想象成从 0 走到 63。你也可以把比特看作字，比特 0-31 是字 0，32-63 是字 1。
 
 <div class="cblock">
 <div class="cpt">
@@ -247,26 +247,26 @@ In case it's still a bit hazy, @fig:img-fontpack shows how the ‘F’ is packed
     </table>
    </tbody>
 </table>
-  <b>@fig:img-fontpack</b>: 
-  &lsquo;F&rsquo;, from 8x8 tile to 1bpp bit-little, byte-little 
-  words.
+  <b>@fig:img-fontpack</b>： 
+  ‘F’，从 8x8 图块到 1bpp 比特小端、字节小端的 
+  字。
 </div>
 </div>
 </div>
 
-### Character map {#ssec-in-charmap}
+### 字符映射 {#ssec-in-charmap}
 
-Having the mini-ascii font is nice and all but as strings are full-ascii, this may present a problem. Well, not really, but there are several ways of going about the conversion.
+有了 mini-ascii 字体固然好，但字符串是完整 ascii 的，这可能带来问题。嗯，其实也不是，只是有几种转换方法。
 
-First, you can create a giant switch-block that converts, say, ‘A’ (ascii 65) into glyph-index 33. And do that for all 96 glyphs. It should be obvious that this is a dreadful way of going about things. Well it _should_, but apparently it's not because code like that is out there; I only mention it here so you can recognize it for what it is and stay to far, far away from it. Simply put, if you have a switch-block where the only difference between the cases is returning a different offset –and a _fixed_ offset at that– you're doing something very, very wrong.
+首先，你可以写一个巨大的 switch 块，把比如‘A’（ascii 65）转换成字形索引 33，然后对所有 96 个字形都这么做。应该很明显，这是处理此事的可怕方式。嗯，它 _应该_ 很明显，但显然并非如此，因为那种代码确实存在；我在这里提到它只是为了让你能认出它并远离、远离、再远离。简而言之，如果你有个 switch 块，其中各 case 之间唯一的区别只是返回一个不同的偏移量——而且是个 _固定的_ 偏移量——那你就是在做非常、非常错误的事。
 
-A second method which is an enormous improvement in every way is to simply subtract 32. That's how mini-ascii was defined after all. Quick, short, and to the point.
+第二种方法在所有方面都是巨大的改进，就是简单地减去 32。毕竟 mini-ascii 就是这样定义的。快捷、简短、切中要害。
 
-However, I kinda like the third option: look-up tables. We've already seen how useful LUTs can be for mathematics, but you can use them for a lot more than that. In this case, the lut is a <dfn>charcter map</dfn>, containing the glyph-index for each ascii character. This has almost all the benefits of the simple subtract (a look-up may be a few cycles slower), but is much more flexible. For example, you can have non-ascii charmaps or alias the cases, things like that. Another ‘interesting’ thing is that you don't really need the font to be text as such, it can be any kind of mapped image data; with a lut you could easily use the text system for drawing borders, as long as you have a border ‘font’ for it. The lut I'm using is 256 bytes long. This may not be enough for Unicode (sorry Eastern dudes), but it's enough to suit my purposes.
+不过，我有点喜欢第三种选择：查找表。我们已经见识过 LUT 在数学上有多有用，但你能用它做的事远不止于此。在这种情况下，lut 是一个 <dfn>字符映射</dfn>，包含每个 ascii 字符的字形索引。它几乎具备简单减法（一次查找可能慢几个周期）的所有好处，但灵活得多。例如，你可以使用非 ascii 的字符映射，或给某些情况起别名，诸如此类。另一个“有趣”之处是，你其实不需要字体本身是文字，它可以是任何类型的映射图像数据；有了 lut，你可以轻松地用文本系统来绘制边框，只要你有一套边框“字体”即可。我用的 lut 长 256 字节。这对 Unicode 来说可能不够（抱歉东方朋友们），但足以满足我的目的。
 
-#### General design
+#### 通用设计
 
-The first thing to do code-wise is to initialize the members of the text-base. That means attach the font, set the glyph sizes, and initialize the lut. This can be done with `txt_init_std()`.
+代码层面要做的第一件事是初始化文本基结构体（text-base）的成员。这意味着挂接字体、设定字形尺寸，并初始化 lut。这可以用 `txt_init_std()` 完成。
 
 ```c
 
@@ -288,7 +288,7 @@ void txt_init_std()
 }
 ```
 
-Depending on the type of text, you may need more specialized initializers, which we'll get to when the time comes. As for writing a string, the basic structure can bee seen below. It's actually quite simple and very general, but unfortunately the fact that `xxx_putc()` is in the inner loop means that you have to have virtually identical wrappers around each char-plotter for each text method. I also have functions called `xxx_clrs()` that clear the string from the screen (they don't wipe the whole screen). They are almost identical to their `puts()` siblings in form and also rather simple, so I won't elaborate on them here.
+取决于文本的类型，你可能需要更专门的初始化函数，这个我们到时候再谈。至于写字符串，基本结构如下。它其实相当简单且通用，但不幸的是，`xxx_putc()` 在内层循环里意味着你必须针对每种文本方法在各自的字符绘制函数外面包上一层几乎相同的包装。我还有叫 `xxx_clrs()` 的函数，用于把字符串从屏幕上清除（它们不会擦掉整个屏幕）。它们在形式上和各自的 `puts()` 兄弟几乎一样，也很简单，所以这里不细说。
 
 ```c
 // Pseudo code for xxx_puts
@@ -309,13 +309,13 @@ void xxx_puts(int x, int y, const char *str, [[more]])
 }
 ```
 
-## Bitmap text {#sec-bm}
+## 位图文本 {#sec-bm}
 
-Bitmap text concerns modes 3, 4 and 5. If you can do mode 3, you pretty much have mode 5 as well, as the two differ only by the pitch and, perhaps, the starting point. Mode 4 is different, not only because it's 8bpp, but also because this means we have to do 2 pixels at once.
+位图文本涉及模式 3、4 和 5。如果你能做模式 3，就基本上也会做模式 5，因为两者只差间距（pitch）和可能的起始点。模式 4 不同，不仅因为它是 8bpp，还意味着我们必须一次处理 2 个像素。
 
-### Internal routines {#ssec-bm-intl}
+### 内部例程 {#ssec-bm-intl}
 
-I tend to do bitmap related functions in two parts: there are internal 16bit and 8bit functions that take an address and pitch as their arguments, and then inline interface functions with coordinates that call these. The internal 16bit writer is given in below, with an explanation of the main parts below that.
+我倾向于把位图相关函数分成两部分：有内部 16 位和 8 位函数，它们以地址和间距（pitch）为参数；然后是带坐标的内联接口函数，它们调用这些内部函数。下面的内部 16 位写入函数给出在此，其后的几段解释主要部分。
 
 ```c{#cd-bm16-puts}
 void bm16_puts(u16 *dst, const char *str, COLOR clr, int pitch)
@@ -350,16 +350,16 @@ void bm16_puts(u16 *dst, const char *str, COLOR clr, int pitch)
 }
 ```
 
-1.  Traditional way to loop through all characters in a string. `c` will be the character we have to deal with, unless it's the delimiter (`'\0'`), then we'll stop.
-2.  Normal char/control char switch. Control characters like `'\n'` and `'\t'` should be taken care of separately. I'm only checking for the newline right now, but others could easily be added.
-3.  This is where it gets interesting. What this line does is first use the lut to look up the glyph index in the font, look up the actual glyph in the font (multiply by 2 because there are 2 words/glyph), and then set-up a byte-pointer `pch` to point to the glyph.  
-    A couple of things come together here. First, because all glyphs are exactly 8 bytes apart, finding the glyph data is very easy. If you create your own text system with your own fonts, I'd advise using constant offsets, even if it wastes pixels like you would for small characters like ‘I’. Second, because of the 1bpp tiled format, each row is exactly one byte long, and all the glyphs bits are in consecutive bytes, so you don't have to jump around for each new row. This is a good thing.
-4.  The `ix` loop is even more interesting. First, we read the actual row of pixels into the (word) variable `row`. To test whether we need to write a pixel, we simply check for a given bit. However, because the packing is _little_ endian, this allows for two shortcuts.  
-    The first one is that looping through the bits goes from low to high bits, meaning that we can simply shift-right on each iteration and test bit 0. The corollary to this is that the bits we've already done are thrown away, and _this_ means that when `row` is 0, there will be no more pixels, and we're done for that row. As this short-circuit happens inside the inner of a _triple_ loop, the speed-up can be substantial.
+1.  遍历字符串中所有字符的传统方式。`c` 将是我们要处理的字符，除非它是定界符（`'\0'`），那样我们就停止。
+2.  普通字符/控制字符的切换。像 `'\n'` 和 `'\t'` 这样的控制字符要分开处理。我现在只检查换行符，但其他也很容易加。
+3.  这里变得有趣了。这一行先用 lut 在字体里查找字形索引，再用该索引在字体里找到实际字形（乘以 2，因为每个字形有 2 个字），然后设置一个字节指针 `pch` 指向该字形。
+    几件事在这里汇合。首先，因为所有字形都恰好相隔 8 字节，找字形数据非常容易。如果你用自己的字体、自己的文本系统，我建议用固定偏移，即便像‘I’这样的窄字符会浪费像素。其次，由于 1bpp 的图块格式，每行恰好 1 字节长，且所有字形比特是连续字节，所以你不必为每行新行跳来跳去。这很好。
+4.  `ix` 循环更有意思。首先，我们把实际的一行像素读进（字）变量 `row`。要测试是否需要写像素，只需检查给定比特。然而，由于打包是 _小_ 端的，这允许两个捷径。
+    第一点是遍历比特是从低位到高位，意味着每次迭代我们只需向右移位并测试第 0 位。其推论是我们已经处理过的比特被丢弃，而 _这_ 意味着当 `row` 为 0 时就不会再有像素了，这一行也就完成了。由于这个短路发生在 _三重_ 循环的内层，加速效果可能相当可观。
 
-This function only does the bare essentials to get a string on screen. It plots the non-zero pixels only (transparent characters), there is no wrapping at the side and no scrolling. The only non-trivial feature is that it can do line-breaks. When those happen, the cursor returns to the original x-position on screen.
+这个函数只做把字符串放上屏幕的 bare essential。它只绘制非零像素（透明字符），没有边缘换行，也没有滚动。唯一非平凡的特性是它能处理换行。发生换行时，光标回到屏幕上的原始 x 位置。
 
-The 8bit function is almost identical to this one, ‘almost’ because of the no-byte-write rule for VRAM. The obvious ones are that the pitch and character spacing need to be halved. I'm also making it **requirement** that the start of each character needs to be on an even pixel boundary. By doing so, you can have an almost identical inner loop as before; it just does two pixels in it instead of one. Yes, it's a hack; no, I don't care.
+8 位函数与这个几乎一致，“几乎”是因为 VRAM 的“不可单字节写”规则。显而易见的是间距（pitch）和字符间距要减半。我还要让一个 **要求** 生效：每个字符的起始必须落在偶数像素边界上。这样，你就能有一个几乎和之前一样的内层循环；只是它一次处理两个像素而非一个。是的，这是个 hack；不，我不在意。
 
 ```c{#cd-bm8-puts}
 void bm8_puts(u16 *dst, const char *str, u8 clrid)
@@ -384,9 +384,9 @@ void bm8_puts(u16 *dst, const char *str, u8 clrid)
 }
 ```
 
-### Interface functions {#ssec-bm-iface}
+### 接口函数 {#ssec-bm-iface}
 
-The interface functions are straightforward. All they have to do is set-up the destination start for the internal routines, and for the 16bit versions, provide a pitch. Mode 3 uses `vid_mem` as its base, and mode 4 and 5 use `vid_page` to make sure it works with page flipping. `m4_puts()` also ensures that the characters start at even pixels, and please remember that this routine uses a color-index, rather than a true color.
+接口函数很直接。它们要做的只是为内部例程设置目标起点，对 16 位版本还要提供间距（pitch）。模式 3 用 `vid_mem` 作基准，模式 4 和 5 用 `vid_page` 以确保它能配合页翻转工作。`m4_puts()` 还确保字符起始于偶数像素，并请记住这个例程用的是颜色索引而非真实颜色。
 
 ```c{#cd-mx-puts}
 // Bitmap text interface. Goes in text.h
@@ -400,11 +400,11 @@ INLINE void m5_puts(int x, int y, const char *str, COLOR clr)
 {    bm16_puts(&vid_page[y*160+x], str, clr, 160);    }
 ```
 
-### Clearing text {#ssec-bm-clrs}
+### 清除文本 {#ssec-bm-clrs}
 
-Doing a text clear is almost the same as writing out a string. The only functional difference is that you're always putting a space (or rather, a solid filled rectangle) instead of the original characters. You still need the full string you tell you how long the line goes on, and how many lines there are.
+做文本清除和写出字符串几乎一样。唯一的功能差异是，你始终放一个空格（或者更准确地说，一个实心填充矩形）而非原始字符。你仍然需要完整的字符串来告诉你每行有多长、有多少行。
 
-With that in mind, the `bm16_clrs()` function below shouldn't be that hard to understand. The whole point of it is to read the string to find out the length in pixels of each line in the string (`nx*gptxt->dx`), then fill the rectangle spanned by that length and the height of the characters (`gptxt->dy`). There's some bookkeeping to make sure it all goes according to plan, but in the end that's all it does. The same goes for the clear routines of the other text-types, so I'm not going to show those.
+考虑到这一点，下面 `bm16_clrs()` 函数应该不难理解。它的全部要点是读取字符串，找出字符串中每行的像素长度（`nx*gptxt->dx`），然后填充由该长度和字符高度（`gptxt->dy`）所跨越的矩形。有一些簿记以确保一切按计划进行，但归根结底它就做这些。其他文本类型的清除例程也一样，所以我不展示那些。
 
 ```c{#cd-bm16-clrs}
 void bm16_clrs(u16 *dst, const char *str, COLOR clr, int pitch)
@@ -438,13 +438,13 @@ void bm16_clrs(u16 *dst, const char *str, COLOR clr, int pitch)
 }
 ```
 
-## Tilemap text {#sec-tile}
+## 图块地图文本 {#sec-tile}
 
-In some ways, text for tile-modes is actually easier than for bitmaps, as you can just stuff the font into a charblock and then you don't need any reference to the font itself anymore. That is, unless you want to have a variable width font, in that case you'll be in bit-shifting hell. But I'm sticking to a fixed width, single tile font, which keeps things very simple indeed.
+在某些方面，图块模式的文本实际上比位图更容易，因为你可以直接把字体塞进一个 charblock，之后就不需要再引用字体本身了。也就是说，除非你想要变宽字体，那样你就会陷入位移的噩梦。但我坚持用定宽、单图块字体，这让事情非常简单。
 
-### Tile initialisation {#ssec-tile-init}
+### 图块初始化 {#ssec-tile-init}
 
-The first order of business is to be able to unpack the font to either 4 or 8 bit. The easiest way of doing this is to just setup a call to `BitUnpack()` and be done with it. However, VBA's implementation of it isn't (or wasn't, they may have fixed it by now) quite correct for what I had planned for it, so I'm going to roll my own. Arguments `dstv` and `srcv` are the source and destination addresses, respectively; `len` is the number of source bytes and `bpp` is the destination bitdepth. `base` serves two purposes. Primarily, it is a number to be added to all the pixels if bit 31 is set, or to all except zero values if it is clear. This allows a greater range of outcomes than just the 0 and 1 that a source bitdepth of one would supply; and an other cute trick that I'll get to later.
+第一件事是能够将字体解包到 4 位或 8 位。最简单的做法是直接调用 `BitUnpack()` 然后完事。不过，VBA 对它的实现对于我原本的打算并不完全（或曾经不完全，他们现在也许修好了）正确，所以我自己写一个。参数 `dstv` 和 `srcv` 分别是目标和源地址；`len` 是源字节数，`bpp` 是目标位深。`base` 有两个用途。主要地，它是一个要加到所有像素上的数（若第 31 位置位），或加到除零值之外的所有像素上（若清零）。这比源位深为 1 时只提供 0 和 1 能得到多得多的结果；以及一个我稍后会讲到的可爱小技巧。
 
 ```c{#cd-txt-bup}
 // Note, the BIOS BitUnpack does exactly the same thing!
@@ -481,9 +481,9 @@ void txt_bup_1toX(void *dstv, const void *srcv, u32 len, int bpp, u32 base)
 }
 ```
 
-The actual map-text initialization is done by `txt_init_se()`. Its first two arguments are exactly what you'd expect: the background that the system should use for text and the control-flags that should go there (charblock, screenblock, bitdepth, all that jazz). The third argument, `se0`, indicates the ‘base’ for palette and tile indexing, similar to the base for unpacking. The format is just like normal screen entries: `se0`{0-9} indicate the tile offset, and `se0`{C-F} are for the 16 color palette bank. `clrs` contains the color for the text, which will go into the palette indicated by the sub-palette and the fifth argument, `base`, the base for bit-unpacking.
+实际的图块地图文本初始化由 `txt_init_se()` 完成。它的前两个参数正是你期望的：系统应把文本用到的背景，以及应当写到那里的控制标志（charblock、screenblock、位深，等等）。第三个参数 `se0` 指示调色板和图块索引的“基准”，类似于解包用的基准。其格式和普通屏幕条目一样：`se0`{0-9} 表示图块偏移，`se0`{C-F} 用于 16 色调色板 bank。`clrs` 包含文本的颜色，它将进入由子调色板指示的调色板，以及第五个参数 `base`，即位解包的基准。
 
-For now, ignore the _second_ color in `clrs`, and the extra palette write for 4 bpp. In all likelihood, you don't want to know. I'm going to tell you about them [later](#ssec-demo-se1) anyway, though.
+现在，先忽略 `clrs` 中的 _第二个_ 颜色，以及 4bpp 的额外调色板写入。十有八九你不想知道。不过我反正会在[后面](#ssec-demo-se1)告诉你。
 
 ```c{#cd-txt-init-se}
 void txt_init_se(int bgnr, u16 bgcnt, SB_ENTRY se0, u32 clrs, u32 base)
@@ -513,13 +513,13 @@ void txt_init_se(int bgnr, u16 bgcnt, SB_ENTRY se0, u32 clrs, u32 base)
 }
 ```
 
-If you don't want to deal with all kinds of offsets, you can just leave the third and fifth arguments zero. It's probably not a good idea to leave the others zero, but for those two it's not a problem.
+如果你不想处理各种偏移，只需把第三和第五个参数置零即可。把其他参数置零可能不是好主意，但这两个没问题。
 
-### Screen entry writer {#ssec-tile-puts}
+### 屏幕条目写入函数 {#ssec-tile-puts}
 
-This is arguably the most simple of the text writers. As there is one glyph per screen entry, all you have to do is write a single halfword to the screenblock in the right position and you have a letter. Repeat this for a whole string.
+这可以说是所有文本写入函数里最简单的。因为每个屏幕条目对应一个字形，你要做的只是在正确位置往 screenblock 写半个字就得到一个字母。对整个字符串重复即可。
 
-There are a few things to note about this implementation, though. First, like before, no kind of wrapping or scrolling. If you want that, you'll have to do all that yourself. Also, the _x_ and _y_ coordinates are still in _pixels_, not tiles. I've done this mainly for consistency with the other writers, nothing more. Oh, in case you hadn't noticed before, `gptxt->dst0` is initialized to point to the start of the background's screenblock in `txt_init_se()`. Lastly, `se0` is added to make up the actual screen entry; if you had a non-zero `se0` in initialization, chances are you'd want to use it here too.
+关于这个实现有几点要注意。首先，和之前一样，没有换行或滚动。如果你想要，得自己全部实现。另外，_x_ 和 _y_ 坐标仍以 _像素_ 计，而非图块。我这样做主要是为了与其他写入函数保持一致，仅此而已。哦，如果你之前没注意到，`gptxt->dst0` 在 `txt_init_se()` 里被初始化为指向背景 screenblock 的起始。最后，`se0` 被加进去构成实际的屏幕条目；如果在初始化时你用了非零的 `se0`，很可能在这里也想用它。
 
 ```c
 void se_puts(int x, int y, const char *str, SB_ENTRY se0)
@@ -538,9 +538,9 @@ void se_puts(int x, int y, const char *str, SB_ENTRY se0)
 }
 ```
 
-## Sprite text {#sec-obj}
+## 精灵文本 {#sec-obj}
 
-Sprite text is similar to tilemap text, only you use OBJ_ATTRs now instead of screen entries. You have to set the position manually (attributes 0 and 1), and attribute 2 is almost the same as the screen entry for regular tilemaps. The initializer `txt_init_obj()` is similar to `txt_init_se()`, except that the tilemap details have been replaced by their OAM counterparts. Instead of a screenblock, we point to a base OBJ_ATTR `oe0`, and `attr2` works in much the same way as `se0` did. The code is actually simpler because we can always use 4bpp tiles for the objects that we use, without upsetting the others.
+精灵文本和图块地图文本相似，只是你现在用 OBJ_ATTR 而非屏幕条目。你必须手动设置位置（属性 0 和 1），而属性 2 和常规图块地图的屏幕条目几乎一样。初始化函数 `txt_init_obj()` 类似 `txt_init_se()`，只是图块地图的细节被它们对应的 OAM 项替代了。我们指向一个基准 OBJ_ATTR `oe0` 而非 screenblock，`attr2` 的工作方式和 `se0` 差不多。代码实际上更简单，因为我们总能对所用的对象用 4bpp 图块，而不会干扰其他的。
 
 ```c
 // OAM text initializer
@@ -584,9 +584,9 @@ void obj_puts(int x, int y, const char *str, u16 attr2)
 }
 ```
 
-The structure of the writer itself should feel familiar now. The `attr2` again acts as a base offset to allow palette swapping and an offset tile start. Note that I'm only entering the position in attributes 0 and 1, and nothing else. I can do this because the rest of the things are already set to what I want, namely, 8x8p sprites with 4bpp tiles and no frills. Yes, this may screw things up for some, but if I _did_ mask out everything properly, it'd screw up other stuff. This is a judgement call, feel free to disagree and change it.
+写入函数本身的结构现在应该让人感到熟悉了。`attr2` 再次作为一个基准偏移，以允许调色板切换和图块的偏移起始。注意我只设置了属性 0 和 1 中的位置，别的什么都没设。我能这么做是因为其余东西已经被设成我想要的，也就是 8x8p 精灵、4bpp 图块、毫无花哨。是的，这可能搞砸某些人的东西，但如果我 _真的_ 把所有位都正确掩掉，又会搞砸别的东西。这是个判断问题，你完全有理由不同意并改掉它。
 
-That writer always starts at a fixed OBJ_ATTR, overwriting any previous ones. Because that might be undesirable, I also have a secondary sprite writer, `obj_puts2`, which takes an OBJ_ATTR as an argument to serve as the new base.
+那个写入函数总是从一个固定的 OBJ_ATTR 开始，覆盖之前的所有项。因为这可能不合人意，我还有一个次级精灵写入函数 `obj_puts2`，它接受一个 OBJ_ATTR 作为参数，作为新的基准。
 
 ```c
 INLINE void obj_puts2(int x, int y, const char *str, u16 attr2, OBJ_ATTR *oe0)
@@ -596,15 +596,15 @@ INLINE void obj_puts2(int x, int y, const char *str, u16 attr2, OBJ_ATTR *oe0)
 }
 ```
 
-There are some side notes on memory use that I should mention. Remember, there are only 128 OBJ*ATTRs, and at one entry/glyph it may become prohibitively expensive if used extensively. In the same vein, 1024 tiles may seem like a lot, but you can run out quickly if you have a couple of complete animations in there as well. Also, remember that you only have 512 tiles in the bitmap modes: a full ASCII character set in bitmap modes would take up \_half* the sprite tiles!
+关于内存使用我得提一些附带说明。记住，只有 128 个 OBJ_ATTR，而每个字形一项，若广泛使用可能会贵得离谱。同理，1024 个图块看起来很多，但如果你还在里面放了几套完整动画，很快会用光。另外，记住在图块模式下你只有 512 个图块：位图模式下的完整 ASCII 字符集会占用精灵图块的 \_一半*！
 
-If you're just using it to for a couple of characters you're not likely to run into trouble, but if you want screens full of text, you might be better of with something else. There are ways to get around these things, of course; quite simple ways, even. But because they're really game-specific, it's difficult to give a general solution for it.
+如果你只是用它显示几个字符，不太可能遇到麻烦，但如果你想要满屏文本，或许用别的更好。当然，有绕开这些的办法；甚至是很简单的办法。但因为它们确实与具体游戏强相关，很难给出通用的解决方案。
 
-## Some demos {#sec-demo}
+## 一些演示程序 {#sec-demo}
 
-### Bitmap text demo {#ssec-demo-bm}
+### 位图文本演示 {#ssec-demo-bm}
 
-I suppose I could start with “Hello world”, but as that's pretty boring I thought I'd start with something more interesting. The `txt_bm` demo does something similar to `bm_modes`: namely show something on screen and allow switching between modes 3, 4 and 5 to see what the differences are. Only now, we're going to use the bitmap `puts()` versions to write the actual strings indicating the current mode. Because that's still pretty boring, I'm also going to put a movable cursor on screen and write out its coordinates. Here's the full code:
+我想我本可以从“Hello world”开始，但那相当无聊，所以我想从更有趣的东西开始。`txt_bm` 演示做的和 `bm_modes` 类似：即在屏幕上显示些东西，并允许在模式 3、4、5 间切换以查看差异。只是现在我们用位图 `puts()` 的版本来写出指示当前模式的字符串。因为这仍相当无聊，我还要在屏幕上放一个可移动的光标，并写出它的坐标。完整代码如下：
 
 ```c{#cd-txt-bm}
 #include <stdio.h>
@@ -706,40 +706,40 @@ int main()
 
 <div class="cpt_fr" style="width:240px;">
 <img src="img/demo/txt_bm.png" alt="" id="fig:img-txt-bm"><br>
-<b>@fig:img-txt-bm</b>: <tt>txt_bm</tt> demo.
+<b>@fig:img-txt-bm</b>: <tt>txt_bm</tt> 演示程序。
 </div>
 
-Controls:
+操作方式：
 
 <table>
 <tbody valign="top">
-<tr><th>D-pad<td>Moves cursor.
-<tr><th>Start<td>Toggles string clearing.
-<tr><th>L, R<td>Decrease or increase mode.
+<tr><th>D-pad<td>移动光标。
+<tr><th>Start<td>切换字符串清除。
+<tr><th>L, R<td>减小或增大模式。
 </tbody>
 </table>
 
-Many things here should be either self explanatory or fairly irrelevant. The interesting things are indicated by numbers, so let's go through them, shall we?
+这里许多东西应该要么不言自明，要么毫不相关。有趣的地方用数字标出，所以我们依次过一遍，好吗？
 
-**1. Mode indicators**. This is where we write three strings to VRAM, indicating the modes. Note that the interfaces are nearly identical; the only real difference is that the fourth argument for `m4_puts()` is a palette index, rather than a real color.
+**1. 模式指示器**。这是我们往 VRAM 里写三个字符串、指示模式的地方。注意接口几乎一致；唯一的真正区别是 `m4_puts()` 的第四个参数是调色板索引而非真实颜色。
 
-**2. Clear previous cursor-string**. The cursor string keeps track of the cursor as you move across the screen. The first thing you'll notice is that the string turns into a horrible mess because the bitmap writers only write the _non-zero_ pixels of the font. In other words, it does _not_ clear out the rest of the space allotted for that glyph. Essentially `mx_puts()` are transparent string writers.
+**2. 清除之前的光标字符串**。光标字符串随着你在屏幕上移动而跟踪光标。你会注意到的第一件事是，字符串变成一团可怕的乱码，因为位图写入函数只写字体中 _非零_ 的像素。换句话说，它 _不_ 清除该字形其余空间。本质上 `mx_puts()` 是透明字符串写入函数。
 
-Sure, I could have added a switch that would erase the whole glyph field to the writers. Quite easily, actually, it only takes an extra `else` clause. However, the current way is actually more practical. For one thing, what if you actually _want_ transparency? You'd have to write another routine just for that. The method I've chosen is to have an extra clearing routine (which you'd probably need anyway). To overwrite the whole glyphs, simply call `mx_clrs()` first; which is what I'm doing here. Well, as long as the `bClear` variable is set (toggle with Start).
+当然，我本可以给写入函数加一个能擦掉整个字形区域的开关。其实很容易，只要多一个 `else` 子句。然而，现在这种方式其实更实用。一方面，要是你真的 _想要_ 透明呢？你就得另写一个例程专门做那个。我选的方法是多一个清除例程（你大概反正也需要它）。要覆盖整个字形，只需先调用 `mx_clrs()`；这正是我在这里做的。嗯，只要 `bClear` 变量被置位（用 Start 切换）。
 
-A second reason is that this method is just so much faster. Not only because I wouldn't be able to use my premature breaking from the `ix`-loop if I had to erase the whole field and the mere presence of an extra branch adds more cycles (inside a triple loop), but plotting individual characters will always be slower than to do it by whole blocks at a time. `mx_clrs()` uses `memset16()`, which is basically `CpuFastSet()` plus safeties, and will be faster after just a mere half a dozen pixels.
+第二个理由是这种方式快得多。不仅因为如果我要擦掉整个区域就没法用 `ix` 循环里的提前跳出，而且仅多一个分支就会增加周期（在三重循环内），但绘制单个字符终究比整块地处理要慢。`mx_clrs()` 用的是 `memset16()`，它基本是 `CpuFastSet()` 加上安全保护，在仅仅半打像素之后就会更快。
 
-Oh, in case you're wondering why I'm talking about `mx_clrs()` when the code mentions `bm_clrs()`, the latter function is merely a function that uses a switch-block with the current bitmap mode to call the correct mode-specific string clearer.
+哦，要是你奇怪我为什么在说 `mx_clrs()` 而代码里写的是 `bm_clrs()`，后一个函数只不过是个用 switch 块根据当前位图模式来调用正确模式专属字符串清除器的函数。
 
-**3. Updating the cursor string**. As the writers don't have format specification fields, how can we write numbers? Simple, use `sprintf()` to prepare a string first, and then use that one instead. Or rather, use `siprintf()`. This is an integer-only version of `sprintf()`, which is better suited to GBA programming since you're not supposed to use floating point numbers anyway. It should be relatively simple to create functions to wrap around `siprintf()` and `mx_puts()`, but I'm not sure it's worth the effort.
+**3. 更新光标字符串**。由于写入函数没有格式说明符字段，怎么写数字？简单，先用 `sprintf()` 准备好字符串，再用那个。或者更准确地说，用 `siprintf()`。这是 `sprintf()` 的整数专用版本，更适合 GBA 编程，因为你本来就不该用浮点数。包一层 `siprintf()` 和 `mx_puts()` 来写应该相对简单，但我不确定是否值得费劲。
 
-I should perhaps point out that using `siprintf` and other routines that can turn numbers into strings use division by 10 to do so, and you know what that means. And even if you do not ask it to convert numbers, it calls a dozen or so routines from the standard library, which adds around 25kb to your binary. This isn't much for ROM, but for multiboot things (256kb max) it may become problematic. With that in mind, I'd like you to take a look at **posprintf** by [Dan Posluns](https://www.danposluns.com/gbadev/). This is hand-coded assembly using a special algorithm for the decimal conversion. It may not be as rich in options as `siprintf()`, but it's both faster and smaller by a very large margin, so definitely worth checking out.
+我或许该指出，用 `siprintf` 及其他能把数字变成字符串的例程，会用到除以 10 来完成，你也知道那意味着什么。即便你不要求它转换数字，它也会调用标准库里十来个例程，给你的二进制文件增加约 25kb。这对 ROM 不算多，但对多引导（multiboot，上限 256kb）可能是个问题。有鉴于此，我建议你看看 [Dan Posluns](https://www.danposluns.com/gbadev/) 的 **posprintf**。这是手工编写的汇编，用一种特殊的十进制转换算法。它的选项可能不如 `siprintf()` 丰富，但速度和体积都要好得多，绝对值得一看。
 
-**4. Write cursor string**. This writes the current cursor string to position (80, 120). Like in the cases of wiping the string, I'm using a `bm_puts()` function that switches between the current mode writers.
+**4. 写光标字符串**。这把当前光标字符串写到位置 (80, 120)。和擦除字符串的情况一样，我用的是 `bm_puts()` 函数，它在当前模式写入函数之间切换。
 
-### Sprite text; Hello world! {#ssec-demo-obj}
+### 精灵文本；Hello world! {#ssec-demo-obj}
 
-Yes! Hello world! Now, in principle, all you have to do is call `txt_init()`, `txt_init_obj()` and then `obj_puts()` with the right parameters, but again that's just boring, so I'll add some interesting things as well. The `txt_obj` demo shows one of the things best performed with sprites: individual letter animation. The letters of the phrase “hello world!” will fall from the top of the screen, bouncing to a halt on the floor (a green line halfway across the screen).
+没错！Hello world！原则上，你要做的只是用正确参数调用 `txt_init()`、`txt_init_obj()` 和 `obj_puts()`，但那又很无聊，所以我也加点有趣的东西。`txt_obj` 演示展示了用精灵能做得最好的一件事：单个字母动画。“hello world!”这个短语的字母会从屏幕顶部落下，弹跳着停在地面（屏幕中间偏下的一条绿线）上。
 
 ```c{#cd-txt_obj}
 #include <tonc.h>
@@ -845,17 +845,17 @@ int main()
 <div class="cpt_fr" style="width:240px;">
   <img id="fig:img-txt-obj" src="img/demo/txt_oe.png" />
 
-**{@fig:img-txt-obj}**: `txt_obj` demo.
+**{@fig:img-txt-obj}**：`txt_obj` 演示程序。
 
 </div>
 
-Very little of this code is actually concerned with the string itself, namely the items 1, 2 and 3. There's a call to `txt_init_std()` for the basic initialization and a call to the sprite text initializer, `txt_init_obj()`. The second argument is the base for attribute 2 (if you don't remember what attribute 2 is, see the chapter on [sprites](regobj.html#ssec-obj-attr2) again); `0xF200` means I'm using the sub-palette 15 and start the character tiles at tile-index 512 (because of the bitmap mode). The font color will be yellow, and out at index 255. That's 240 from the pal-bank, `0x0E`=14 from the unpacking and 1 for the actual 1bpp pixels 240+14+1=255. After this call, I'm also setting the horizontal pixel offset to 12 to spread out the letters a little bit. After that, I just call `obj_puts2()` to set up the first few sprites of OAM so that they show “hello world!” centered at the top of the screen.
+这段代码里真正和字符串本身相关的很少，即第 1、2、3 项。有一处调用 `txt_init_std()` 做基本初始化，一处调用精灵文本初始化函数 `txt_init_obj()`。第二个参数是属性 2 的基准（如果你不记得属性 2 是什么，请再看一遍[精灵](regobj.html#ssec-obj-attr2)那一章）；`0xF200` 意味着我用子调色板 15，并从图块索引 512（因为位图模式）开始字符图块。字体颜色是黄色，出来在索引 255。那是调色板 bank 的 240，解包出来的 `0x0E`=14，再加上实际 1bpp 像素的 1，240+14+1=255。这次调用之后，我还将水平像素偏移设为 12，让字母之间稍微散开。之后，我就调用 `obj_puts2()` 设置 OAM 的头几个精灵，使它们显示居中于屏幕顶部的“hello world!”。
 
-I could have stopped there, but the demo is actually just beginning. The thing about using sprites as glyphs is that they can still _act_ as normal sprites; `obj_puts()` just sets them up to use letters instead of graphics that are more sprite-like.
+我本可以到此为止，但这个演示其实才刚开始。用精灵作字形的妙处在于它们仍能 _作为_ 普通精灵行动；`obj_puts()` 只是把它们设置成使用字母而非更像精灵的图形。
 
-#### Bouncy, bouncy, bouncy
+#### 蹦跶，蹦跶，蹦跶
 
-The goal here is to let the letters drop from the top of the screen, the bounce up again when it hits a floor, but with a little less speed than before due to friction and what not. Physically, the falling part is done using a constant acceleration, _g_. Acceleration is the change in velocity, so the velocity is linear; velocity is the change in position, so the height is parabolic. At the bounce, we do an <dfn>inelastic collision</dfn>; in other words, one where energy is lost. In principle, this would mean that the difference between the squares of the velocities before and after the collision differ by a constant ( \|**v**<sub>out</sub>\|<sup>2</sup> - \|**v**<sub>in</sub>\|<sup>2</sup> = Q ). However, this would require a square root to find the new velocity, and I don't care for that right now so I'm just going to scrap the squares here. I'm sure there are situations where this is actually quite valid <kbd>:P</kbd>. As a further simplification, I'm doing a first-order integration for the position. With this, the basic code for movement becomes very simple
+这里的目标是让字母从屏幕顶部落下，撞到地面时再弹起，但速度比之前略小（因为摩擦之类）。物理上，下落部分用恒定加速度 _g_ 完成。加速度是速度的变化，所以速度呈线性；速度是位置的变化，所以高度呈抛物线。在弹跳时，我们进行<dfn>非弹性碰撞（inelastic collision）</dfn>；换句话说，就是有能量损失的情况。原则上，这意味着碰撞前后速度平方之差为一个常数（ \|**v**<sub>out</sub>\|<sup>2</sup> - \|**v**<sub>in</sub>\|<sup>2</sup> = Q ）。然而，这要求开平方根来求新速度，我现在不想那样，所以我在这里直接把平方丢掉。我相信在某些情况下这其实是相当合理的 <kbd>:P</kbd>。作为进一步简化，我对位置用一阶积分。这样，移动的基本代码变得非常简单
 
 ```c
 // 1D inelastic reflections
@@ -875,7 +875,7 @@ if(y>ymay)  // collision
 }
 ```
 
-This could be replaced by the following, more accurate code, using second-order integration and ‘proper’ recoil, but you hardly notice anything from the improved integration. I actually prefer the look of the simple, linear recoil over the square root though.
+这可以用下面更准确、用二阶积分和“恰当”回弹的代码替代，但你几乎察觉不到改进带来的差异。不过，我其实更喜欢简单线性回弹的样子，胜过硬开平方根。
 
 ```c
 // accelerate
@@ -893,11 +893,11 @@ if(x>xmax)  // collision
 }
 ```
 
-### Map text : colors and borders {#ssec-demo-se1}
+### 图块地图文本：颜色与边框 {#ssec-demo-se1}
 
-Next up is the first of two map text demos. The official name for what I call a regular background is “text background”, and they're called that for a reason: in most cases when there is text, it's done using regular backgrounds. Of course, in most cases everything else is _also_ done with those, so strictly speaking associating them with “text” is a misnomer, but we'll let that one slide for today. The first demo is about how you can use the text functions for a variety of effects. Apart from simply showing text (boring), you'll see palette swapping and framing text, and how you can easily use different fonts and borders concurrently. Because of the way I've designed my functions, all this takes is a change in a parameter. Cool huh.
+接下来是两个图块地图文本演示中的第一个。我称之为常规背景的东西，官方名称是“文本背景（text background）”，它们被这么叫是有原因的：大多数有文本的情况，都是用常规背景完成的。当然，大多数情况下其他一切也 _是_ 用那些完成的，所以严格地把它们和“文本”联系起来是种误称，不过我们今天先不纠结。第一个演示是关于如何用文本函数实现各种效果。除了简单地显示文本（无聊），你还会看到调色板切换和给文本加框，以及如何轻松同时使用不同字体和边框。由于我对函数的设计方式，这一切只需要改一个参数。很酷吧。
 
-The demo will also feature adding shading to a monochrome font, and adding an opaque background for it. Now, the way I'm going about this will probably reserve me a place in the Computer Science Hell, but, well, the coolness of the tricks will probably keep me from burning up there.
+这个演示还会展示给单色字体加阴影，以及给它加不透明背景。我采取的做法大概会让我在计算机科学地狱里占个位，不过嘛，这些技巧的酷劲儿大概能让我免于在那里被烧。
 
 ```c{#cd-txt_se1}
 #include <tonc.h>
@@ -1029,35 +1029,35 @@ int main()
       <td>
         <div class="cpt" style="width:240px">
           <img src="img/demo/txt_se1.png" alt="txt_se1 demo"><br>
-          <b>{@fig:img-txt-se1}a</b>: First map text demo.
+          <b>{@fig:img-txt-se1}a</b>: 第一个图块地图文本演示。
         </div>
       <td>
         <div class="cpt" style="width:256px">
           <img src="img/demo/txt_se1_tiles.png" alt="txt_se1 tileset"><br>
-          <b>{@fig:img-txt-se1}b</b>: accompanying tileset.
+          <b>{@fig:img-txt-se1}b</b>: 配套的图块集。
         </div>
   </table>
 </div>
 
-#### Code rundown
+#### 代码解析
 
-@fig:img-txt-se1 shows what this code produces. All the actual text drawing is done in the main function, and I'll go by them one by one. The first three things are red, green and blue text (point 4a), done using palette swapping. I've loaded up red, green and blue to palette indices `0x1F`, `0x2F` and `0x3F` (point 3), and can switch between them with the last parameter of `se_puts()`, which you will recall is added to each of the screen entries. The values `0x1000`, `0x2000` and `0x3000` indicate that we'll use palette banks 1, 2 and 3, respectively.
+@fig:img-txt-se1 展示了这段代码产生的效果。所有实际文本绘制都在 main 函数里完成，我逐一讲解。前三件事是红色、绿色和蓝色文本（第 4a 点），通过调色板切换实现。我把红、绿、蓝载入调色板索引 `0x1F`、`0x2F` 和 `0x3F`（第 3 点），并用 `se_puts()` 的最后一个参数在它们之间切换，你会记得这个参数被加到每个屏幕条目上。值 `0x1000`、`0x2000` 和 `0x3000` 表示我们将使用调色板 bank 1、2、3。
 
-If you look closely, you'll see that fourth text (point 4b) is yellow with a magenta (no it's not pink, it's _magenta_) shading on the right edge of each letter. At least part of this is done with the `se0` parameter, which is now `0xF080`. The reason it's shaded is because of the last part: I'm actually using a slightly different font, one that starts at tile 128. I'll repeat, the reason I can do all this with the same function is because of that offset parameter of `se_puts()`.
+如果你仔细看，会看到第四个文本（第 4b 点）是黄色，每个字母的右边缘有洋红色（不，它不是粉色，是 _洋红_）阴影。至少部分原因是 `se0` 参数，现在是 `0xF080`。它有阴影是因为最后一部分：我其实用了一个略不同的字体，从图块 128 开始。我重复一遍，我之所以能用同一个函数做所有这些，是因为 `se_puts()` 的那个偏移参数。
 
-Points (5a) and (5b) are for framing, and the text inside it. The function `txt_se_frame()` draws my border. It takes a rectangle as its input, and draws a frame on it. Note that the frame includes the top-left, but excludes the bottom-right. Again, I have one extra `se0` parameter as an offset. This is how the second border is actually done; I just offset the thing by the difference between border tiles.
+第 (5a) 和 (5b) 点是给文本加框以及框内文本。`txt_se_frame()` 函数绘制我的边框。它输入一个矩形，并在其上画一个框。注意这个框包含左上角，但不包含右下角。同样，我有一个额外的 `se0` 参数作为偏移。第二个边框就是这样完成的；我只是用边框图块之间的差异来偏移它。
 
-The borders themselves are actually drawn pretty much as if they were text. In `init()` I've reassigned nine characters in the character lut to use the tile indices for the primary border tileset (point 2). There is no particular reason I'm doing this, other than the mere fact that I can. Just illustrating the things you can do with a text writer and some clever lut manipulation.
+边框本身的绘制其实和把它当文本画差不多。在 `init()` 里，我把字符 lut 中的 9 个字符重新指派为使用主边框图块集的图块索引（第 2 点）。我这么做没有特别理由，仅仅是出于我能这么做。只是展示一下你用文本写入函数和一点巧妙的 lut 操作能做的事。
 
-The texts inside the frames are an interesting story as well. As you can see from the text in the first frame, the standard text doesn't quite work. The problem is that the main tileset I'm using is transparent, but the frame's background isn't. Mix the two and they'll clash. So how to solve that? Well, you create _another_ font, one that does not have 0 as its background color. There are a number of ways to do that, one of them being adding 1\<\<31 to the bit-unpacking flag. But I'm opting for another method, which I'll get into later. Note that whatever I'm doing, it does work: the text in the second frame is opaque after all. Note that I'm writing that text using pal-bank 14, and am now using a _third_ tileset for the fonts.
+框内的文本也是个有趣的故事。正如你在第一个框里的文本所看到的，标准文本并不完全奏效。问题是我用的主图块集是透明的，而框的背景不是。把两者混在一起就会冲突。那怎么解决？嗯，你创建 _另一个_ 字体，一个不以 0 作为背景色。有几种做法，其中之一是对位解包标志加 1\<\<31。但我选另一种方法，稍后讲。注意无论我做什么，它确实有效：第二个框里的文本确实是不透明的。注意我写那段文本用的是 pal-bank 14，而且现在用的是 _第三_ 个字体图块集。
 
-Now, up to this point it's all been pretty easy. The usage of `se_puts()` and `txt_se_frame()` I mean. I hope you understood all of the above, because the rest is going to be pretty interesting. Not quite “oh god, oh god, we're all gonna die”-interesting, but still a mite hairy for some.
+到现在为止一切都相当容易。我是指 `se_puts()` 和 `txt_se_frame()` 的用法。我希望你理解了上面所有内容，因为剩下的会相当有趣。倒不是“天呐天呐我们要完蛋了”那种有趣，但对某些人来说还是有点毛骨悚然。
 
-#### Bit fiddling fun
+#### 玩弄比特的乐趣
 
-I've indicated that I'm using three different fonts. But if you study the code, you will find no trace of font definitions or copies. That's because there are none: it's all based on the same bit-packed font I showed earlier. Also, the mathematically inclined will have noticed that bitpacking a 1bpp font will result in two colors. That's what 1bpp _means_, after all. But I have a background color, a foreground color, and shading; that's three. Furthermore, there doesn't seem to be any code that does the shading. This all leads to one simple question, namely: what the hell am I doing?
+我已经指明我用了三种不同字体。但如果你研究代码，会发现没有任何字体定义或副本的痕迹。因为根本没有：它们全都基于我前面展示的同一个位打包字体。而且，有数学头脑的人会注意到，位打包一个 1bpp 字体会得到两种颜色。毕竟那是 1bpp 的 _意思_。但我有一个背景色、一个前景色，还有阴影；那是三种。此外，似乎没有任何代码在做阴影。这一切引出一个简单的问题：我到底在搞什么鬼？
 
-Well … this:
+嗯……是这个：
 
 ```c
 #define TID_FONT           0
@@ -1081,13 +1081,13 @@ for(ii=0; ii<96*8; ii++)
     *pwd++ |= quad8(TXT_PID_BG);
 ```
 
-These six statements set up the three fonts, complete with shading and opacity. The first one sets up the standard font, in charblock 0, screenblock 31, pal-bank 1 and using `0x0E` for the bit-unpacking offset, so that the text color is at `0x1F`. We've seen the same thing with the object text.
+这六条语句设置了三个字体，包括阴影和不透明。第一个设置标准字体，在 charblock 0、screenblock 31、pal-bank 1，并用 `0x0E` 作位解包偏移，使文本色在 `0x1F`。我们在对象文本里见过同样的东西。
 
 <div class="cpt_fr">
 <table id="tbl:bupshade">
 <caption align="bottom">
-  <b>*@tbl:bupshade</b>: 
-  bit-unpacking with with base <code>0xEE</code>.
+  <b>*@tbl:bupshade</b>： 
+  以 base <code>0xEE</code> 进行位解包。
 </caption>
 <tbody align="center">
   <tr>
@@ -1133,31 +1133,31 @@ These six statements set up the three fonts, complete with shading and opacity. 
 </table>
 </div>
 
-The second call to `txt_se_init()` sets up the second font set, the one with shading. `se0` indicates the use of pal-bank 15 and to start at 128, but the important stuff happens in the `clrs` and `base` parameters. There are now two colors in `clrs`, yellow and magenta. The lower halfword will be the text color, and the upper halfword the shading color.
+对 `txt_se_init()` 的第二次调用设置了第二组字体，即带阴影的那组。`se0` 指示使用 pal-bank 15 并从 128 开始，但关键部分发生在 `clrs` 和 `base` 参数里。现在 `clrs` 中有两种颜色，黄色和洋红色。下半字是文本色，上半字是阴影色。
 
-The actual shading happens because of the value of `base`, which is `0xEE`, and the way the whole bit-unpacking routine works. The offset is added to each ‘on’-bit in the packed font, giving `0xEF`, which is then ORred to the current word with the appropriate shift. Because we're dealing with a 4bpp font, the result will actually overflow into the next nybble. Now, if the next bit is also on, it'll OR `0xEF` with the overflow value of `0x0E`. As `0xF` \| `0xE` is just `0xF`, it's as if the overflow never happened. But, if the next bit was _off_, the value for that pixel would be `0xE`. Lastly, if there was no overflow for a zero source bit, the result is a 0. And now we have the three possible values: 0 (background), 14 (shade) and 15 (text). @tbl:bupshade shows the procedure more graphically. The bits for the source byte are on the left, and the bit-unpacked result for each bit on the grid on the right, in the correct position. These are then ORed together for the end result. For `0x46` that'd be the word `0xEF0EFFF0`. One word is one row of 8 pixels in a 4bpp tile, and because lower nybbles are the left-most pixels, the shade will be on the right of the character even though it uses the more significant bits.
+实际的阴影来自 `base` 的值（即 `0xEE`）以及整个位解包例程的工作方式。偏移被加到打包字体中的每个“开”比特上，得到 `0xEF`，然后以适当的移位 OR 到当前字。由于我们处理的是 4bpp 字体，结果实际上会溢出到下一个半字节（nybble）。现在，如果下一个比特也是开，它会把 `0xEF` 与溢出值 `0x0E` OR 起来。因为 `0xF` \| `0xE` 就是 `0xF`，就好像溢出从未发生。但如果下一个比特是 _关_ 的，那个像素的值就是 `0xE`。最后，如果零源比特没有溢出，结果就是 0。于是我们得到三种可能的值：0（背景）、14（阴影）和 15（文本）。@tbl:bupshade 更形象地展示了这个过程。左边是源字节的比特，右边网格里是每个比特位解包后的结果，在正确位置上。然后它们 OR 在一起得到最终结果。对 `0x46` 来说，结果字是 `0xEF0EFFF0`。一个字是 4bpp 图块中的一行 8 像素，而由于低半字节是最左的像素，阴影会出现在字符右侧，即便它用的是更高有效位。
 
-The base `0xEE` is one of many values for which this trick works. The key thing is that the high nybble must be completely overwritten by the lower nybble+1. Any number with equal and even nybbles will work.
+base `0xEE` 是许多能实现这个技巧的值之一。关键是高半字节必须被低半字节+1 完全覆盖。任何高低半字节相等且为偶数的数都行。
 
-Now, I'll be the first to admit that this is something of a hack. A lot of things have to come together for it to work. The word-size must be able to fit a whole tile row, both packed and unpacked data must be little-endian in both bit and byte order, and the unpacking routine must actually allow overflow, and probably a few other things that escape me right now. All of these conditions are satisfied on the GBA, but I doubt very much if you can use the trick on other systems. There are other ways of applying shading, of course, better ones at that. It's just so deliciously nasty that I can't resist using it.
+现在，我得第一个承认这有点 hack。要让它工作，很多条件必须同时成立。字长必须能装下一整行图块，打包和解包数据都必须是比特和字节双重小端，且解包例程必须确实允许溢出，大概还有我现在想不起来的其他几件事。这些条件在 GBA 上都满足，但我非常怀疑你能在其他系统上用这个技巧。当然，也有其他加阴影的方法，而且更好。只是它实在太妙了，让我忍不住用。
 
-The final `txt_se_init()` work pretty much in the same way as the second one: shading through overflow. What it doesn't do is make the tiles opaque. While it's possible to do that with BitUnpack, you can't have that _and_ shading with one call, that simply doesn't work. But there are other ways. All we really need for the tiles to be opaque is some value other than zero for it for the background pixels. Well, that's easily done: just offset (add or OR) everything by a number. In this case I can't add a value because the text value is already at maximum, so I'll use OR here. The value I'll OR with is `0x88888888`, which doesn't change the text or shading, but sets the background pixels to use `8`, so we've got what we wanted.
+最后的 `txt_se_init()` 工作方式基本和第二组一样：通过溢出做阴影。它没做的是让图块不透明。虽然用 BitUnpack 可以，但你不能在一次调用里既 _又_ 做到阴影，那根本行不通。但还有其他办法。我们要让图块不透明，只需背景像素上不是零的某个值。嗯，这很容易：只需把所有东西偏移（加或 OR）一个数。这里我不能加值，因为文本值已经在最大了，所以我用 OR。我 OR 的值是 `0x88888888`，它不改变文本或阴影，但把背景像素设为使用 `8`，于是我们得到了想要的。
 
-And that, as they say, is how we do that. Or at least how _I_ do that. If the above seems like mumbo-jumbo to you, no one's forcing you to do it in the same way. You can always take the easy way out and include multiple fonts into the program rather than construct them from what you have. I'm just showing what can be done with a little creating coding.
+而这就是，如他们所说，我们做到那事的方法。或者至少是我做到那事的方法。如果上面看着像天书，没人逼你用同样的方式。你总可以走捷径，把多个字体包含进程序，而不是从手头的东西构造它们。我只是展示用一点创造性编码能做成什么。
 
-### Map text : profiling {#ssec-demo-se2}
+### 图块地图文本：性能分析 {#ssec-demo-se2}
 
-The last thing I'll show you is an easy one, but something that might come in handy when it's time to optimize a few things. In case you haven't noticed, debugging GBA programs isn't quite as easy as debugging PC programs. There is the possibility of debugging with Insight and the GDB (the GCC debugger), but even then things are iffy, or so I hear. Well, now that you can print your own text, you can at least do something of that sort. Write out diagnostic messages and the like.
+我要展示的最后一件事很简单，但当你要优化某些东西时可能派上用场。如果你没注意到，调试 GBA 程序不像调试 PC 程序那么容易。有通过 Insight 和 GDB（GCC 调试器）调试的可能，但即便那样事情也靠不住，至少我是这么听说的。嗯，既然你能打印自己的文本，你至少能做点那种事。写出诊断消息之类的。
 
-But that's not what I'm going to show you now. The last demo will show you how to do something that usually comes _after_ debugging: profiling. Profiling tells you how much time is spent doing what, so you can tell what would be the best places to try to optimize. What I'll show you is a simple way of getting the time spent inside a function. Stuff like that is good to know, especially on a platform like this where you still have to worry about things like speed and efficiency and other silly stuff like that.
+但这不是我现在要展示的。最后一个演示会展示通常 _在_ 调试之后做的事：性能分析（profiling）。性能分析告诉你花在各处的时间是多少，这样你就能知道哪里是最该尝试优化的地方。我要展示的是一种获取函数内耗时的简单方法。这类东西很好知道，特别是在像这样的平台上，你还得操心速度和效率之类傻乎乎的东西。
 
-The next demo will clock five different ways of copying data, in this case a mode 4 bitmap from EWRAM (my code is set up for multiboot by default, which means everything goes in EWRAM rather than ROM) to VRAM. The methods are:
+下一个演示会为五种不同数据复制方式计时，这里是把一个模式 4 位图从 EWRAM（我的代码默认按多引导设置，意味着一切进 EWRAM 而非 ROM）复制到 VRAM。这些方法有：
 
-- **u16 array**. Copy in 16-bit (halfword) chunks. Probably the one you'll see most in other tutorials, but not here. With reason, as we'll see in a minute.
-- **u32 array**. Copy in 32-bit (word) chunks.
-- **`memcpy()`**. The standard C copy routine, the one I'm using in the earlier demos. Well, nowadays I am.
-- **`memcpy32()`**. Home grown assembly, explained in detail [here](asm.html#sec-cpy). Basically does what `CpuFastSet()` does, only without the restriction that the number of words must be a multiple of 8.
-- **`dma_memcpy()`**. Copy via 32-bit DMA.
+- **u16 数组**。以 16 位（半字）块复制。大概是你会在其他教程里最常见的那种，但这里不是。有理由的，我们马上会看到。
+- **u32 数组**。以 32 位（字）块复制。
+- **`memcpy()`**。标准 C 复制例程，我在早先演示里用的那个。嗯，现在我是。
+- **`memcpy32()`**。自家的汇编，在 [这里](asm.html#sec-cpy) 详述。基本做 `CpuFastSet()` 做的事，只是没有字数必须是 8 的倍数的限制。
+- **`dma_memcpy()`**。通过 32 位 DMA 复制。
 
 ```c{#cd-txt-se2}
 #include <string.h>
@@ -1257,9 +1257,9 @@ int main()
 }
 ```
 
-The code should be self-explanatory. I have five functions for the things I want to profile. I chose separate functions because then I know optimisation will not interfere (it sometimes moves code around). After running these functions, I set-up my text functions and print out the results.
+代码应该不言自明。我有五个函数对应想要分析的东西。我选了独立函数，因为这样我知道优化不会干扰（它有时会把代码移来移去）。运行这些函数后，我设置文本函数并打印结果。
 
-The profiling itself uses two macros, `profile_start()` and `profile_stop()`. These can be found in `core.h` of libtonc. What the macros do is start and stop timers 2 and 3, and then return the time in between the calls. This does mean that the code you're profiling cannot use those timers.
+性能分析本身用两个宏：`profile_start()` 和 `profile_stop()`。它们可以在 libtonc 的 `core.h` 中找到。这些宏做的是启动和停止定时器 2 和 3，然后返回两次调用之间的时间。这确实意味着你分析的那段代码不能用这些定时器。
 
 ```c
 INLINE void profile_start()
@@ -1283,12 +1283,12 @@ INLINE u32 profile_stop()
 <td>
   <div class="cpt" style="width:240px">
   <img src="img/demo/txt_se2_vba.png" alt="txt_se2 on vba"><br>
-  <b>{@fig:img-txt-se2}a</b>: <tt>txt_se2</tt> on VBA.
+  <b>{@fig:img-txt-se2}a</b>: <tt>txt_se2</tt> 在 VBA 上。
   </div>
 <td>
   <div class="cpt" style="width:240px">
   <img src="img/demo/txt_se2_nocash.png" alt="txt_se2 on no$gba"><br>
-  <b>{@fig:img-txt-se2}b</b>: <tt>txt_se2</tt> on no$gba.
+  <b>{@fig:img-txt-se2}b</b>: <tt>txt_se2</tt> 在 no$gba 上。
   </div>
 </table>
 </div>
@@ -1297,8 +1297,7 @@ INLINE u32 profile_stop()
   <table id="tbl:txt-se2"
     border=1 cellpadding=2 cellspacing=0>
 <caption align="bottom">
-  <b>@tbl:txt-se2</b>: timing results for hardware, 
-  vba and no$gba.
+  <b>@tbl:txt-se2</b>: 硬件、vba 和 no$gba 的计时结果。
 </caption>
 <tbody align="right">
 <tr>
@@ -1340,20 +1339,21 @@ INLINE u32 profile_stop()
 </table>
 </div>
 
-*@fig:img-txt-se2 shows the timing results, as run in VisualBoy Advance and no\$gba. Note that they are not quite the same. So you do what you should always do when two opinions differ: get a third one. In this case, I'll use the only one that really matters, namely hardware. You can see a comparison of the three in @tbl:txt-se2, which will tell you that no\$gba is very accurate in its timing, but VBA not so much. I guess you can still use it to get an estimate or relative timings, but true accuracy will not be found there. For that you need hardware or no\$gba.
+*@fig:img-txt-se2 展示了计时结果，运行在 VisualBoy Advance 和 no\$gba 中。注意它们并不完全相同。所以你做两意见不同该做的事：找第三方。这里，我用唯一真正重要的那个，即硬件。你可以在 @tbl:txt-se2 中看到三者对比，它告诉你 no\$gba 在计时上非常准，但 VBA 就不那么准。我猜你仍能拿它来估算或做相对计时，但真正的准确在那里找不到。为此你需要硬件或 no\$gba。
 
-About the numbers themselves. The spread is about a factor 9, which is quite a lot. None of the techniques shown here are particularly hard to understand, and data copying is something that you could spend a lot of time doing, so might as well take advantage of the faster ones from the get go.
+关于数字本身。差距约有 9 倍，相当大。这里展示的技术没有哪个特别难懂，而数据复制是你可能要花大量时间做的事，所以不如一开始就利用更快的那些。
 
-Most of the tutorial code and probably a lot of demo code you can find out there uses the u16-array method of copying; presumably because byte-copies are unavailable for certain sections. But as you can see, **u16 copies are more than twice as slow as u32 copies**! Granted, it is not the slowest method of copying data, but not by much (using u16 loop variables –also a common occurence– would be slower by about 20%; try it and you'll see). The GBA is a 32-bit machine. It _likes_ 32-bit data, and its instruction sets are better at dealing with 32-bit chunks. Let go of the u16 fetish you may have picked up elsewhere. Use word-sized data if you can, the others only if you have to. That said, do watch your [data alignment](bitmaps.html#ssec-data-align)! u8 or u16 arrays aren't always word-aligned, which will cause trouble with casting.
+大多数教程代码，大概还有你能找到的许多演示代码，都用 u16 数组的方式复制；大概是因为某些区段无法做字节复制。但如你所见，**u16 复制比 u32 复制慢两倍多**！诚然，它不是最慢的复制数据方法，但也差不远了（用 u16 循环变量——也很常见——会再慢约 20%；试试看就知道了）。GBA 是 32 位机。它 _喜欢_ 32 位数据，其指令集也更擅长处理 32 位块。丢掉你可能在别处染上的 u16 癖好。可以的话用字长数据，其他只在必要时用。话虽如此，确实要看你的[数据对齐](bitmaps.html#ssec-data-align)！u8 或 u16 数组不总是字对齐的，那会给强制转换带来麻烦。
 
-:::warning GCC and waitstates vs timing results
+:::warning GCC 与等待状态 vs 计时结果
  
-Giving exact timing results is tricky due to a number of factors. First, on the hardware side there are different memory sections with different wait states that complicate things unless you sit down, read the assembly and add up the cycle-counts of the instructions. This is a horrible job, trust me. The second problem is that GCC hasn't reached the theoretical optimum for this code yet, so the results tend to vary with new releases. What you see above is a good indication, but your mileage may vary.
+给出精确计时结果很难，原因有好几个。首先，在硬件侧，不同的内存区段有不同的等待状态，除非你坐下来、读汇编、把指令的周期数加起来，否则事情会很复杂。这是份糟糕的工作，相信我。第二个问题是 GCC 还没达到这段代码的理论最优，所以结果会随新版本而变。你上面看到的只是个好指示，但你的实际情况可能不同。
 
 :::
 
-There are a number of fast ways of copying large chunks of data. Faster than writing your own simple loop that is. Common ones are the standard `memcpy()`, which is available for any platform, and two methods that are GBA specific: the `CpuFastSet()` BIOS call (or my own version `memcpy32()` and DMA. The first two _require_ word-alignment; DMA merely works better with it. The performance of `memcpy()` is actually not too shabby, and the fact that it's available everywhere means that it's a good place to start. The others are faster, but come at a cost: `memcpy32()` is hand written assembly; `CpuFastSet()` requires a word-count divisible by 8, and DMA locks up the CPU, which can interfere with interrupts. You would do well to remember these things when you find you need a little more speed.
+有几种快速复制大块数据的方法。比写你自己的简单循环快。常见的有标准 `memcpy()`，任何平台都有；还有两个 GBA 专属的方法：`CpuFastSet()` BIOS 调用（或我自己的 `memcpy32()`）和 DMA。前两个 _要求_ 字对齐；DMA 只是用字对齐更好。实际上 `memcpy()` 的性能并不差，而且它到处都有，所以是个好的起点。其他的更快，但有代价：`memcpy32()` 是手工写的汇编；`CpuFastSet()` 要求字数能被 8 整除，而 DMA 会锁住 CPU，可能干扰中断。当你发现需要多一点速度时，最好记住这些。
 
-## Other considerations {#sec-misc}
+## 其他考量 {#sec-misc}
 
-These couple of functions barely scratch the surface as far as text systems are concerned. You can have larger fonts, colored fonts, proper shading, variable character widths, and more. Each of these can apply to each of the modes, with extra formatting for text justification and alignment, updating tile-memory in conjunction with map/OAM changes to cut down on VRAM use, etc, etc. To take an in-depth look at all the variations would take an entire site by itself, so I'll leave it at this. I just hope you've picked up on some of the basics that go into text systems. What you do with that knowledge I leave up to you.
+这几个函数对文本系统来说不过是浅尝辄止。你可以有更大的字体、彩色字体、恰当的阴影、变宽字符，等等。这些每项都能应用到每种模式，再加上文本对齐与排版的额外格式化，配合图块地图/OAM 改动来更新图块内存以削减 VRAM 使用，等等，等等。要深入看所有变体需要一整个站点，所以我就到此为止。我只希望你对文本系统的一些基础有所领会。拿这些知识做什么，我留给你自己。
+

@@ -1,16 +1,16 @@
-# 9. Regular tiled backgrounds
+# 9. 常规图块背景
 
 <!-- toc -->
 
-## Tilemap introduction {#sec-intro}
+## 图块地图介绍 {#sec-intro}
 
-Tilemaps are the bread and butter for the GBA. Almost every commercial GBA game makes use of tile modes, with the bitmap modes seen only in 3D-like games that use ray-tracing. Everything else uses tiled graphics.
+图块地图（tilemaps）是 GBA 的面包和黄油。几乎每个商业 GBA 游戏都使用图块模式，只有在类似 3D、使用光线追踪的游戏中才会看到位图模式。其他一切用的都是图块图形。
 
-The reason why tilemaps are so popular is that they're implemented in hardware and require less space than bitmap graphics. Consider {@fig:map}a. This is a 512 by 256 image, which even at 8bpp would take up 128 KiB of VRAM, and we simply don't have that. If you were to make one big bitmap of a normal level in a game, you can easily get up to 1000×1000 pixels, which is just not practical. And *then* there's the matter of scrolling through the level, which means updating all pixels each frame. Even when your scrolling code is fully optimized that'd take quite a bit of time.
+图块地图如此流行，是因为它们由硬件实现，并且比位图图形占用更少空间。考虑 {@fig:map}a。这是一张 512×256 的图像，即使在 8bpp 下也要占用 128 KiB 的 VRAM，而我们根本没有那么多。如果你为游戏中的普通关卡制作一张大位图，很容易就能达到 1000×1000 像素，这根本不现实。*然后*还有在关卡中滚动的问题，这意味着每帧都要更新所有像素。即使你的滚动代码完全优化，那也要花相当多时间。
 
-Now, notice that there are many repeated elements in this image. The bitmap seems to be divided into groups of 16×16 pixels. These are the <dfn>tiles</dfn>. The list of unique tiles is the <dfn>tileset</dfn>, which is given in {@fig:map}b. As you can see, there are only 16 unique tiles making up the image. To create the image from these tiles, we need a <dfn>tilemap</dfn>. The image is divided into a matrix of tiles. Each element in the matrix has a <dfn>tile index</dfn> which indicates which tile should be rendered there; the tilemap can be seen in {@fig:map}c.
+现在，注意这张图像中有许多重复的元素。位图似乎被分成了 16×16 像素的组。这些就是<dfn>图块</dfn>（tiles）。唯一图块的列表就是<dfn>图块集</dfn>（tileset），见 {@fig:map}b。如你所见，构成这张图像的唯一图块只有 16 个。要用这些图块创建图像，我们需要一个<dfn>图块地图</dfn>（tilemap）。图像被分成一个图块矩阵。矩阵中的每个元素有一个<dfn>图块索引</dfn>（tile index），指示那里应渲染哪个图块；图块地图见 {@fig:map}c。
 
-Suppose both the tileset and map used 8-bit entries, the sizes are 16×(16×16) = 4096 bytes for the tileset and 32×16 = 512 bytes for the tilemap. So that's 4.5 KiB for the whole scene rather than the 128 KiB we had before; a size reduction of a factor of 28.
+假设图块集和地图都使用 8 位条目，大小就是 16×(16×16) = 4096 字节用于图块集，以及 32×16 = 512 字节用于图块地图。所以整个场景是 4.5 KiB，而不是之前的 128 KiB；大小缩减了 28 倍。
 
 <div class="cblock">
 <table width=70% id="fig:map">
@@ -23,10 +23,9 @@ Suppose both the tileset and map used 8-bit entries, the sizes are 16×(16×16) 
   </div>
 <tr>
 <td colspan=2>
-  The tile mapping process. Using the tileset of 
-  {@fig:map}b, and the tile map of 
-  {@fig:map}c, the end-result is 
-  {@fig:map}a. 
+  图块映射过程。使用 {@fig:map}b 的图块集与
+  {@fig:map}c 的图块地图，
+  最终得到 {@fig:map}a。
 <tr>
 <td>
   <div class="cpt" style="width:48px">
@@ -44,15 +43,15 @@ Suppose both the tileset and map used 8-bit entries, the sizes are 16×(16×16) 
 </tbody>
 </table></div>
 
-That's basically how tilemaps work. You don't define the whole image, but group pixels together into tiles and describe the image in terms of those groups. In the {@fig:map}, the tiles were 16×16 pixels, so the tilemap is 256 times smaller than the bitmap. The unique tiles are in the tileset, which can (and usually will) be larger than the tilemap. The size of the tileset can vary: if the bitmap is highly variable, you'll probably have many unique tiles; if the graphics are nicely aligned to tile boundaries already (as it is here), the tileset will be small. This is why tile-engines often have a distinct look to them.
+那基本上就是图块地图的工作方式。你不是定义整张图像，而是把像素分组为图块，并用这些组来描述图像。在 {@fig:map} 中，图块是 16×16 像素，所以图块地图比位图小 256 倍。唯一图块在图块集中，它（通常也会）比图块地图大。图块集的大小可以变化：如果位图变化很大，你大概会有很多唯一图块；如果图形已经很好地对齐到图块边界（就像这里），图块集就会很小。这就是为什么图块引擎往往有独特的外观。
 
-### Tilemaps for the GBA {#ssec-intro-gba}
+### GBA 的图块地图 {#ssec-intro-gba}
 
-In the tiled video-modes (0, 1 and 2) you can have up to four backgrounds that display tilemaps. The size of the maps is set by the control registers and can be between 128×128 and 1024×1024 pixels. The size of each tile is always 8×8 pixels, so {@fig:map} isn't *quite* the way it'd work on the GBA. Because accessing the tilemaps is done in units of tiles, the map sizes correspond to 16×16 to 128×128 tiles.
+在图块视频模式（0、1 和 2）中，你最多可以有四个显示图块地图的背景。地图的大小由控制寄存器设定，可以在 128×128 到 1024×1024 像素之间。每个图块的大小始终是 8×8 像素，所以 {@fig:map} 并不*完全*是 GBA 上的工作方式。因为访问图块地图是以图块为单位进行的，地图大小对应 16×16 到 128×128 个图块。
 
-Both the tiles and tilemaps are stored in VRAM, which is divided into <dfn>charblocks</dfn> and <dfn>screenblocks</dfn>. The tileset is stored in the charblocks and the tilemap goes into the screenblocks. In the common vernacular, the word “tile” is used for both the graphical tiles and the entries of the tilemaps. Because this is somewhat confusing, I'll use the term <dfn>screen entry</dfn> (<dfn>SE</dfn> for short) as the items in the screenblocks (i.e., the map entries) and restrict tiles to the tileset.
+图块和图块地图都存储在 VRAM 中，VRAM 被划分为<dfn>字符块</dfn>（charblocks）和<dfn>屏幕块</dfn>（screenblocks）。图块集存储在字符块中，图块地图进入屏幕块。在常用说法中，“tile”这个词既用于图形图块，也用于图块地图的条目。因为这有点令人困惑，我将使用术语<dfn>屏幕条目</dfn>（<dfn>SE</dfn>，screen entry 的缩写）来指代屏幕块中的项（即地图条目），而把“图块”限制为图块集。
 
-64 KiB of VRAM is set aside for tilemaps (`0600:0000h`-`0600:FFFFh`). This is used for both screenblocks *and* charblocks. You can choose which ones to use freely through the control registers, but be careful that they don't overlap (see {@tbl:cbb-sbb}). Each screenblock is 2048 (`800h`) bytes long, giving 32 screenblocks in total. All but the smallest backgrounds use multiple screenblocks for the full tilemap. Each charblock is 16 KiB (`4000h` bytes) long, giving four blocks overall.
+64 KiB 的 VRAM 被留出给图块地图（`0600:0000h`-`0600:FFFFh`）。这同时用于屏幕块*和*字符块。你可以通过控制寄存器自由选择用哪些，但要小心它们不要重叠（见 {@tbl:cbb-sbb}）。每个屏幕块长 2048（`800h`）字节，总共给出 32 个屏幕块。除了最小的背景外，所有背景都使用多个屏幕块来存放完整的图块地图。每个字符块长 16 KiB（`4000h` 字节），总共四个块。
 
 <div class="cblock">
 <table id="tbl:cbb-sbb" rules=groups>
@@ -83,36 +82,36 @@ Both the tiles and tilemaps are stored in VRAM, which is divided into <dfn>charb
 </table>
 </div>
 
-:::warning Tiles vs ‘tiles’
+:::warning 图块 vs “图块”
 
-Both the entries of the tilemap and the data in the tileset are often referred to as ‘tiles’, which can make conversation confusing. I reserve the term ‘tile’ for the graphics, and ‘screen(block) entry’ or ‘map entry’ for the map's contents.
-
-:::
-
-:::warning Charblocks vs screenblocks
-
-Charblocks and screenblocks use the same addresses in memory. Each charblock overlaps eight screenblocks. When loading data, make sure the tiles themselves don't overwrite the map, or vice versa.
+图块地图的条目和图块集中的数据常常都被称为“图块”，这会让交流变得混乱。我把“图块”一词保留给图形，而用“屏幕（块）条目”或“地图条目”来指代地图的内容。
 
 :::
 
-Size was one of the benefits of using tilemaps, speed was another. The rendering of tilemaps in done in hardware and if you've ever played PC games in hardware and software modes, you'll know that hardware is good. Another nice point is that scrolling is done in hardware too. Instead of redrawing the whole scene, you just have to enter some coordinates in the right registers.
+:::warning 字符块 vs 屏幕块
 
-As I said in the overview, there are three stages to setting up a tiled background: control, mapping and image-data. I've already covered most of the image-data in the [overview](objbg.html), as well as some of the control and mapping parts that are shared by sprites and backgrounds alike; this chapter covers only things specific to backgrounds in general and regular backgrounds in particular. I'm assuming you've read the overview.
-
-:::tip Essential tilemap steps
-
--   Load the graphics: tiles into charblocks and colors in the background palette.
--   Load a map into one or more screenblocks.
--   Switch to the right mode in `REG_DISPCNT` and activate a background.
--   Initialize the background's control register to use the right CBB, SBB and bitdepth.
+字符块和屏幕块在内存中使用相同的地址。每个字符块与八个屏幕块重叠。加载数据时，确保图块本身不会覆盖地图，反之亦然。
 
 :::
 
-## Background control {#sec-ctrl}
+尺寸是使用图块地图的好处之一，速度则是另一个。图块地图的渲染是在硬件中完成的，如果你曾在硬件和软件模式下玩过 PC 游戏，你就会知道硬件更好。另一个好点是滚动也是在硬件中完成的。你不需要重绘整个场景，只需要把一些坐标写进正确的寄存器。
 
-### Background types {#ssec-ctrl-bgs}
+正如我在概述中所说，设置图块背景有三个阶段：控制、映射和图像数据。图像数据的大部分我已经在[概述](objbg.html)里讲过了，以及精灵和背景共有的部分控制和映射内容；本章只讲一般背景、特别是常规背景特有的东西。我假设你已经读过概述。
 
-Just like sprites, there are two types of tiled backgrounds: regular and affine; these are also known as text and rotation backgrounds, respectively. The type of the background depends on the video mode (see {@tbl:bg-types}). At their cores, both regular and affine backgrounds work the same way: you have tiles, a tile-map and a few control registers. But that's where the similarity ends. Affine backgrounds use more and different registers than regular ones, and even the maps are formatted differently. This page only covers the regular backgrounds. I'll leave the [affine ones](affbg.html) till after the page on the [affine matrix](affine.html).
+:::tip 图块地图的基本步骤
+
+-   加载图形：把图块放进字符块，把颜色放进背景调色板。
+-   把一个地图加载进一个或多个屏幕块。
+-   在 `REG_DISPCNT` 中切换到正确的模式，并激活一个背景。
+-   初始化背景的控制寄存器，以使用正确的 CBB、SBB 和位深。
+
+:::
+
+## 背景控制 {#sec-ctrl}
+
+### 背景类型 {#ssec-ctrl-bgs}
+
+就像精灵一样，图块背景有两种类型：常规（regular）和仿射（affine）；它们也分别被称为文本（text）和旋转（rotation）背景。背景的类型取决于视频模式（见 {@tbl:bg-types}）。在核心上，常规和仿射背景的工作方式相同：你有图块、一个图块地图和几个控制寄存器。但相似之处仅此而已。仿射背景使用的寄存器比常规背景更多且不同，甚至连地图的格式也不同。本页只讲常规背景。我会把[仿射背景](affbg.html)留到[仿射矩阵](affine.html)那页之后。
 
 <div class="lblock">
 <table id="tbl:bg-types" class="table-data">
@@ -133,11 +132,11 @@ Just like sprites, there are two types of tiled backgrounds: regular and affine;
 </table>
 </div>
 
-### Control registers {#ssec-ctrl-regs}
+### 控制寄存器 {#ssec-ctrl-regs}
 
-All backgrounds have 3 primary control registers. The primary control register is `REG_BGxCNT`, where *x* indicates the backgrounds 0 through 3. This register is where you say what the size of the tilemap is, and which charblock and screenblock it uses. The other two are the scrolling registers, `REG_BGxHOFS` and `REG_BGxVOFS`.
+所有背景都有 3 个主要控制寄存器。主控制寄存器是 `REG_BGxCNT`，其中 *x* 表示背景 0 到 3。在这个寄存器中，你要说明图块地图的大小是多少，以及它使用哪个字符块和屏幕块。另外两个是滚动寄存器 `REG_BGxHOFS` 和 `REG_BGxVOFS`。
 
-Each of these is a 16-bit register. `REG_BG0CNT` can be found at `0400:0008`, with the other controls right after it. The offsets are paired by background, forming coordinate pairs. These start at `0400:0010`
+这些每个都是 16 位寄存器。`REG_BG0CNT` 位于 `0400:0008`，其他控制寄存器紧随其后。这些偏移量按背景成对出现，形成坐标对。它们从 `0400:0010` 开始。
 
 <div class="lblock">
 <table id="tbl:ctrl-ofs" class="table-data">
@@ -153,7 +152,7 @@ Each of these is a 16-bit register. `REG_BG0CNT` can be found at `0400:0008`, wi
 </table>
 </div>
 
-The description of `REG_BGxCNT` can be found below. Most of it is pretty standard, except for the size: there are actually *two* lists of possible sizes; one for regular maps and one for affine maps. They both use the same bits, you may have to be careful that you're using the right `#define`s.
+`REG_BGxCNT` 的描述见下。其中大部分相当标准，除了大小：实际上有*两*份可能的尺寸列表；一份给常规地图，一份给仿射地图。它们用的是相同的位，你可能需要小心用的是正确的 `#define`。
 
 <div class="reg">
 <table class="table-reg" id="tbl-reg-bgxcnt">
@@ -183,38 +182,36 @@ The description of `REG_BGxCNT` can be found below. Most of it is pretty standar
 <tr class="bg0">	
   <td>0-1<td class="rclr4">Pr
   <td><i>BG_PRIO#</i>
-  <td><b>Priority</b>. Determines drawing order of backgrounds.
+  <td><b>优先级</b>（Priority）。决定背景的绘制顺序。
 <tr class="bg1">	
   <td>2-3<td class="rclr0">CBB
   <td><i>BG_CBB#</i>
-  <td><b>Character Base Block</b>. Sets the charblock that serves as 
-    the base for character/tile indexing. Values: 0-3.
+  <td><b>字符基块</b>（Character Base Block）。设定作为
+    字符/图块索引基址的字符块。取值：0-3。
 <tr class="bg0">	
   <td> 6 <td class="rclr5">Mos
   <td>BG_MOSAIC
-  <td><b>Mosaic</b> flag. Enables mosaic effect.
+  <td><b>马赛克</b>（Mosaic）标志。启用马赛克效果。
 <tr class="bg1">	
   <td> 7 <td class="rclr3">CM
   <td>BG_4BPP, BG_8BPP
-  <td><b>Color Mode</b>. 16 colors (4bpp) if cleared; 
-    256 colors (8bpp) if set. 
+  <td><b>颜色模式</b>（Color Mode）。若清零为 16 色（4bpp）；
+    若置位为 256 色（8bpp）。 
 <tr class="bg0">	
   <td>8-C<td class="rclr1">SBB
   <td><i>BG_SBB#</i>
-  <td><b>Screen Base Block</b>. Sets the screenblock that serves as 
-    the base for screen-entry/map indexing. Values: 0-31.
+  <td><b>屏幕基块</b>（Screen Base Block）。设定作为
+    屏幕条目/地图索引基址的屏幕块。取值：0-31。
 <tr class="bg1">	
   <td> D <td class="rclr6">Wr
   <td>BG_WRAP
-  <td><b>Affine Wrapping</b> flag. If set, affine background wrap 
-    around at their edges. Has no effect on regular backgrounds as 
-    they wrap around by default.
+  <td><b>仿射环绕</b>（Affine Wrapping）标志。若置位，仿射背景在
+    其边缘环绕。对常规背景无效，因为它们默认就环绕。
 <tr class="bg0">	
   <td>E-F<td class="rclr2">Sz
-  <td><i>BG_SIZE#</i>, <i class="mini">see below</i>
-  <td><b>Background Size</b>. Regular and affine backgrounds have 
-      different sizes available to them. The sizes, in tiles and in 
-      pixels, can be found in {@tbl:bg-size}.
+  <td><i>BG_SIZE#</i>, <i class="mini">见下</i>
+  <td><b>背景大小</b>（Background Size）。常规和仿射背景可用的
+    大小不同。以图块计和以像素计的大小可在 {@tbl:bg-size} 中找到。
 </tbody>
 </table>
 </div>
@@ -252,21 +249,21 @@ The description of `REG_BGxCNT` can be found below. Most of it is pretty standar
 </div>
 </div>
 
-Each background has two 16-bit scrolling registers to offset the rendering (`REG_BGxHOFS` and `REG_BGxVOFS`). There are a number of interesting points about these. First, because regular backgrounds wrap around, the values are essentially modulo *mapsize*. This is not really relevant at the moment, but you can use this to your benefit once you get to more advanced tilemaps. Second, these registers are **write-only**! This is a little annoying, as it means that you can't update the position by simply doing `REG_BG0HOFS++` and the like.
+每个背景有两个 16 位的滚动寄存器来偏移渲染（`REG_BGxHOFS` 和 `REG_BGxVOFS`）。关于它们有几点有趣的地方。首先，因为常规背景会环绕，这些值本质上是按*地图大小*取模。眼下这不太要紧，但你以后做更高级的图块地图时可以善加利用。其次，这些寄存器是**只写**的！这有点烦人，因为它意味着你不能简单地通过 `REG_BG0HOFS++` 之类来更新位置。
 
-And now the third part, which may be the most important, namely what the values actually *do*. The simplest way of looking at them is that they give the coordinates of the screen on the map. Read that again, carefully: it's the position of the screen on the map. It is *not* the position of the map on the screen, which is how sprites work. The difference is only a minus sign, but even something as small as a sign change can wreak havoc on your calculations.
+现在是第三部分，可能是最重要的，即这些值的实际*作用*。最简单的看法是，它们给出屏幕在地图上的坐标。再仔细读一遍：是屏幕在地图上的位置。它*不是*地图在屏幕上的位置，那是精灵的工作方式。区别仅在一个负号，但即使这么小的符号改变也能严重破坏你的计算。
 
 <div class="lblock">
   <div class="cpt" style="width:520px;">
     <img src="./img/bgs/brin3-ofs-2x.png" id="fig:map-ofs" width=520
       alt="map-ofs-a"><br>
     <b>{*@fig:map-ofs}</b>: 
-	Scrolling offset <b>dx</b> sets is the position of the screen 
-	on the map. In this case, <b>dx</b> = (192, 64).
+	滚动偏移 <b>dx</b> 设定的是屏幕
+	在地图上的位置。本例中，<b>dx</b> = (192, 64)。
   </div>
 </div>
 
-So, if you increase the scrolling values, you move the screen to the right, which corresponds to the map moving *left* on the screen. In mathematical terms, if you have map position **p** and screen position **q**, then the following is true:
+所以，如果你增大滚动值，你就把屏幕向右移，这对应地图在屏幕上向左移。用数学术语说，如果你有地图位置 **p** 和屏幕位置 **q**，那么下面这个式子成立：
 
 <table id="eq:bgr-dx">
 <tr>
@@ -310,21 +307,21 @@ So, if you increase the scrolling values, you move the screen to the right, whic
   </math>
 </table>
 
-:::warning Direction of offset registers
+:::warning 偏移寄存器的方向
 
-The offset registers REG_BGxHOFS and REG_BGxVOFS indicate which map location is mapped to the top-left of the screen, meaning positive offsets scroll the map left and up. Watch your minus signs.
-
-:::
-
-:::warning Offset registers are write only
-
-The offset registers are **write-only**! That means that direct arithmetic like `+=` will not work.
+偏移寄存器 REG_BGxHOFS 和 REG_BGxVOFS 指示哪个地图位置被映射到屏幕的左上角，也就是说，正偏移会让地图向左和向上滚动。注意你的负号。
 
 :::
 
-### Useful types and #defines {#ssec-ctrl-types}
+:::warning 偏移寄存器是只写的
 
-Tonc's code has several useful extra types and macros that can make life a little easier.
+偏移寄存器是**只写**的！这意味着像 `+=` 这样的直接算术不会起作用。
+
+:::
+
+### 有用的类型和 #defines {#ssec-ctrl-types}
+
+Tonc 的代码有几个有用的额外类型和宏，能让生活轻松一点。
 
 ```c
 // === Additional types (tonc_types.h) ================================
@@ -365,21 +362,21 @@ typedef SCR_ENTRY   SCREENBLOCK[1024];
 #define REG_BG_AFFINE   ((BG_AFFINE*)(REG_BASE+0x0000))
 ```
 
-Strictly speaking, making a `SCREEN_ENTRY` `typedef` is not necessary, but makes its use clearer. `se_mem` works much like `tile_mem`: it maps out VRAM into screenblocks screen-entries, making finding a specific entry easier. The other typedefs are used to map out arrays for the background registers. For example, `REG_BGCNT` is an array that maps out all `REG_BGxCNT` registers. `REG_BGCNT[0]` is `REG_BG0CNT`, etc. The `BG_POINT` and `BG_AFFINE` types are used in similar fashions. Note that `REG_BG_OFS` still covers the same registers as `REG_BGxHOFS` and `REG_BGxVOFS` do, and the write-only-ness of them has not magically disappeared. The same goes for `REG_BG_AFFINE`, but that discussion will be saved for another time.
+严格来说，做一个 `SCREEN_ENTRY` 的 `typedef` 并非必要，但能让它的用途更清晰。`se_mem` 的工作方式很像 `tile_mem`：它把 VRAM 按屏幕块和屏幕条目映射出来，让查找特定条目更容易。其他 typedef 用于为后台寄存器映射出数组。例如，`REG_BGCNT` 是一个映射出所有 `REG_BGxCNT` 寄存器的数组。`REG_BGCNT[0]` 是 `REG_BG0CNT`，等等。`BG_POINT` 和 `BG_AFFINE` 类型也以类似方式使用。注意 `REG_BG_OFS` 仍然覆盖了与 `REG_BGxHOFS` 和 `REG_BGxVOFS` 相同的寄存器，它们“只写”的特性并没有神奇地消失。`REG_BG_AFFINE` 也一样，但那个讨论留到以后。
 
-In theory, it's also useful to create a sort of background API, with a struct with the temporaries for map positioning and functions for initializing and updating the registers and maps. However, most of tonc's demos are not complex enough to warrant these things. With the types above, manipulating the necessary items is already simplified enough for now.
+理论上，创建一个背景 API 也很有用，用一个结构体保存地图定位的临时变量，以及用于初始化和更新寄存器与地图的函数。不过，tonc 的大多数演示还没复杂到需要这些东西。有了上面的类型，操作必要的项已经足够简化了。
 
-## Regular background tile-maps {#sec-map}
+## 常规背景图块地图 {#sec-map}
 
-The screenblocks form a matrix of screen entries that describe the full image on the screen. In the example of {@fig:map}, the tilemap entries just contained the tile index. The GBA screen entries bahave a little differently.
+屏幕块构成了一个屏幕条目矩阵，描述了屏幕上的完整图像。在 {@fig:map} 的例子中，图块地图条目只包含图块索引。GBA 的屏幕条目表现略有不同。
 
-For regular tilemaps, each screen entry is 16-bits long. Besides the tile index, it contains flipping flags and a palette bank index for 4bpp / 16-color tiles. The exact layout can be found in "Screen entry format" below. The affine screen entries are only 8 bits wide and just contain an 8-bit tile index.
+对于常规图块地图，每个屏幕条目长 16 位。除了图块索引，它还包含翻转标志，以及用于 4bpp / 16 色图块的调色板库索引。确切的布局见下面的“屏幕条目格式”。仿射屏幕条目只有 8 位宽，只包含一个 8 位的图块索引。
 
 <div class="reg">
 <table class="table-reg" id="tbl-se"
   border=1 frame=void cellpadding=4 cellspacing=0>
 <caption class="reg">
-  Screen entry format for regular backgrounds
+  常规背景的屏幕条目格式
 </caption>
 <tr class="bits">
 	<td>F E D C<td>B<td>A<td>9 8 7 6 5 4 3 2 1 0
@@ -399,27 +396,27 @@ For regular tilemaps, each screen entry is 16-bits long. Besides the tile index,
 <tr class="bg0">	
   <td>0-9<td class="rclr0">TID
   <td><i>SE_ID#</i>
-  <td><b>Tile-index</b> of the SE.
+  <td><b>图块索引</b>（Tile-index）of the SE.
 <tr class="bg1">	
   <td>A-B<td class="rclr2">HF, VF
   <td>SE_HFLIP, SE_VFLIP. <i>SE_FLIP#</i>
-  <td><b>Horizontal/vertical flipping</b> flags. 
+  <td><b>水平/垂直翻转</b>（Horizontal/vertical flipping）标志。 
 <tr class="bg0">	
   <td>C-F<td class="rclr1">PB
   <td><i>SE_PALBANK#</i>
-  <td><b>Palette bank</b> to use when in 16-color mode. Has no effect 
-    for 256-color bgs (<code>REG_BGxCNT{6}</code> is set).
+  <td><b>调色板库</b>（Palette bank），在 16 色模式下使用。对于 256 色背景
+    （<code>REG_BGxCNT{6}</code> 被置位）无效。
 </tbody>
 </table>
 </div>
 
-### Map layout {#ssec-map-layout}
+### 地图布局 {#ssec-map-layout}
 
-VRAM contains 32 screenblocks to store the tilemaps in. Each screenblock is 800h bytes long, so you can fit 32×32 screen entries into it, which equals one 256×256 pixel map. The bigger maps simply use more than one screenblock. The screenblock index set in `REG_BGxCNT` is the <dfn>screen base block</dfn> which indicates the start of the tilemap.
+VRAM 包含 32 个屏幕块来存放图块地图。每个屏幕块长 800h 字节，所以你能往里塞 32×32 个屏幕条目，等于一张 256×256 像素的地图。更大的地图只是使用多个屏幕块。在 `REG_BGxCNT` 中设定的屏幕块索引是<dfn>屏幕基块</dfn>（screen base block），指示图块地图的起始位置。
 
-Now, suppose you have a tilemap that's *tw*×*th* tiles/SEs in size. You might expect that the screen entry at tile-coordinates (*tx*, *ty*) could be found at SE-number *n* = *tx*+*ty*·*tw*, because that's how matrices always work, right? Well, you'd be wrong. At least, you'd be *partially* wrong.
+现在，假设你有一个大小为 *tw*×*th* 个图块/SE 的图块地图。你可能期望图块坐标 (*tx*, *ty*) 处的屏幕条目可以在 SE 编号 *n* = *tx*+*ty*·*tw* 处找到，因为矩阵总是这样工作的，对吧？嗯，你错了。至少，你*部分*错了。
 
-Within each screenblock the equation works, but the bigger backgrounds don't simply *use* multiple screenblocks, they're actually accessed as four separate maps. How this works can be seen in {@tbl:reg-layout}: each numbered block is a contingent block in memory. This means that to get the SE-index you have to find out which screenblock you are in and then find the SE-number inside that screenblock.
+在每个屏幕块内部，方程成立，但更大的背景并不只是*使用*多个屏幕块，它们实际上是作为四个独立的地图被访问的。这是如何运作的，可见 {@tbl:reg-layout}：每个编号的块是内存中连续的一块。这意味着要找出 SE 索引，你必须先弄清楚你在哪个屏幕块里，然后找出那个屏幕块内的 SE 编号。
 
 <div class="lblock">
 <table class="table-reg" id="tbl:reg-layout"
@@ -452,7 +449,7 @@ Within each screenblock the equation works, but the bigger backgrounds don't sim
 </table>
 </div>
 
-This kind of nesting problem isn't as hard as it looks. We know how many tiles fit in a screenblock, so to get the SBB-coordinates, all we have to do divide the tile-coords by the SBB width and height: *sbx*=*tx*/32 and *sby*=*ty*/32. The SBB-number can then be found with the standard matrix→array formula. To find the in-SBB SE-number, we have to use *tx*%32 and *ty*%32 to find the in-SBB coordinates, and then again the conversion from 2D coords to a single element. This is to be offset by the SBB-number tiles the size of an SBB to find the final number. The final form would be:
+这种嵌套问题并不像看起来那么难。我们知道一个屏幕块能装下多少图块，所以要找出 SBB 坐标，我们只需把图块坐标除以 SBB 的宽和高：*sbx*=*tx*/32 和 *sby*=*ty*/32。然后可以用标准的矩阵→数组公式找出 SBB 编号。要找出屏幕块内的 SE 编号，我们要用 *tx*%32 和 *ty*%32 找出屏幕块内的坐标，然后再次把 2D 坐标转换成单个元素。这还要加上 SBB 编号乘以一个 SBB 大小的图块数，以得出最终编号。最终形式是：
 
 <div id="cd-se-index">
 
@@ -467,9 +464,9 @@ uint se_index(uint tx, uint ty, uint pitch)
 ```
 </div>
 
-The general formula is left as an exercise for the reader – one that is well worth the effort, in my view. This kind of process crops up in a number of places, like getting the offset for bitmap coordinates in tiles, and tile coords in 1D object mapping.
+一般公式留作读者的练习——在我看来这绝对值得花力气。这种过程在好几个地方都会出现，比如找出图块坐标在图块中的位图坐标偏移，以及 1D 对象映射中的图块坐标。
 
-If all those operations make you queasy, there's also a faster version specifically for a 2×2 arrangement. It starts with calculating the number as if it's a 32×32t map. This will be incorrect for a 64t wide map, which we can correct for by adding 0x0400−0x20 (i.e., tiles/block − tiles per row). We need another full block correction is the size is 64×64t.
+如果所有这些操作让你犯晕，还有一个专门针对 2×2 排列的更快版本。它先按 32×32t 地图计算出编号。对于 64t 宽的地图这会不正确，我们可以通过加上 0x0400−0x20（即每块图块数 − 每行图块数）来修正。对于 64×64t 的大小，我们还需要再修正一个完整的块。
 
 <div id="cd-se-index-fast">
 
@@ -491,17 +488,17 @@ uint se_index_fast(uint tx, uint ty, u16 bgcnt)
 ```
 </div>
 
-I would like to remind you that *n* here is the SE-number, not the address. Since the size of a regular SE is 2 bytes, you need to multiply *n* by 2 for the address. (Unless, of course, you have a pointer/array of `u16`s, in which case *n* will work fine.) Also, this works for regular backgrounds only; affine backgrounds use a linear map structure, which makes this extra work unnecessary there. By the way, both the screen-entry and map layouts are different for affine backgrounds. For their formats, see the [map format](affbg.html#sec-map) section of the affine background page.
+我要提醒你，这里的 *n* 是 SE 编号，不是地址。因为常规 SE 的大小是 2 字节，要得到地址你需要把 *n* 乘以 2。（当然，除非你有一个 `u16` 的指针/数组，那样 *n* 就能直接用。）而且，这只适用于常规背景；仿射背景使用线性地图结构，在那里不需要这些额外的工作。顺便说一句，屏幕条目和地图布局对仿射背景也是不同的。它们的格式见仿射背景页的[地图格式](affbg.html#sec-map)一节。
 
-### Background tile subtleties {#ssec-map-subtle}
+### 背景图块精妙之处 {#ssec-map-subtle}
 
-There are two additional things you need to be aware of when using tiles for tile-maps. The first concerns tile-numbering. For sprites, numbering went according to 4-bit tiles (s-tiles); for 8-bit tiles (d-tiles) you'd have use multiples of 2 (a bit like u16 addresses are always multiples of 2 in memory). In tile-maps, however, d-tiles are numbered by the d-tile. To put it in other words, for sprites, using index *id* indicates the same tile for both 4 and 8-bit tiles, namely the one that starts at *id*·20h. For tile-maps, however, it starts at *id*·20h for 4-bit tiles, but at *id*·40h for 8-bit tiles.
+使用图块做图块地图时，还有两件额外的事你需要知道。第一件关乎图块编号。对于精灵，编号是按 4 位图块（s-tiles）来的；对于 8 位图块（d-tiles），你得用 2 的倍数（有点像内存中 u16 地址总是 2 的倍数）。但在图块地图中，d-tiles 是按 d-tile 编号的。换句话说，对于精灵，使用索引 *id* 对 4 位和 8 位图块都指示同一个图块，即那个从 *id*·20h 开始的图块。但对于图块地图，4 位图块是从 *id*·20h 开始，而 8 位图块是从 *id*·40h 开始。
 
 <div class="lblock">
 <table id="tbl:bg-tids" class="table-data">
 <caption align="bottom">
-  {*@tbl:bg-tids}: tile counting 
-  for backgrounds, sticks to its bit-depth.
+  {*@tbl:bg-tids}：背景的图块计数，
+  与其位深保持一致。
 </caption>
 <tbody align="center">
 <tr>
@@ -514,23 +511,23 @@ There are two additional things you need to be aware of when using tiles for til
 </table>
 </div>
 
-The second concerns, well, also tile-numbering, but more how many tiles you can use. Each map entry for regular backgrounds has 10 bits for a tile index, so you can use up to 1024 tiles. However, a quick calculation shows that a charblock contains 4000h/20h= 512 s-tiles, or 4000h/40h= 256 d-tiles. So what's the deal here? Well, the charblock index you set in `REG_BGxCNT` is actually only the block where tile-counting starts: its <dfn>character base block</dfn>. You can use the ones after it as well. Cool, huh? But wait, if you can access subsequent charblocks as well; does this mean that, if you set the base charblock to 3, you can use the sprite blocks (which are basically blocks 4 and 5) as well?
+第二件也关乎图块编号，但更多是讲你能用多少图块。常规背景的每个地图条目有 10 位用于图块索引，所以你最多能用 1024 个图块。然而，简单计算一下就发现一个字符块包含 4000h/20h= 512 个 s-tiles，或 4000h/40h= 256 个 d-tiles。那么这是怎么回事？嗯，你在 `REG_BGxCNT` 中设定的字符块索引，实际上只是图块计数开始的地方：它的<dfn>字符基块</dfn>（character base block）。你也可以使用它后面的块。酷吧？但是等等，如果你能访问后续的字符块；这是否意味着，如果你把基字符块设为 3，你也能使用精灵块（本质上就是块 4 和 5）？
 
-The answer is: yes. And <span class="ack">NO</span>!
+答案是：能。也<span class="ack">不能</span>！
 
-Emulators from the early 2000s allow you to do this. However, a real GBA doesn't. It does output *something*, though: the screen-entry will be used as tile-data itself, but in a manner that simply defies explanation. Trust me on this one, okay? Of the current tonc demos, this is one of the times that VBA gets it wrong.
+2000 年代初的模拟器允许你这么做。然而，真正的 GBA 不允许。它确实会输出*某种*东西：屏幕条目本身会被当作图块数据使用，但方式实在无法解释。相信我这一次，好吗？在当前的 tonc 演示中，这是 VBA 出错的情形之一。
 
-:::note Available tiles
+:::note 可用的图块
 
-For both 4bpp and 8bpp regular bgs, you can access 1024 tiles. The only caveat here is that you cannot access the tiles in the object charblocks even if the index would call for it.
+对于 4bpp 和 8bpp 的常规背景，你都能访问 1024 个图块。这里唯一的注意事项是，即使索引会要求，你也不能访问对象字符块中的图块。
 
 :::
 
-Another thing you may be wondering is if you can use a particular screenblock that is within a currently used charblock. For example, is it allowed to have a background use charblock 0 and screenblock 1. Again, yes you can do this. This can be useful since you're not likely to fill an entire charblock, so using its later screenblocks for your map data is a good idea. (A sign of True Hackerdom would be if you manage to use the same data for both tiles and SEs and still get a meaningful image (this last part is important). If you have done this, please let me know.)
+你可能还在想的另一件事是：你能否使用一个刚好在当前所用字符块之内的特定屏幕块。例如，是否允许让一个背景使用字符块 0 和屏幕块 1。再一次，是的，你能这么做。这很有用，因为你不太可能填满整个字符块，所以把它的后部分屏幕块用于你的地图数据是個好主意。（真正黑客的标记，是如果你能成功把同一份数据既用作图块又用作 SE，并且仍然得到一幅有意义的图像（这最后一部分很重要）。如果你做到了，请告诉我。）
 
-:::note Tilemap data conversion via CLI
+:::note 通过 CLI 转换图块地图数据
 
-A converter that can tile images (for objects), can also create a tileset for tilemaps, although there will likely be many redundant tiles. A few converters can also reduce the tileset to only the unique tiles, and provide the tilemap that goes with it. The Brinstar bitmap from {@fig:map} is a 512×256 image, which could be tiled to a 64×32 map with a 4bpp tileset reduced for uniqueness in tiles, including palette info and mirroring.
+一个能为（对象）图像做图块化的转换器，也能为图块地图创建图块集，尽管可能会有很多冗余图块。少数转换器还能把图块集精简为只有唯一图块，并提供配套的图块地图。{@fig:map} 中的 Brinstar 位图是一张 512×256 的图像，可以被图块化为 64×32 的地图，并带有为唯一性精简过的 4bpp 图块集，包括调色板信息和镜像。
 
 ```sh
 # gfx2gba
@@ -545,21 +542,21 @@ A converter that can tile images (for objects), can also create a tileset for ti
     grit foo.bmp -gB4 -mRtpf
 ```
 
-Two notes on gfx2gba: First, it merges the palette to a single 16-color array, rearranging it in the process. Second, while it lists metamapping options in the readme, it actually doesn't give a metamap and meta-tileset, it just formats the map into different blocks.
+关于 gfx2gba 有两点说明：第一，它把调色板合并成单一的 16 色数组，在这个过程中重新排了序。第二，虽然它在 readme 里列出了元映射（metamapping）选项，它实际上并不给出元地图和元图块集，只是把地图格式化成不同的块。
 
 :::
 
-## Tilemap demos {#sec-demo}
+## 图块地图演示 {#sec-demo}
 
-There are four demos in this chapter. The first one is *brin_demo*, which is very, very short and shows the basic steps of tile loading and scrolling. The next ones are called *sbb_reg* and *cbb_demo*, which are tech demos, illustrating the layout of multiple screenblocks and how tile indexing is done on 4bpp and 8bpp backgrounds. In both these cases, the map data is created manually because it's more convenient to do so here, but using map-data created by map editors really isn't that different.
+本章有四个演示。第一个是 *brin_demo*，非常非常短，展示了图块加载和滚动的基本步骤。接下来两个叫 *sbb_reg* 和 *cbb_demo*，是技术演示，说明了多个屏幕块的布局，以及 4bpp 和 8bpp 背景上的图块索引是如何完成的。在这两个例子中，地图数据是手工创建的，因为这里手工创建更方便，但使用地图编辑器创建的地图数据其实也没什么不同。
 
-### Essential tilemap steps: brin_demo {#ssec-demo-brin}
+### 图块地图基本步骤：brin_demo {#ssec-demo-brin}
 
-As I've been using a 512×256 part of Brinstar throughout this chapter, I thought I might as well use it for a demo.
+既然我在本章里一直用 Brinstar 的 512×256 一部分，我想不妨用它做个演示。
 
-There are a few map editors out there that you can use. Two good ones are Nessie's [MapEd](https://nessie.gbadev.org) or [Mappy](https://www.tilemap.co.uk/mappy.php), both of which have a number of interesting features. I have my own map editor, [mirach](https://www.coranac.com/projects/#mirach), but it's just a very basic thing. Some tutorials may point you to GBAMapEditor. Do *not* use this editor as it's pretty buggy, leaving out half of the tilemaps sometimes. Tilemaps can be troublesome enough for beginners without having to worry about whether the map data is faulty.
+有几个地图编辑器你可以选用。两个好的是 Nessie 的 [MapEd](https://nessie.gbadev.org) 或 [Mappy](https://www.tilemap.co.uk/mappy.php)，两者都有一些有趣的特性。我自己也有一个地图编辑器，[mirach](https://www.coranac.com/projects/#mirach)，但它只是个非常基础的东西。有些教程可能指向 GBAMapEditor。*不要*用这个编辑器，因为它相当有 bug，有时会把半个图块地图漏掉。对初学者来说，图块地图已经够麻烦的了，不必再担心地图数据是否有错。
 
-In this cause, however, I haven't used any editor at all. Some of the graphics converters can convert to a tileset+tilemap – it's not the standard method, but for small maps it may well be easier. In this case I've used Usenti to do it, but grit and gfx2gba work just as well. Note that because the map here is 64×32 tiles, which requires splitting into screenblocks. In Usenti this is called the ‘sbb’ layout, in grit it's ‘-mLs’ and for gfx2gba you'd use ‘-mm 32’ … I think. In any case, after a conversion you'd have a palette, a tileset and a tilemap.
+不过在本例中，我根本没用任何编辑器。一些图形转换器能把图像转换成图块集+图块地图——这不是标准方法，但对小地图来说可能更容易。本例中我用了 Usenti 来做，但 grit 和 gfx2gba 一样好用。注意，因为这里的地图是 64×32 个图块，需要拆分成屏幕块。在 Usenti 中这叫‘sbb’布局，在 grit 中是‘-mLs’，对 gfx2gba 你大概要用‘-mm 32’……我想。无论如何，转换之后你会得到调色板、图块集和图块地图。
 
 <div class="cblock">
 <table id="fig:brin" width=100%>
@@ -601,18 +598,18 @@ const unsigned short brinMap[2048]=
 </table>
 </div>
 
-In {@fig:brin} you can see the full palette, the tileset and part of the map. Note that the tileset of {@fig:brin}b is not the same as that of {@fig:map}b because the former uses 8×8 tiles while the latter used 16×16 tiles. Note also that the screen entries you see here are either 0 (i.e., the empty tile) or of the form `0x3xxx`. The high nybble indicates the palette bank, in this case three. If you'd look to the palette ({@fig:brin}a) you'd see that this gives bluish colors.
+在 {@fig:brin} 中你可以看到完整的调色板、图块集和地图的一部分。注意 {@fig:brin}b 的图块集与 {@fig:map}b 的不同，因为前者用的是 8×8 图块，而后者用的是 16×16 图块。还要注意你在这里看到的屏幕条目要么是 0（即空图块），要么是 `0x3xxx` 的形式。高 nybble 指示调色板库，本例中是 3。如果你去看调色板（{@fig:brin}a），你会看到那给出偏蓝的颜色。
 
-Now on to using these data. Remember the essential steps here:
+现在来使用这些数据。记住这里的基本步骤：
 
--   Load the graphics: tiles into charblocks and colors in the background palette.
--   Load a map into one or more screenblocks.
--   Switch to the right mode in `REG_DISPCNT` and activate a background.
--   Initialize the background's control register to use the right CBB, SBB and bitdepth.
+-   加载图形：把图块放进字符块，把颜色放进背景调色板。
+-   把一个地图加载进一个或多个屏幕块。
+-   在 `REG_DISPCNT` 中切换到正确的模式，并激活一个背景。
+-   初始化背景的控制寄存器，以使用正确的 CBB、SBB 和位深。
 
-If you do it correctly, you should have something showing on screen. If not, go to the tile/map/memory viewers of your emulator; they'll usually give you a good idea where the problem is. A common one is having a mismatch between the CBB and SBB in `REG_BGxCNT` and where you put the data, which most likely would leave you with an empty map or empty tileset.
+如果你做对了，屏幕上就应该有东西显示。如果没有，去打开你模拟器的图块/地图/内存查看器；它们通常会很好地提示问题在哪里。一个常见的问题是 `REG_BGxCNT` 中的 CBB 和 SBB 与你放置数据的地方不匹配，这最可能让你得到一张空地图或空图块集。
 
-The full code of *brin_demo* is given below. The three calls to `memcpy()` load up the palette, tileset and tilemap. For some reason, probably related to where the NES and 8-bit Game Boy put screenblocks in video memory, it's become conventional to place the maps in the last screenblocks on GBA as well. In this case, that's 30 rather than 31 because we need two blocks for a 64×32t map. For the scrolling part, I'm using two variables to store and update the positions because the scrolling registers are write-only. I'm starting at (192, 64) here because that's what I used for the scrolling picture of {@fig:map-ofs} earlier.
+*brin_demo* 的完整代码如下。三次对 `memcpy()` 的调用加载了调色板、图块集和图块地图。出于某种原因——大概与 NES 和 8 位 Game Boy 把屏幕块放在视频内存的哪里有关——把地图放在 GBA 最后的屏幕块里已经成了惯例。本例中是 30 而不是 31，因为我们需要两个块来放 64×32t 的地图。对于滚动部分，我用了两个变量来存储和更新位置，因为滚动寄存器是只写的。我这里从 (192, 64) 开始，因为那是我之前用于 {@fig:map-ofs} 滚动图的位置。
 
 <div id="cd-brin-demo">
 
@@ -676,20 +673,20 @@ int main()
 </table>
 </div>
 
-#### Interlude: Fast-copying of non sbb-prepared maps
+#### 插曲：非 sbb 预处理的地图的快速复制
 
-This is not exactly required knowledge, but should make for an interesting read. In this demo I use a multi-sbb map that was already prepared for that. The converter made sure that the left block of the map came before the right block. If this weren't the case then you couldn't load the whole map in one go because the second row of the left block would use the first row of the right block and so on (see {@fig:brin-bad}).
+这并非必需的知识，但应该会是一段有趣的阅读。在这个演示中我用了一个已经为多 sbb 预处理过的地图。转换器确保了地图的左块排在前，右块排在后。如果不是这样，你就不能一次性加载整个地图，因为左块的 second 行会使用右块的 first 行，依此类推（见 {@fig:brin-bad}）。
 
 <div class="lblock">
 	<div class="cpt" style="width:512px;">
 	  <img src="./img/demo/brin_demo_bad.png" id="fig:brin-bad"
 		alt=""><br>
-	  <b>{*@fig:brin-bad}</b> <i>brin_demo</i> 
-	  without blocking out into SBB's first.
+  <b>{*@fig:brin-bad}</b> <i>brin_demo</i>
+  未先屏蔽掉 SBB 的首块。
 	</div>
 </div>
 
-There are few simple and slow ways and one simple and fast way of copying a non sbb-prepared map to a multiple screenblocks. The slow way would be to perform a double loop to go row by row of each screenblock. The fast way is through struct-copies and pointer arithmetic, like this:
+把非 sbb 预处理的地图复制到多个屏幕块，有几种简单而慢的方法，以及一种简单而快的方法。慢的方法是执行双重循环，逐行遍历每个屏幕块。快的方法是通过结构体复制和指针算术，像这样：
 
 <div id="lin2sbb-fast">
 
@@ -712,11 +709,11 @@ for(iy=0; iy<32; iy++)
 ```
 </div>
 
-A `BLOCK` struct-copy takes care of half a row, so two takes care of a whole screenblock row (yes, you could define `BLOCK` as a 16-word struct, but that wouldn't work out anymore. Trust me). At that point, the `src` pointer has arrived at the right half of the map, so we copy the next row into the right-hand side destination, `dst1`. When done with that, `src` points to the second row of the left side. Now do this for all 32 lines. Huzzah for struct-copies, and pointers!
+一个 `BLOCK` 结构体复制处理半行，所以两个处理一整个屏幕块行（是的，你可以把 `BLOCK` 定义为一个 16 字的结构体，但那就不行了。相信我）。在那时，`src` 指针已经到达地图的右半部分，所以我们将下一行复制到右侧目标 `dst1`。完成后，`src` 指向左侧的第二行。现在对所有 32 行都这么做。结构体复制和指针万岁！
 
-### A screenblock demo {#ssec-demo-sbb}
+### 屏幕块演示 {#ssec-demo-sbb}
 
-The second demo, *sbb_reg*, uses a 64×64t background to indicate how multiple screenblocks are used for bigger maps in more detail. While the *brin_demo* used a multi-sbb map as well, it wasn't easy to see what's what because the map was irregular; this demo uses a very simple tileset so you can clearly see the screenblock boundaries. It'll also show how you can use the `REG_BG_OFS` registers for scrolling rather than `REG_BGxHOFS` and `REG_BGxVOFS`.
+第二个演示 *sbb_reg*，用一个 64×64t 背景来更详细地说明更大的地图如何使用多个屏幕块。虽然 *brin_demo* 也用了多 sbb 地图，但因为地图不规则，很难看清谁是谁，而这个演示用了非常简单的图块集，所以你能清楚地看到屏幕块的边界。它还会展示如何用 `REG_BG_OFS` 寄存器来滚动，而不是 `REG_BGxHOFS` 和 `REG_BGxVOFS`。
 
 
 <div id="cd-demo-sbb">
@@ -817,24 +814,24 @@ int main()
 <div class="cpt_fr" style="width:240px">
 <img src="./img/demo/sbb_reg.png" id="fig:sbb-reg"
   alt="sbb_reg"><br>
-<b>{*@fig:sbb-reg}</b>: <i>sbb_reg</i>. 
-  Compare {@tbl:reg-layout}, 64×64t background. 
-  Note the little cross in the top left corner.
+<b>{*@fig:sbb-reg}</b>：<i>sbb_reg</i>。
+  对比 {@tbl:reg-layout} 的 64×64t 背景。
+  注意左上角的小十字。
 </div>
 
-The `init_map()` contains all of the initialization steps: setting up the registers, tiles, palettes and maps. Unlike the previous demo, the tiles, palette and the map are all created manually because it's just easier in this case. At point (1), I define two tiles. The first one looks a little like a pane and the second one is a rudimentary cross. You can see them clearly in the screenshot ({@fig:brin-demo}). The pane-like tile is loaded into tile 0, and is therefore the ‘default’ tile for the map.
+`init_map()` 包含了所有初始化步骤：设置寄存器、图块、调色板和地图。与之前的演示不同，这里的图块、调色板和地图都是手工创建的，因为那样更简单。在第 (1) 点，我定义了两个图块。第一个看起来有点像窗格，第二个是个基础十字。你可以在截图（{@fig:brin-demo}）中清楚看到它们。类窗格图块被加载到图块 0，因此它是地图的“默认”图块。
 
-The palette is set at point (2). The colors are the same as in {@tbl:reg-layout}: red, green, blue and grey. Take note of which palette entries I'm using: the colors are in different palette banks so that I can use palette swapping when I fill the map. Speaking of which …
+调色板在第 (2) 点设置。颜色与 {@tbl:reg-layout} 中相同：红、绿、蓝和灰。注意我用的调色板项：这些颜色在不同的调色板库里，这样我在填充地图时就能用调色板交换。说到这个……
 
-Loading the map itself (point (3)) happens through a double loop. The outer loop sets the palette-bank for the screen entries. The inner loop fills 1024 SEs with palette-swapped tile-0's. Now, if big maps used a flat layout, the result would be a big map in four colored bands. However, what actually happens is that you see *blocks*, not bands, proving that indeed regular maps are split into screenblocks just like {@tbl:reg-layout} said. Yes, it's annoying, but that's just the way it is.
+加载地图本身（第 (3) 点）是通过双重循环完成的。外层循环设定屏幕条的调色板库。内层循环用调色板交换过的图块-0 填充 1024 个 SE。现在，如果大地图用的是扁平布局，结果会是一张由四个色带组成的大地图。然而实际发生的是你看到的是*块*，而不是带，这证明了常规地图确实像 {@tbl:reg-layout} 说的那样被拆分成了屏幕块。是的，这很烦人，但事情就是这样。
 
-That was creating the map, now we turn to the main loop in `main()`. The keys (point (4)) let you scroll around the map. The RIGHT button is tied to a positive change in *x*, but the map itself actually scrolls to the *left*! When I say it like that it may seem counter-intuitive, but if you look at the demo you see that it actually makes sense. Think of it from a hypothetical player sprite point of view. As the sprite moves through the world, you need to update the background to keep the sprite from going off-screen. To do that, the background's movement should be the opposite of the sprite's movement. For example, if the sprite moves to the *right*, you have to move the background to the *left* to compensate.
+那是在创建地图，现在我们转向 `main()` 中的主循环。按键（第 (4) 点）让你在地图上滚动。RIGHT 按钮与 *x* 的正向变化绑定，但地图本身实际上是向左滚动的！我这么说可能显得反直觉，但如果你看演示就会发现这其实讲得通。从一个假想玩家精灵的角度想。当精灵在世界里移动时，你需要更新背景，以免精灵跑出屏幕。为此，背景的移动应该与精灵的移动相反。例如，如果精灵向右移动，你必须把背景向左移来补偿。
 
-Finally, there's one more thing to discuss: the cross that appears centered on the map. To do this as you scroll along, I keep track of the screen-entry at the center of the screen via a number of variables and the `se_index()` function. Variables `tx` and `ty` are the tile coordinates of the center of the screen, found by shifting and masking the background pixel coordinates. Feeding these to `se_index()` gives me the screen-entry offset from the screen base block. If this is different than the previous offset, I repaint the former offset as a pane, and update the new offset to the cross. That way, the cross seems to move over the map; much like a sprite would. This was actually designed as a test for `se_index()`; if the function was flawed, the cross would just disappear at some point. But it doesn't. Yay me <kbd>^_^</kbd>
+最后，还有一件事要讨论：那个在地图中央显示的十字。为了在滚动时做到这一点，我通过一些变量和 `se_index()` 函数追踪屏幕中央的屏幕条目。变量 `tx` 和 `ty` 是屏幕中央的图块坐标，通过对背景像素坐标移位和掩码得到。把它们喂给 `se_index()` 就给出从屏幕基块开始的屏幕条目偏移。如果这与前一个偏移不同，我把前一个偏移重绘为窗格，并把新偏移更新为十字。这样，十字看起来就像在地图上移动；很像精灵那样。这其实是为 `se_index()` 设计的一个测试；如果函数有缺陷，十字会在某处消失。但它没有。 yay me <kbd>^_^</kbd>
 
-### The charblock demo {#ssec-demo-cbb}
+### 字符块演示 {#ssec-demo-cbb}
 
-The third demo, *cbb_demo*, covers some of the details of charblocks and the differences in 4bpp and 8bpp tiles. The backgrounds in question are BG 0 and BG 1. Both will be 32×32t backgrounds, but BG 0 will use 4bpp tiles and CBB 0 and BG 2 uses 8bpp tiles and CBB 2. The exact locations and contents of the screenblocks are not important; what is important is to load the tiles to the starts of all 6 charblocks and see what happens.
+第三个演示 *cbb_demo*，涵盖了字符块的一些细节，以及 4bpp 和 8bpp 图块的区别。涉及到的背景是 BG 0 和 BG 1。两者都是 32×32t 背景，但 BG 0 使用 4bpp 图块和 CBB 0，BG 1 使用 8bpp 图块和 CBB 2。屏幕块的确切位置和内容不重要；重要的是把图块加载到全部 6 个字符块的起始处，看看会发生什么。
 
 <div id="cd-cbb-demo">
 
@@ -913,13 +910,13 @@ int main()
 ```
 </div>
 
-The tilesets can be found in *cbb_ids.c*. Each tile contains two numbers: one for the charblock I'm putting it and one for the tile-index in that block. For example, the tile that I want in charblock 0 at tile 1 shows ‘01’, CBB 1 tile 0 shows ‘10’, CBB 1, tile 1 has ‘11’, etc. I have twelve tiles in total, 4 s-tiles to be used for BG 0 and 8 d-tiles for BG 1.
+图块集可以在 *cbb_ids.c* 中找到。每个图块包含两个数字：一个是我把它放入的字符块，一个是在那个块中的图块索引。例如，我想放进字符块 0、图块 1 的图块显示‘01’，CBB 1 图块 0 显示‘10’，CBB 1 图块 1 显示‘11’，等等。我总共有十二个图块，4 个 s-tiles 用于 BG 0，8 个 d-tiles 用于 BG 1。
 
-Now, I have six pairs of tiles and I intend to place them in the first tiles of each of the 6 charblock (except for CBBs 0 and 2, where tile 0 would be used as default tiles for the background, which I want to keep empty). Yes six, I'm loading into the sprite charblocks as well. I could do this by hand, calculating all the addresses manually (`0600:0020` for CBB 0, tile 1, etc) and hope I don't make a mistake and can remember what I'm doing when revisiting the demo later, or I can just use my `tile_mem` and `tile8_mem` memory map matrices and get the addresses quickly and without any hassle. Even better, C allows struct assignments so I can load the individual tiles with a simple assignment! That is exactly what I'm doing in `load_tiles()`. The source tiles are cast to `TILE` and `TILE8` arrays for 4bpp and 8bpp tiles respectively. After that, loading the tiles is very simple indeed.
+现在，我有六对图块，打算把它们放在 6 个字符块每个的第一个图块里（CBB 0 和 2 除外，因为图块 0 会被用作背景的默认图块，我想让它保持空）。是的，六个，我连精灵字符块也加载了。我可以手工做，手动计算所有地址（`0600:0020` 是 CBB 0 图块 1 等），并希望我不会犯错，且以后重看演示时还记得自己在做什么，或者我也可以直接用我的 `tile_mem` 和 `tile8_mem` 内存映射矩阵，快速而无忧地得到地址。更好的是，C 允许结构体赋值，所以我可以用一个简单的赋值来加载单个图块！这正是我在 `load_tiles()` 里做的。源图块被转换成 `TILE` 和 `TILE8` 数组，分别用于 4bpp 和 8bpp 图块。之后，加载图块就非常简单了。
 
-The maps themselves are created in `init_maps()`. The only thing I'm interested in for this demo is to show how and which charblocks are used, so the particulars of the map aren't that important. The only thing I want them to do is to be able to show the tiles that I loaded in `load_tiles()`. The two pointers I create here, `se4` and `se8`, point to screen-entries in the screenblocks used for BG 0 and BG 1, respectively. BG 0's map, containing s-tiles, uses 1 and 512 offsets; BG 1's entries, 8bpp tiles, carries 1 and 256 offsets. If what I said before about tile-index for different bitdepths is true, then you should see the contents of all the loaded tiles. And looking at the result of the demo ({@fig:cbb-demo}), it looks as if I did my math correctly: background tile-indices follow the bg's assigned bitdepth, in contrast to sprites which always counts in 32 byte offsets.
+地图本身在 `init_maps()` 中创建。本演示我唯一感兴趣的是展示哪些字符块、如何被使用，所以地图的细节并不那么重要。我唯一想让它们做的，是能显示出我在 `load_tiles()` 中加载的图块。我在这里创建的两个指针 `se4` 和 `se8`，分别指向用于 BG 0 和 BG 1 的屏幕块中的屏幕条目。BG 0 的地图包含 s-tiles，使用 1 和 512 偏移；BG 1 的条目是 8bpp 图块，带 1 和 256 偏移。如果我之前说的不同位深下的图块索引是对的，那么你应该能看到所有加载图块的内容。看着演示的结果（{@fig:cbb-demo}），看来我的数学是正确的：背景图块索引遵循该背景分配的位深，这与精灵总是按 32 字节偏移计数相反。
 
-There is, however, one point of concern: on hardware, you won't see the tiles that are actually in object VRAM (blocks 4 and 5). While you might expect to be able to use the sprite blocks for backgrounds due to the addresses, the actual wiring in the GBA seems to forbid it. This is why you should test on hardware is important: emulators aren't always perfect. But if hardware testing is not available to you, test on multiple emulators; if you see different behaviour, be wary of the code that produced it.
+不过，有一点值得关注：在硬件上，你不会看到实际在对象 VRAM（块 4 和 5）中的图块。虽然你可能期望由于地址的关系能用精灵块做背景，但 GBA 内部的实际布线似乎禁止了这一点。这就是为什么在硬件上测试很重要：模拟器并不总是完美的。但如果你无法进行硬件测试，就在多个模拟器上测试；如果你看到不同的行为，要对产生它的代码保持警惕。
 
 <div class="lblock">
 <table id="fig:cbb-demo">
@@ -927,8 +924,8 @@ There is, however, one point of concern: on hardware, you won't see the tiles th
 <td>
   <div class="cpt" style="width:240px">
   <img src="./img/demo/cbb_demo_vba.png" alt="cbb_demo on VBA"><br>
-  <b>{*@fig:cbb-demo}a</b>: <i>cbb_demo</i> on 
-  obsolete emulators (such as VBA and Boycott Adv).
+  <b>{*@fig:cbb-demo}a</b>：<i>cbb_demo</i> 在
+  过时的模拟器上（如 VBA 与 Boycott Adv）。
   </div>
 <td>
   <div class="cpt" style="width:240px">
@@ -939,13 +936,13 @@ There is, however, one point of concern: on hardware, you won't see the tiles th
 </table>
 </div>
 
-### Bonus demo: the 'text' in text bg and introducing libtonc {#ssec-demo-hello}
+### 额外演示：文本背景中的“text”以及 libtonc 介绍 {#ssec-demo-hello}
 
-Woo, bonus demo! This example will serve a number of purposes. The first is to introduce libtonc, a library of code to make life on the GBA a bit easier. In past demos, I've been using *toolbox.h/c* to store useful macros and functions. This is alright for very small projects, but as code gets added, it becomes very hard to maintain everything. It's better to store common functionality in [libraries](https://en.wikipedia.org/wiki/Library_(computing)) that can be shared among projects.
+呜，额外演示！这个例子有几个用途。第一个是介绍 libtonc，一个让 GBA 上生活更轻松的代码库。在过去的演示里，我一直在用 *toolbox.h/c* 来存放有用的宏和函数。这对非常小的项目没问题，但随着代码增加，维护一切会变得非常困难。把通用功能存放在可以在项目间共享的[库](https://en.wikipedia.org/wiki/Library_(computing))里更好。
 
-The second reason is to show how you can output text, which is obviously an important ability to have. Tonclib has an extensive list of options for text rendering – too much to explain here – but its interface is pretty easy. For details, visit the [Tonc Text Engine chapter](tte.html).
+第二个理由是展示如何输出文本，这显然是一项重要的能力。Tonclib 有一长串文本渲染选项——太多，这里解释不完——但它的接口相当简单。详情请访问 [Tonc 文本引擎章节](tte.html)。
 
-Anyway, here's the example.
+总之，这是例子。
 
 <div id="cd-hello">
 
@@ -988,17 +985,17 @@ int main()
 </table>
 </div>
 
-Yes, it is indeed a “hello world” demo, the starting point of nearly every introductory C/C++ tutorial. However, those are usually for meant for PC platforms, which have native console functionality like `printf()` or `cout`. These do not exist for the GBA. (Or “didn't”, I should say; there are ways to make use of them nowadays. See [tte:conio](tte.html#ssec-misc-conio) for details.)
+是的，这确实是一个“hello world”演示，几乎是每个入门 C/C++ 教程的起点。然而，那些通常针对 PC 平台，它们有原生的控制台功能如 `printf()` 或 `cout`。这些在 GBA 上不存在。（或者我该说“过去不存在”；如今有办法利用它们了。详见 [tte:conio](tte.html#ssec-misc-conio)。）
 
-Tonc's support for text goes through `tte_` functions. In this case, `tte_init_se_default()` sets up background 0 for tile-mapped text. It also loads the default 8×8 font into charblock 0 (see {@fig:hello}b). After that, you can write to text with `tte_write`. The sequence `#{P:x,y}` is the formatting command that TTE uses to position the cursor. There are a number of these, some of which you'll also see in later chapters.
+Tonc 对文本的支持通过 `tte_` 函数。本例中，`tte_init_se_default()` 为基于图块地图的文本初始化背景 0。它还会把默认的 8×8 字体加载进字符块 0（见 {@fig:hello}b）。之后，你可以用 `tte_write` 写文本。序列 `#{P:x,y}` 是 TTE 用来定位光标的格式命令。这类命令有好几个，其中一些你也会在后面的章节看到。
 
-From this point on, I'll make liberal use of libtonc's text capabilities in examples for displaying values and the like. This will mostly happen without explanation, because that won't be part of the demo. Again, to see the internals, go to the [TTE chapter](tte.html).
+从现在起，我会在示例里大量使用 libtonc 的文本能力来显示数值之类的东西。这通常不会附带解释，因为那不属于演示内容。再次说明，要看内部细节，请去 [TTE 章节](tte.html)。
 
-#### Creating and using code libraries
+#### 创建和使用代码库
 
-Using the functions themselves is pretty simple, but they are spread out over multiple files and reference even more. This makes it a hassle to find which files you need to add to the list of sources to compile a project. You could add everything, of course, but that's not a pleasant prospect either. The best solution is to pre-compile the utility code into a library.
+使用函数本身相当简单，但它们分散在多个文件中，并且引用更多文件。这让找出需要把哪些文件加入编译项目的源文件列表变得麻烦。你当然可以把一切都加进去，但那也不是个令人愉快的前景。最好的解决方案是把实用代码预编译成一个库。
 
-Libraries are essentially clusters of object files. Instead of linking the objects into an executable directly, you <dfn>archive</dfn> them with arm-none-eabi-ar. The command is similar to the link step as well. Here is how you can create the library libfoo.a from objects foo.o, bar.o and baz.o.
+库本质上是目标文件的集群。你不是直接把目标文件链接成可执行文件，而是用 arm-none-eabi-ar 把它们<dfn>归档</dfn>（archive）。命令也类似于链接步骤。下面是你如何用对象 foo.o、bar.o 和 baz.o 创建库 libfoo.a 的方法。
 
 ```makefile
 # archive rule
@@ -1007,9 +1004,9 @@ libfoo : foo.o bar.o baz.o
 # shorthand rule: $(AR) rcs $@ $^
 ```
 
-The three flags stand for **c**reate archive, **r**eplace member and create **s**ymbol table, respectively. For more on these and other archiving flags, I will refer you to the manual, which is part of the [binutils](https://sourceware.org/binutils/) toolset. The flags are followed by the library name, which is followed by all the objects (the ‘members’ you want to archive).
+这三个标志分别代表**c**reate archive（创建归档）、**r**eplace member（替换成员）和创建**s**ymbol table（符号表）。关于这些和其他归档标志的更多信息，我请你去查阅手册，它是 [binutils](https://sourceware.org/binutils/) 工具集的一部分。标志后面跟着库名，再后面是所有对象（你想归档的“成员”）。
 
-To use the library, you have to link it to the executable. There are two linker flags of interest here: `-L` and `-l`. Upper- and lowercase ‘L’. The former, `-L` adds a library path. The lowercase version, `-l`, adds the actual library, but there is a twist here: only need the root-name of the library. For example, to link the library *libfoo.a*, use `-lfoo`. The prefix *lib* and extension *.a* are assumed by the linker.
+要使用库，你得把它链接到可执行文件。这里有两个感兴趣的链接器标志：`-L` 和 `-l`。大写和小写的“L”。前者 `-L` 添加一个库路径。小写版本 `-l` 添加实际的库，但有个转折：你只需要库的根名。例如，要链接库 *libfoo.a*，用 `-lfoo`。前缀 *lib* 和后缀 *.a* 由链接器假定。
 
 ```makefile
 # using libfoo (assume it's in ../lib)
@@ -1017,13 +1014,13 @@ $(PROJ).elf : $(OBJS)
     $(LD) $^ $(LDFLAGS) -L../lib -lfoo -o $@
 ```
 
-Of course, these archives can get pretty big if you dump a lot of stuff in there. You might wonder if all of it is linked when you add a library to your project. The answer is no, it is not. The linker is smart enough to use only the files which functions you're actually referencing. In the case of this demo, for example, I'm using various text functions, but none of the [affine](affine.html) functions or tables, so those are excluded. Note that the exclusion goes by *file*, not by *function*. If you only have one file in the library (or `#include`d everything, which amounts to the same thing), everything will be linked.
+当然，如果你往里塞很多东西，这些归档会变得相当大。你可能想知道，当你把一个库加入项目时，是不是所有东西都被链接了。答案是否定的。链接器足够聪明，只使用你实际引用的函数所在的文件。在本演示的情况下，例如，我用了各种文本函数，但没有用任何[仿射](affine.html)函数或表，所以那些被排除在外。注意，排除是按*文件*而非按*函数*进行的。如果你的库里只有一个文件（或者把一切 `#include` 了，效果一样），那么一切都会被链接。
 
-I intend to use libtonc in a number of later demos. In particular, the memory map, text and copy routines will be present often. Don't worry about what they do for the demo; just focus on the core content itself. Documentation of libtonc can be found in the *libtonc* folder (`tonc/code/libtonc`) and at [Tonclib's website](https://www.coranac.com/man/libtonc/).
+我打算在后面的几个演示里用 libtonc。特别是内存映射、文本和复制例程会经常出现。不必担心它们对演示做了什么；只要关注核心内容本身。libtonc 的文档可以在 *libtonc* 文件夹（`tonc/code/libtonc`）以及 [Tonclib 的网站](https://www.coranac.com/man/libtonc/)找到。
 
-:::tip Better copy and fill routines: memcpy16/32 and memset16/32
+:::tip 更好的复制和填充例程：memcpy16/32 和 memset16/32
 
-Now that I am using libtonc as a library for its text routines, I might as well use it for its copy and fill routines as well. Their names are `memcpy16()` and `memcpy32()` for copies and `memset16()` and `memset32()` for fill routines. The 16 and 32 denote their preferred datatypes: halfwords and words, respectively. Their arguments are similar to the conventional `memcpy()` and `memset()`, with the exception that the size is the number of items to be copied, rather than in bytes.
+既然我把 libtonc 作为文本例程的库来用，那不如也把它用于复制和填充例程。它们的名字是复制用的 `memcpy16()` 和 `memcpy32()`，以及填充用的 `memset16()` 和 `memset32()`。16 和 32 表示它们偏好的数据类型：分别是半字和字。它们的参数与常规的 `memcpy()` 和 `memset()` 相似，区别在于大小是待复制的项数，而不是字节数。
 
 ```c
 void memset16(void *dest, u16 hw, uint hwcount);
@@ -1033,16 +1030,16 @@ void memset32(void *dest, u32 wd, uint wcount) IWRAM_CODE;
 void memcpy32(void *dest, const void *src, uint wcount) IWRAM_CODE;
 ```
 
-These routines are optimized assembly so they are [fast](text.html#ssec-demo-se2). They are also safer than the [dma routines](dma.html#sec-func), and the [BIOS routine](swi.html) `CpuFastSet()`. Basically, I highly recommend them, and I will use them wherever I can.
+这些例程是优化过的汇编，所以很[快](text.html#ssec-demo-se2)。它们也比 [dma 例程](dma.html#sec-func) 和 [BIOS 例程](swi.html) `CpuFastSet()` 更安全。基本上，我强烈推荐它们，并且会在任何能用到的地方使用。
 
 :::
 
-:::warning Linker options: object files before libraries
+:::warning 链接器选项：目标文件在库之前
 
-In most cases, you can change the order of the options and files freely, but in the linker's case it is important the object files of the projects are mentioned *before* the linked libraries. If not, the link will fail. Whether this is standard behaviour or if it is an oversight in the linker's workings I cannot say, but be aware of potential problems here.
+大多数情况下，你可以自由改变选项和文件的顺序，但在链接器的情况下，项目的目标文件必须*在*被链接的库*之前*提及。否则，链接会失败。这是标准行为还是链接器运作中的一个疏忽，我说不准，但要注意这里潜在的问题。
 
 :::
 
-## In conclusion {#sec-conc}
+## 总结 {#sec-conc}
 
-Tilemaps are essential for most types of GBA games. They are trickier to get to grips with than the bitmap modes or sprites because there are more [steps to get exactly right](#ssec-demo-brin). And, of course, you need to be sure the editor that gave you the map actually supplied the data you were expecting. Fool around with the demos a little: run them, change the code and see what happens. For example, you could try to add scrolling code to the brin_demo so you can see the whole map. Change screen blocks, change charblock, change the bitdepth, mess up *intentionally* so you can see what can go wrong, so you'll be prepared for it when you try your own maps. Once you're confident enough, only then start making your own. I know it's the boring way, but you will benefit from it in the long run.
+图块地图对大多数类型的 GBA 游戏都至关重要。它们比位图模式或精灵更难掌握，因为有更多[需要做到恰到好处的步骤](#ssec-demo-brin)。当然，你还需要确保给你地图的编辑器确实提供了你期望的数据。摆弄一下这些演示：运行它们，改改代码，看看会发生什么。例如，你可以试着给 brin_demo 加上滚动代码，这样你就能看到整张地图。改变屏幕块，改变字符块，改变位深，故意搞砸，这样你就能看到什么可能出错，以便将来做自己的地图时有备无患。只有当你足够自信了，才去开始做你自己的。我知道这是无聊的方式，但从长远来看你会从中受益。

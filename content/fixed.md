@@ -1,24 +1,24 @@
-# B. Fixed-Point Numbers and LUTs
+# B. 定点数与查找表（LUT）
 
 <!-- toc -->
 
-## What are fixed-point numbers {#sec-intro}
+## 什么是定点数 {#sec-intro}
 
-Roughly put, there are two types of numbers: integers and floating-points. For most serious math you would get nowhere with integers because, by definition, they don't allow fractions. So for 3D games you'd use floating-point math. Back in the old days, before the arrival of specialized floating-point hardware, that stuff was very slow! Or at least slower than integer arithmetic. Fortunately, there is a way of faking numbers with decimal points with integers. This is known as <dfn>fixed-point math</dfn>.
+粗略地说，数字有两种：整数和浮点数。对大多数严肃的数学运算，整数都不够用，因为按定义它们不允许有小数。所以对 3D 游戏你会用浮点运算。在专门浮点硬件出现之前的旧日子里，那东西非常慢！至少比整数运算慢。幸运的是，有一种用整数假冒带小数点数字的方法。这就是 <dfn>定点数运算（fixed-point math）</dfn>。
 
-### General fixed-point numbers {#ssec-fix-gen}
+### 一般定点数 {#ssec-fix-gen}
 
-Here's an example. Say you have \$10.78 (ten dollars and seventy-eight cents) in wallet. If you want to write this amount as an integer you have a problem, because you'd either have to leave off the fractional part (\$10) or round it to \$11. However, you could also write it down not in dollars, but in *cents*. That way you'd write 1078, which is an integer, problem solved.
+举个例。假设你钱包里有 \$10.78（十美元七十八美分）。如果你想把这笔金额写成整数就有问题，因为你要么丢掉小数部分（\$10），要么把它四舍五入成 \$11。不过，你也可以不按美元而是按 *分* 来写。那样你会写 1078，这是个整数，问题解决了。
 
-That's the way fixed-point math works. Instead of counting units, you count *fractions*. In the previous example, you count in cents, or hundredths. Fixed-points have a in integer part (the “10”), and a fractional part (“78”). Since we have 2 digits for the fractional part, we call this a fixed-point number in an <dfn>x.2</dfn> format.
+定点数运算就是这么工作的。你不是数“单位”，而是数 *分数*。在前面的例子里，你以分、也就是百分之一来计数。定点数有一个整数部分（“10”）和一个小数部分（“78”）。既然小数部分用了 2 位数字，我们称这种为 <dfn>x.2</dfn> 格式的定点数。
 
-Note that PCs have floating-point units (FPU) since the mid-1990s. This makes floating-point arithmetic just as fast as integer arithmetic (sometimes even faster) so using fixed-point math is not really worth the trouble except, perhaps, in rasterization, since the conversion from `float`s to `int`s is still slow. However, the GBA doesn't do floating-point stuff well, so it's fixed math all the way.
+注意，PC 自 1990 年代中期起就有了浮点单元（FPU）。这使得浮点运算和整数运算一样快（有时甚至更快），所以除了光栅化之外，用定点数运算并不真的值得费劲，因为从 `float` 到 `int` 的转换仍然很慢。然而，GBA 不擅长浮点，所以它全程都是定点运算。
 
-### GBA fixed-point usage {#ssec-fix-gba}
+### GBA 中的定点数用法 {#ssec-fix-gba}
 
-Because computers use the [binary system](numbers.html#ssec-num-basen), using decimals as a basis for fixed-points would be silly. Fortunately, you can do fixed-point math in any base, including binary. The basic format is *i*.*f*, where *i* is number of integer bits, and *f* the number of fractional bits. Often, only the fractional is important to know, so you'll also come across just the indication ‘.*f*’.
+因为计算机使用[二进制系统](numbers.html#ssec-num-basen)，用十进制作为定点数的基础是愚蠢的。幸运的是，你可以用任何进制做定点数运算，包括二进制。基本格式是 *i*.*f*，其中 *i* 是整数位数，*f* 是小数位数。通常，只有小数位数重要，所以你也会看到只写“.*f*”。
 
-The GBA uses fixed-point math in a number of cases. The [affine parameters](affine.html), for example, are all .8 fixed-point numbers (“<dfn>fixeds</dfn>”, for short). Effectively, this means you're counting in 1/2<sup>8</sup> = 1/256ths, giving you a 0.004 accuracy. So when you write 256 to a register like REG_BG2PA, this is actually interpreted as 256/256=1.00. REG_BG2PA=512 would be 2.00, 640 is 2.50, et cetera. Of course, it is a little hard to see in the decimal system, but grab a calculator and you'll see that it's true. For this reason, it is often more convenient to write them down as hex numbers: 256=0x100→1.00, 512=0x200→2.00, 640=0x280→2.50 (remember that 8 is 16/2, or one half).
+GBA 在好些地方用定点数运算。比如[仿射参数](affine.html)，全是 .8 定点数（简称“<dfn>fixeds</dfn>”）。实际上，这意味着你以 1/2<sup>8</sup> = 1/256 为单位计数，精度为 0.004。所以当你往像 REG_BG2PA 这样的寄存器写 256 时，它实际被解释为 256/256=1.00。REG_BG2PA=512 即 2.00，640 即 2.50，等等。当然，这在十进制里有点难看出来，但拿计算器你会确认这是真的。为此，通常更方便的是用十六进制写它们：256=0x100→1.00，512=0x200→2.00，640=0x280→2.50（记住 8 是 16/2，即一半）。
 
 ```c
 // .8 fixed point examples : counting in fractions of 256
@@ -32,39 +32,39 @@ int c= 0x080;       // 0x080/256 = 128/256 = 0.50
 int d= 0x280;       // 0x280/256 = 640/256 = 2.50
 ```
 
-The affine registers aren't the only places fixed-points are used, though that's where they are the most recognizable. The [blend weights](gfx.html#sec-blend) are essentially fixed-point numbers as well, only they are 1.4 fixeds, not .8 fixeds. This is an important point, actually: the position you set the fixed-point to is arbitrary, and you can even switch the position as you go along. Now, the numbers themselves won't tell you where the point is, so it is important to either remember it yourself or better yet, write it down in the comments. Trust me, you do not want to guess at the fixed-point position in the middle of a lengthy algorithm.
+仿射寄存器不是唯一用定点数的地方，尽管那里最易辨认。[混合权重](gfx.html#sec-blend)本质上也是定点数，只是它们是 1.4 定点数而非 .8 定点数。这实际上是个要点：你给定点数设定的位置是任意的，你甚至可以在过程中切换位置。现在，数字本身不会告诉你小数点在哪，所以要么自己记住，要么——更好——在注释里写下来。相信我，你绝不想在冗长算法的中间去猜定点数的位置。
 
-:::tip Comment your fixed-point position
+:::tip 注释你的定点数位置
 
-When you use fixed-point variables, try to indicate the fixed-point format for them, especially when you need them for longer calculations, where the point may shift position depending on the operations you use.
-
-:::
-
-### Fixed-point and signs {#ssec-fix-sign}
-
-Fixed-point numbers are supposed to be a poor man's replacement for floating-point numbers, which would include negative numbers as well. This means that they're supposed to be *signed*. Or at least, usually. For example, the affine registers use signed 8.8 fixeds, but the blend weights are unsigned 1.4 fixeds. You may think it hardly matters, but [signs](numbers.html#bits-int-sign) can really mess things up if you're not careful. Say you're using fixed-points for positions and velocities. Even if your positions are always positive, the velocities won't be, so signed numbers would be more appropriate. Furthermore, if your fixed-point numbers are halfwords, say 8.8 fixeds, a signed ‘−1’ will be used as `0xFFFFFFFF`, i.e. a proper ‘−1’, but an unsigned ‘−1’ is `0x0000FFFF`, which is actually a positive number. You won't be the first person to trip over this, nor would be the last. So signed fixeds, please.
-
-Another point of notice is the way signed fixeds are often indicated. You may see things of the form ‘1.*n*.*f*’. This is meant to indicate one sign bit, *n* integer bits and *f* fractional bits. Technically speaking, this is **false**. Fixed-point numbers are just plain integers, just interpreted as fractions. That means they follow [two's complement](numbers.html#bits-int-neg) and that, while a set top bit does indicate a negative number, it isn't *the* sign bit. As I mentioned, ‘−1’ in two's complement is `0xFFFFFFFF`, not `0x80000001` as is the case with sign and magnitude. You might not think much of this distinction and that it's obvious that it's still two's complement, but considering that floating-point formats *do* have a separate sign bit, I'd say it's worth remembering.
-
-:::warning Signed fixed format notation
-
-Signed fixed-point formats are sometimes indicated as ‘1.*n*.*f*’. From that, you might think they have a separate sign bit like floating-point formats, but this is **not correct**. They're still regular integers, using two's complement for negative numbers.
+当你使用定点数变量时，试着标明它们的定点数格式，特别是在你需要它们做较长计算、点的位置可能随所用操作而移动时。
 
 :::
 
-## Fixed-point math {#sec-fmath}
+### 定点数与符号 {#ssec-fix-sign}
 
-Knowing what fixed-point numbers are is one thing, you still have to use them somehow. Three things concern us here.
+定点数本该是浮点数的穷人替代品，而浮点数是包含负数的。这意味着它们本该是 *有符号* 的。或者至少通常是。例如，仿射寄存器用有符号的 8.8 定点数，但混合权重是无符号的 1.4 定点数。你可能觉得这几乎无关紧要，但[符号](numbers.html#bits-int-sign)如果不小心真的能把事情搞砸。假设你用定点数表示位置和速度。即便你的位置总为正，速度也不会，所以有符号数更合适。此外，如果你的定点数是半字，比如 8.8 定点数，有符号的“−1”会是 `0xFFFFFFFF`，即一个恰当的“−1”，而无符号的“−1”是 `0x0000FFFF`，那其实是个正数。你不会是第一个在这上面栽跟头的人，也不会是最后一个。所以有符号定点数，拜托。
 
--   Converting between regular integers or floats and fixed-point numbers.
--   Arithmetical operations.
--   Overflow.
+另一点要注意的是有符号定点数常被标明的方式。你可能会看到“1.*n*.*f*”这样的形式。这是为了表示一个符号位、*n* 个整数位和 *f* 个小数位。严格来说，这是 **错的**。定点数只是普通整数，只是被解释为分数。这意味着它们遵循[补码（two's complement）](numbers.html#bits-int-neg)，并且虽然置位的顶位确实表示负数，但它并不是 *那个* 符号位。正如我所说，“−1”在补码里是 `0xFFFFFFFF`，而不是符号-数值（sign and magnitude）里的 `0x80000001`。你可能不觉得这个区别有多大意义、觉得显然它仍是补码，但考虑到浮点格式 *确实* 有独立的符号位，我说它值得记住。
 
-None of these items are difficult to understand, but each does have its awkward issues. In fact, overflow *is* merely an issue, not really an item. This section will focus on 24.8 signed fixeds, for which I will use a “FIXED” typedef'ed int. Although it only uses this fixed-point format, the topics covered here can easily be applied to other formats as well.
+:::warning 有符号定点数格式记法
 
-### Converting to and from fixed-points {#ssec-fmath-conv}
+有符号定点数格式有时被标为“1.*n*.*f*”。由此你可能会以为它们像浮点格式那样有个独立的符号位，但这是 **不正确的**。它们仍是普通整数，用补码表示负数。
 
-I'm not really sure is “conversion” is even the right word here. The only difference between fixed-point numbers and normal ones is a scaling factor *M*. All that's necessary to go from a FIXED to an int or float is account for that scale by either multiplication or division. Yes, it really is that simple. As we're using power-of-two's for the scales, the integer↔FIXED conversion can even be done with shifts. You can add the shifts in the code yourself, but the compiler is smart enough to convert power-of-two multiplications and divisions to shifts itself.
+:::
+
+## 定点数运算 {#sec-fmath}
+
+知道定点数是什么是一回事，你还得以某种方式使用它们。我们关心三件事。
+
+-   在普通整数或浮点与定点数之间转换。
+-   算术运算。
+-   溢出。
+
+这些项目没有哪个难懂，但每个都有其别扭之处。事实上，溢出 *只是* 一个问题，算不上真正的项目。本节聚焦 24.8 有符号定点数，我会用一个 typedef 为 int 的“FIXED”类型。虽然只用这种定点格式，但这里涉及的主题也能轻松应用到其他格式。
+
+### 定点数的相互转换 {#ssec-fmath-conv}
+
+我不太确定“转换”在这里是不是正确的词。定点数和普通数的唯一区别是一个缩放因子 *M*。从 FIXED 到 int 或 float 所需的一切，就是通过乘或除来计入那个缩放。是的，真的就这么简单。因为我们用的缩放是 2 的幂，整数↔FIXED 转换甚至可以用移位完成。你可以自己在代码里加移位，但编译器足够聪明，会把 2 的幂的乘除自己转成移位。
 
 ```c
 typedef s32 FIXED;         //! 32bit FIXED in 24.8 format
@@ -97,19 +97,19 @@ INLINE float fx2float(FIXED fx)
 {   return fx/FIX_SCALEF;   }
 ```
 
-#### Rounding off and negative number inconsistencies
+#### 舍入与负数不一致问题
 
-The conversions are almost as simple as described above. The two places where things may be problematic are round-off inconsistencies and negative fractions. Note that I said they *may* be problematic; it depends on what you had in mind. I am not going to explain all the ins and out here, because they generally won't be much of a problem, but you need to be aware of them.
+转换几乎和上面描述的一样简单。两个可能出问题的地方是舍入不一致和负小数。注意我说的是它们 *可能* 有问题；取决于你心里想什么。我不打算在这里解释所有来龙去脉，因为它们通常没那么大问题，但你需要意识到它们。
 
-If you're not new to programming, you will undoubtedly be aware of the problem of round-off from floats to ints: a simple cast conversion truncates a number, it does not really round it off. For example, ‘(int)1.7’ gives 1 as a result, not 2. The earlier macros have the same problem (if you can call it that). Float-to-int rounding is done by adding one half (0.5) to the float before rounding, which we can also apply to fixed-point conversion. In this case, of course, the value of one half depends on the number of fixed-point bits. For example, .8 fixeds, ½ is 0x80=128 (256/2), for .16 fixeds it is 0x8000=32768. Add this before shifting down and it'll be rounded off properly. There are actually multiple ways of rounding off, which you can read about in ["An Introduction to Fixed Point Math" by Brian Hook](https://web.archive.org/web/20060204155500/http://www.bookofhook.com/Article/GameDevelopment/AnIntroductiontoFixedPoin.html).
+如果你不是编程新手，你无疑会意识到从 float 到 int 的舍入问题：简单的强制类型转换会截断一个数，而不是真正四舍五入。例如，`(int)1.7` 给出结果 1 而非 2。前面的宏有同样的问题（如果你能这么叫的话）。浮点到整数的四舍五入是在四舍五入前给浮点数加半个（0.5），我们也可以把它用到定点数转换上。当然，这里的半个值取决于定点数的位数。例如，.8 定点数，½ 是 0x80=128（256/2），对 .16 定点数是 0x8000=32768。在向下移位前加上它就能正确四舍五入。四舍五入其实有多种方式，你可以读 ["An Introduction to Fixed Point Math" by Brian Hook](https://web.archive.org/web/20060204155500/http://www.bookofhook.com/Article/GameDevelopment/AnIntroductiontoFixedPoin.html)。
 
-And then there are negative numbers. Frankly, division on negative integers is always a bitch. The basic problem here is that they are always rounded towards zero: both +3/4 and −3/4 give 0. In some ways this makes sense, but in one way it doesn't: it breaks up the sequence of outputs around zero. This is annoying on its own, but what's worse is that right-shifting *doesn't* follow this behaviour; it always shifts towards negative infinity. In other words, for negative integer division, the division and right-shift operators are *not* the same. Which method you choose is a design consideration on your part. Personally, I'm inclined to go with shifts because they give a more consistent result.
+然后是负数的问题。坦白说，负数的除法总是个麻烦。基本问题是它们总是向零取整：+3/4 和 −3/4 都给出 0。某些方面这说得通，但某方面又说不通：它在零附近打断了输出的序列。这本身就烦人，但更糟的是右移位 *不* 遵循这种行为；它总是移向负无穷。换句话说，对负整数的除法，除法和右移运算符并 *不* 相同。选哪种方法是你自己的设计考量。就我个人而言，我倾向于用移位，因为它给出更一致的结果。
 
 <div class="cblock">
 <table id="tbl:neg-div" class="table-data">
 <caption align="bottom">
-  <b>*@tbl:neg-div</b>:
-  Division and right-shifts around zero.
+  <b>*@tbl:neg-div</b>：
+  零附近的除法与右移。
 </caption>
 <col span=19 width=20>
 <tbody align="center">
@@ -132,21 +132,21 @@ And then there are negative numbers. Frankly, division on negative integers is a
 </table>
 </div>
 
-The negative division nasty is even worse when you try to deal with the fractional part. Masking with AND effectively destroys the sign of a number. For example, a 8.8 −2¼ is −0x0240 = 0xFDC0. Mask that with 0xFF and you'll get 0xC0 = ¾, a positive number, and the wrong fraction as well. On the other hand 0xFDC0\>\>8 is −3, for better or for worse, and −3 + ¾ is indeed −2¼, so in that sense it does work out. The question whether or not it works for *you* is something you'll have to decide on your own. If you want to display the fixed numbers somehow (as, say -2.40 in this case), you'll have to be a little more creative than just shifts and masks. Right now, I'm not even touching that one.
+负数的除法麻烦在你想处理小数部分时更糟。用 AND 掩码实际上会摧毁一个数的符号。例如，8.8 的 −2¼ 是 −0x0240 = 0xFDC0。用 0xFF 掩码会得到 0xC0 = ¾，一个正数，而且还是错的分数。另一方面 0xFDC0\>\>8 是 −3，无论好坏，而 −3 + ¾ 确实是 −2¼，所以从那种意义上说它确实成立。它是否对你成立，要你自己决定。如果你想以某种方式显示定点数（比如本例中的 -2.40），你得比仅仅移位和掩码更有创意。现在，我连碰都不碰那个。
 
-:::warning Converting negative fixed-point numbers
+:::warning 转换负的定点数
 
-The conversion from negative fixed-point numbers to integers is a particularly messy affair, complicated by the fact that there are multiple, equally valid solutions. Which one you should choose is up to you. If you can, avoid the possibility; the fixed→int conversion is usually reserved for the final stages of arithmetic and if you can somehow ensure that those numbers will be positive, do so.
+从负的定点数到整数的转换尤其混乱，且因为存在多个同样有效的解决方案而更复杂。选哪个由你决定。如果可以，避免这种可能；定点到整数的转换通常保留给算术的最后阶段，如果你能以某种方式确保那些数是正的，就这么做。
 
 :::
 
-### Arithmetical operations {#ssec-fmath-ops}
+### 算术运算 {#ssec-fmath-ops}
 
-Fixed-point numbers are still integers, so they share their arithmetic operations. However, some caution needs to be taken to keep the fixed point in its proper position at times. The process is the same as arithmetic on decimals. For example, 0.01+0.02 = 0.03 ; what you will usually do for this sum is remove the decimal point, leaving 1 and 2, adding those to give 3, and putting the decimal point back. That's essentially how fixed-points work as well. But when adding, say, 0.1 and 0.02, the fixed decimals aren't 1 and 2, but **10** and 2. The key here is that for addition (and subtraction) the point should be in the same place.
+定点数仍是整数，所以它们共享其算术运算。不过，有时需要小心以保持定点处于正确位置。过程和十进制算术一样。例如，0.01+0.02 = 0.03；你通常会为这个和去掉小数点，留下 1 和 2，相加得 3，再把小数点放回去。这本质上也是定点数的工作方式。但当加 0.1 和 0.02 时，定点小数不是 1 和 2，而是 **10** 和 2。这里的关键是，对加法（和减法），小数点应在同一位置。
 
-A similar thing happens for multiplication and division. Take the multiplication 0.2×0.3. 2×3 equals 6, then put the point back which gives 0.6, right? Well, if you did your homework in pre-school you'll know that the result should actually be 0.06. Not only do the decimals multiply, the *scales* multiply as well.
+乘法和除法也发生类似的事。以乘法 0.2×0.3 为例。2×3 等于 6，然后放回小数点得到 0.6，对吧？嗯，如果你 preschool（学前）作业做好了，会知道结果其实应该是 0.06。不仅小数相乘，*缩放* 也相乘。
 
-Both of these items apply to fixed-point arithmetic as well. If you always use the same fixed point, addition and subtractions will pose no problem. For multiplication and division, you'll need to account for extra scaling factor as well. A fixed-fixed multiply required a division by the scale afterwards, whereas a fixed-fixed division needs a scale multiply *before* the division. In both cases, the reason of the place of the scale correction is to keep the highest accuracy. Equations 1 and 2 show this in a more mathematical form. The fixed-point numbers are always given by a constant times the fixed scale *M*. Addition and subtraction maintain the scale, multiplication and division don't, so you'll have to remove or add a scaling factor, respectively.
+这两点都适用于定点数运算。如果你始终用同一个定点数，加法和减法不会有问题。对乘法和除法，你还要计入额外的缩放因子。定点-定点乘法之后需要除以缩放，而定点-定点除法在除法 *之前* 需要乘一个缩放。在两种情况下，缩放校正位置的原因都是为了保持最高精度。方程 1 和 2 以更数学化的形式展示了这点。定点数总是由常数乘以定点缩放 *M* 给出。加法和减法保持缩放，乘法和除法不保持，所以你要分别去掉或加上一个缩放因子。
 
 <!--
 \begin{matrix}
@@ -366,27 +366,27 @@ INLINE FIXED fxdiv(FIXED fa, FIXED fb)
 {   return ((fa)*FIX_SCALE)/(fb);           }
 ```
 
-### Over- and underflow {#ssec-fmath-flow}
+### 上溢与下溢 {#ssec-fmath-flow}
 
-This is actually a subset of the scaling problems of multiplication and division. Overflow is when the result of your operation is higher that the about of bits you have to store it. This is a potential problem for any integer multiplication, but in fixed-point math it will occur much more often because not only are fixed-point numbers scaled upward, multiplying fixeds scales it up *twice*. A .8 fixed multiplication has its ‘one’ at 2<sup>16</sup>, which is already out of range for halfwords.
+这其实是乘法和除法的缩放问题的一个子集。溢出是指操作结果高于你用来存储它的位数。这对任何整数乘法都是个潜在问题，但在定点数运算里它发生得更频繁，因为不仅定点数被向上缩放，定点数相乘还会把它放大 *两倍*。一次 .8 定点乘法其“一”在 2<sup>16</sup>，对半字来说已经超出范围。
 
-One way of covering for the extra scale is not to correct after the multiplication, but before it; though you will lose some accuracy in the process. A good compromise would be to right-shift both operands by half the full shift.
+为应对额外缩放的一种方法是，不在乘法之后而在之前校正；虽然过程中你会损失一些精度。一个不错的折衷是在乘法前把两个操作数都右移半个完整移位量。
 
-Fixed divisions have a similar problem called underflow. As a simple example of this, consider what happens in integers division *a*/*b* if *b*\>*a*. That's right: the result would be zero, even though a fraction would be what you would like. To remedy this behaviour, the numerator is scaled up by *M* first (which may or may not lead to an overflow problem <kbd>:P</kbd>).
+定点除法有类似的问题，叫下溢。作为简单例子，考虑整数除法 *a*/*b* 在 *b*\>*a* 时会发生什么。没错：结果会是零，即便你想要的是个分数。为补救这种行为，先把分子按 *M* 向上缩放（这可能导致也可能不导致溢出问题 <kbd>:P</kbd>）。
 
-As you can see, the principles of fixed-point math aren't that difficult or magical. But you do have to keep your head: a missed or misplaced shift and the whole thing crumbles. If you're working on a new algorithm, consider doing it with floats first (preferably on a PC), and convert to fixed-point only when you're sure the algorithm itself works.
+如你所见，定点数运算的原理并不那么困难或神秘。但你必须保持头脑清醒：一次漏掉或放错位置的移位，整个东西就崩塌。如果你在搞新算法，考虑先用浮点做（最好在 PC 上），只在确认算法本身有效后才转到定点数。
 
-## Faking division (optional) {#sec-rmdiv}
+## 伪造除法（可选） {#sec-rmdiv}
 
-:::warning Math heavy and optional
+:::warning 数学密集且可选
 
-This section is about a sometimes useful optimization technique. It not only introduces the technique, but also derives its use and safety limits. As such, there is some nasty math along the way. Chances are you're perfectly safe without detailed knowledge of this section, but it can help you get rid of some slow divisions if the need is there.
+本节关于一个有时有用的优化技术。它不仅介绍了该技术，还推导了它的用途和安全限度。因此，途中会有些恼人的数学。你很可能在不详细了解本节内容的情况下也安然无恙，但当你需要摆脱一些慢速除法时它能帮上忙。
 
 :::
 
-You may have heard of the phrase “division by a constant is multiplication by its reciprocal”. This technique can be used to get rid of division and replace it with a much faster multiplication. For example *x*/3 = *x*·(1/3) = *x*·0.333333. At first glance, this doesn't seem to help your case: the integer form of 1/*y* is always zero by definition; the alternative to this is floating-point, which isn't so hot either, and you *still* need a division to get even there! This is all true, but the important thing is that these problems can be avoided. The integer/floating-point problem can be solved by using fixed-point instead. As for the division, remember that we're talking about division by a *constant*, and arithmetic on constants is done at compile-time, not runtime. So problems solved, right? Uhm, yeah. Sure. The *superficial* problems are solved, but now the two age-old problems of overflow and round-off rear their ugly heads again.
+你可能听过这句话“除以常数就是乘它的倒数”。这个技术可以用来去掉除法，代之以快得多的乘法。例如 *x*/3 = *x*·(1/3) = *x*·0.333333。乍一看，这似乎帮不上忙：1/*y* 的整数形式按定义总是零；替代方案是浮点，那也不怎么妙，而且你 *仍然* 需要一次除法才能到那一步！这些都是真的，但重要的是这些问题可以避开。整数/浮点问题可以通过用定点数代替来解决。至于除法，记住我们谈论的是除以 *常数*，而常数的算术是在编译时而非运行时做的。所以问题解决了，对吧？呃，是的。当然。表层问题解决了，但现在两个老问题——溢出和舍入——又抬起它们丑陋的头。
 
-Below is the code for the evaluation of “*x*/12”. The ARM-compiled code creates a .33 fixed-point for 1/12, then uses a 64bit multiplication for the division. On the other hand, the Thumb version doesn't (and indeed can't) do this and uses the standard, slow division routine. If you want to get rid of this time consuming division, you will have to take care of it yourself. for the record, yes I know that even if you know ARM assembly, why it does what it does may be hard to follow. That's what this section is for.
+下面是“*x*/12”计算的代码。ARM 编译的代码为 1/12 创建了一个 .33 定点数，然后用 64 位乘法做除法。另一方面，Thumb 版本没有（确实也不能）这么做，而是用了标准、慢速的除法例程。如果你想摆脱这个耗时的除法，你得自己处理。说明一下，是的我知道即便你懂 ARM 汇编，它为什么这么做也可能很难跟上。这正是本节的目的。
 
 ```armasm
 @ Calculating y= x/12
@@ -419,9 +419,9 @@ Below is the code for the evaluation of “*x*/12”. The ARM-compiled code crea
     .word   y
 ```
 
-The remainder of this section is on recognizing and dealing with these problems, as well as deriving some guidelines for safe use of this technique. But first, we need some definitions.
+本节其余部分是关于识别和处理这些问题，以及推导该技术安全使用的一些准则。但首先，我们需要一些定义。
 
-Integer division; positive integers *p*, *q*, *r*
+整数除法；正整数 *p*、*q*、*r*
 
 <!--
 r = \left\lfloor p/q \right\rfloor \iff p = r \cdot q + p \text{%}q
@@ -473,7 +473,8 @@ r = \left\lfloor p/q \right\rfloor \iff p = r \cdot q + p \text{%}q
 </tr>
 </table>
 
-Approximation; positive integers *x*, *y*, *a*, *m*, *n* and real error term δ
+近似；正整数 *x*、*y*、*a*、*m*、*n* 和真实误差项 δ
+
 <!--
 y = \left\lfloor x/a \right\rfloor = \left\lfloor (x \cdot m)/n \right\rfloor + \delta
 -->
@@ -524,11 +525,11 @@ y = \left\lfloor x/a \right\rfloor = \left\lfloor (x \cdot m)/n \right\rfloor + 
 </tr>
 </table>
 
-I'm using the floor (&#x230A;*p*/*q*&#x230B;) to indicate integer division, which is basically the rounded down version of real division. As usual, modulo is the remainder and calculated usually calculated with *p* − *r·q*. The key to the approximation of 1/*a* is in terms *m* and *n*. In our case *n* will be a power of two *n*=2<sup>F</sup> so that we can use shifts, but it need not be. δ is an error term that is inherent in any approximation. Note that I'm only using positive integers here; for negative numbers you need to add one to the result if you want to mimic a ‘true’ division. (Or, subtract the sign bit, which work just as well as you can see in the ARM assembly shown above.)
+我用下取整（&#x230A;*p*/*q*&#x230B;）表示整数除法，它基本是真除法的向下取整版本。和通常一样，模（modulo）是余数，通常用 *p* − *r·q* 计算。近似 1/*a* 的关键在于项 *m* 和 *n*。在我们的情形里 *n* 会是 2 的幂 *n*=2<sup>F</sup>，这样我们可以用移位，但没必要。δ 是任何近似都固有的误差项。注意我这里只用了正整数；对负数，如果你想模仿“真”除法，需要给结果加一。（或者，减去符号位，这同样有效，正如你在上面 ARM 汇编里看到的。）
 
-:::note Faking negative divisions and rounding
+:::note 伪造负除法与取整
 
-This section is about positive numbers. If you want the standard integer-division result (round toward zero), you will have to add one if the numerator is negative. This can be done quickly by subtracting the sign-bit.
+本节关于正数。如果你想要标准的整数除法结果（向零取整），当分子为负时你得加一。这通过减去符号位可以快速完成。
 
 ```c
 // pseudo-code for division by constant M
@@ -537,13 +538,13 @@ y= fake_div(x, M);  // shift-like div
 y -= y>>31;         // convert to /-like division
 ```
 
-If you want to round to minus infinity you'll have to do something else. But I'm not quite sure what, to be honest.
+如果你要向负无穷取整，你得做点别的。但我不太确定是什么，老实说。
 
 :::
 
-### Theory {#ssec-rmdiv-try}
+### 原理 {#ssec-rmdiv-try}
 
-There are two things we need to have for success. First, a way of finding *m*. Second, a way of determining when the approximation will fail. The latter can be derived from @eq:div-aprx. The error in the approximation is given by &#x230A;ε/*n*&#x230B;, so as long as this is zero you're safe.
+成功需要两样东西。首先，找 *m* 的方法。其次，判断近似何时会失效的方法。后者可从 @eq:div-aprx 推导。近似的误差由 &#x230A;ε/*n*&#x230B; 给出，所以只要它是零你就安全。
 
 <!--
 x \cdot m - n \cdot \left\lfloor x/A \right\rfloor = \varepsilon \\
@@ -594,17 +595,17 @@ x \cdot m - n \cdot \left\lfloor x/A \right\rfloor = \varepsilon \\
 </tr>
 </table>
 
-As for finding *m*. Recall that &#x230A;1/*A*&#x230B; = &#x230A;(*n·A*)/*n*&#x230B;, so that it'd appear that using *m* = &#x230A;*n*/*A*&#x230B; would be a good value. However, it's not.
+至于找 *m*。回想 &#x230A;1/*A*&#x230B; = &#x230A;(*n·A*)/*n*&#x230B;，所以似乎用 *m* = &#x230A;*n*/*A*&#x230B; 会是个好值。然而，并非如此。
 
-This is probably a good time for a little example. Consider the case of *A* = 3, just like at the start. We'll use .8 fixed numbers here, in other words *k* = 8 and *n*=256. Our trial *m* is then *m* = &#x230A;*n*/*A*&#x230B; = 85 = 0x55, with 1 as the remainder.
+这大概是举个例子的好时机。考虑 *A* = 3 的情况，就像一开始那样。我们这里用 .8 定点数，也就是说 *k* = 8 且 *n*=256。我们的试探 *m* 于是就是 *m* = &#x230A;*n*/*A*&#x230B; = 85 = 0x55，余数为 1。
 
-An alternative way of looking at it is to go to hexadecimal floating point and taking the first *F* bits. This is not as hard as you might think. The way you find a floating-point number of a fraction is to multiply by the base, write down the integral part, multiply the remainder by the base, write down the integral part and so forth. The table below has the hex version of 1/7 (I'm not using 1/3 because that's rather monotonous). As you can see 1/7 in hex is 0.249249…h. Do this for one third and you'll find 0.5555…h.
+另一种看待它的方式是转到十六进制浮点并取前 *F* 位。这没你想的那么难。找分数浮点数的方法是乘基数，写下整数部分，把余数乘基数，写下整数部分，如此继续。下面的表是 1/7 的十六进制版本（我没用 1/3 是因为那相当单调）。如你所见，十六进制里 1/7 是 0.249249…h。对三分之一做这个，你会得到 0.5555…h。
 
 <div class="lblock">
 <table id="tbl:hexfloat" class="table-data">
 <caption align="bottom">
-  <b>*@tbl:hexfloat</b>: 
-  Floating-point representation of 1/7 in base <i>B</i>=16
+  <b>*@tbl:hexfloat</b>： 
+  以基 <i>B</i>=16 表示的 1/7 的浮点形式
 </caption>
 <tbody align="center">
 <tr><th> x <th> x&middot;B <th> x&middot;&#x230A;B/7&#x230B; <th> x&middot;B%7
@@ -617,13 +618,13 @@ An alternative way of looking at it is to go to hexadecimal floating point and t
 </table>
 </div>
 
-So 1/3 in hex is zero, followed by a string of fives, or just *m*=0x55 in truncated .8 fixed-point notation. Now look what happens when you do the multiplication by reciprocal thing. I'm using hex floats here, and *y*=&#x230A;(*x·m*)/*n*&#x230B;, as per @eq:div-aprx. The result you actually get is just the integer part, ignore the (hexi)decimals
+所以十六进制里 1/3 是零，后面跟着一串五，或者说在截断的 .8 定点数记法里就是 *m*=0x55。现在看当你做乘倒数那套时会发生什么。这里我用十六进制浮点，且 *y*=&#x230A;(*x·m*)/*n*&#x230B;，如 @eq:div-aprx。你实际得到的是整数部分，忽略（十六进制）小数
 
 <div class="cblock">
 <table id="tbl:rmdiv-bad" class="table-data">
 <caption align="bottom">
-  <b>*@tbl:rmdiv-bad</b>: 
-  <i>x</i>/3, using <i>m</i>= &#x230A;256/3&#x230B; = 0x55. Bad at 3, 6, &hellip;
+  <b>*@tbl:rmdiv-bad</b>： 
+  <i>x</i>/3，使用 <i>m</i>= &#x230A;256/3&#x230B; = 0x55。在 3、6 等处出错……
 </caption>
 <tbody align="center">
 <tr><th>x
@@ -638,7 +639,7 @@ So 1/3 in hex is zero, followed by a string of fives, or just *m*=0x55 in trunca
 </table>
 </div>
 
-As you can see, problems arise almost *immediately*! You can't even get up to *x*=*A* without running into trouble. This is *not* a matter of accuracy: you can use a .128 fixed-point numbers and it'll still be off. This is purely a result of <dfn>round-off error</dfn>, and it'd happen with floats just as well. When you use reciprocal division, *m* should be rounded *up*, not down. You can use the alignment trick here: add *A*−1, then divide. Now *m*=0x56, and you'll be safe. At least, for a while.
+如你所见，问题几乎 *立刻* 就出现了！你甚至还没到 *x*=*A* 就遇到麻烦。这 *不是* 精度问题：你可以用 .128 定点数，它还是偏的。这纯粹是<dfn>舍入误差（round-off error）</dfn>的结果，用浮点也会一样发生。当你用倒数除法时，*m* 应当向上取整，而非向下。你可以用对齐技巧：先加 *A*−1，再除。现在 *m*=0x56，你就安全了。至少，暂时。
 
 <!--
 m = \left\lfloor (n+A-1)/A \right\rfloor
@@ -683,8 +684,8 @@ m = \left\lfloor (n+A-1)/A \right\rfloor
 <div class="cblock">
 <table id="tbl:rmdiv-good" class="table-data">
 <caption align="bottom">
-  <b>*@tbl:rmdiv-good</b>: 
-  <i>x</i>/3, using <i>m</i>= &#x230A;(256+2)/3&#x230B; = 0x56. Still good at 3, 6, &hellip;
+  <b>*@tbl:rmdiv-good</b>： 
+  <i>x</i>/3，使用 <i>m</i>= &#x230A;(256+2)/3&#x230B; = 0x56。在 3、6 等处仍然正确……
 </caption>
 <tbody align="center">
 <tr><th>x
@@ -699,7 +700,7 @@ m = \left\lfloor (n+A-1)/A \right\rfloor
 </table>
 </div>
 
-Yes, you're safe. But for how long? Eventually, you'll reach a value of *x* where there will be trouble. This time around, it does concern the accuracy. Fortunately, you can derive safety limits for *x* and *n* that spell out when things can go badly. It is possible that the true range is a little bit better due to the way the error condition of @eq:aprx-fail jumps around, but better safe than sorry. The derivations start at @eq:aprx-fail and make use of @eq:int-div and a trick concerning modulo, namely that *p*%*q* ∈ \[0, *q*⟩.
+是的，你安全了。但能安全多久？最终，你会达到一个 *x* 值，在那里会有麻烦。这次关乎精度。幸运的是，你能为 *x* 和 *n* 推导出安全限度，说明事情何时会变糟。真实范围可能稍好一点，因为 @eq:aprx-fail 的误差条件会跳来跳去，但小心驶得万年船。推导从 @eq:aprx-fail 开始，用到 @eq:int-div 和一个关于模的技巧，即 *p*%*q* ∈ \[0, *q*⟩。
 
 <!--
 \begin{matrix}
@@ -895,7 +896,7 @@ x(m \cdot A - n) & < & n &
 </tr>
 </table>
 
-From this result, we can easily calculate the maximum valid *x* for given *A* and *n*:
+由此结果，我们可以轻松算出给定 *A* 和 *n* 的最大有效 *x*：
 
 <table id="eq:lim-x">
 <tr>
@@ -904,7 +905,7 @@ From this result, we can easily calculate the maximum valid *x* for given *A* an
     (<i>m&middot;A</i> &minus; <i>n</i>)
 </table>
 
-The lower-limit for *n* follows from the fact that, by (6), max(*m·A*) = *n*+*A*−1, so that:
+*n* 的下限由这个事实得出：由 (6) 知，max(*m·A*) = *n*+*A*−1，所以：
 
 <table id="eq:lim-n">
 <tr>
@@ -912,15 +913,15 @@ The lower-limit for *n* follows from the fact that, by (6), max(*m·A*) = *n*+*A
   <td class="eqcell"><i>n</i> &gt; <i>x</i>(<i>A</i>&minus;1)
 </table>
 
-And that's basically it. There's a little more to it, of course. As you'll be multiplying, the product *m·A* must fit inside a variable. The practical limit of numbers will therefore be around 16 bits. You can sometimes ease this limitation a little bit by shifting out the lower zero-bits of *A*. For example, for *A*=10=5·2, you can right-shift *x* once before doing the whole calculation. Even 360 is 45·8, and you can save three bits this way. Also, note that even if you surpass the limits, there's a good chance that the thing is still correct or only off by a small amount (check @eq:aprx-fail). You should be able to find the true answer relatively quickly then.
+基本就这些。当然还有一点多出来的东西。由于你要做乘法，乘积 *m·A* 必须能装进一个变量。所以数字的实际上限约为 16 位。你有时可以通过移出 *A* 的低零位来稍微缓解这个限制。例如，对 *A*=10=5·2，你可以在整个计算前先把 *x* 右移一次。甚至 360 也是 45·8，这样你能省下三位。还有，注意即便你超过限度，结果仍正确的可能性很大，或者只差一点点（看 @eq:aprx-fail）。那样你应该能相对快地找到真答案。
 
-:::tip ARM 'int/const int' division is always safe
+:::tip ARM 的“int/const int”除法总是安全
 
-We can now see why GCC can always safely optimize 32bit divisions. The maxima of 32bit *x* and *A* are, of course, 2<sup>32</sup>. The safety limit for this is 2<sup>64</sup>−2<sup>32</sup>, which will always fit in the 64bit result of `smull`.
+我们现在能看到为什么 GCC 总能安全地优化 32 位除法。32 位 *x* 和 *A* 的上限当然是 2<sup>32</sup>。它的安全限度是 2<sup>64</sup>−2<sup>32</sup>，这总能装进 `smull` 的 64 位结果。
 
 :::
 
-Of course, you don't want to have to type in these things all the time. So here are two macros that can do the work for you. They look horrible, but the preprocessor and compiler know how to handle them. I'd advise against converting these to inline functions, because for some reason there is a good chance you will lose any advantages the code is supposed to bring.
+当然，你不会想一直把这些东西打进去。所以这里有两个能替你干活的宏。它们看着吓人，但预处理器和编译器知道怎么处理。我建议别把它们转成内联函数，因为不知为何你很可能会丢掉代码本应带来的任何好处。
 
 ```c
 // Division by reciprocal multiplication
@@ -933,41 +934,41 @@ Of course, you don't want to have to type in these things all the time. So here 
 #define FX_RECIMUL(x, a, fp)    ( ((x)*((1<<(fp))+(a)-1)/(a))>>(fp) )
 ```
 
-### Summary {#ssec-rmdiv-sum}
+### 总结 {#ssec-rmdiv-sum}
 
-Never forget that this is something of a hack and **only** works when *A* is constant. The whole point was to have the division at compile time rather than runtime, and that is only possible if *A* is constant. One nice thing about constants is that they're known beforehand, by definition. Negative values and powers of two may be resolved at compile-time too if desired.
+永远别忘了这是个有点 hack 的东西，且 **只** 在 *A* 是常数时有效。整点的目的是让除法发生在编译时而非运行时，而只有 *A* 是常数才有可能。常数好的一点是它们按定义是预先知道的。负值和大抵 2 的幂若需要也可以在编译时解决。
 
-The reciprocal multiplier *m* is *not* merely &#x230A;*n*/*A*&#x230B;, for reasons of round-off error. Always round up. In other words:
+倒数乘数 *m* 并 *不* 仅仅是 &#x230A;*n*/*A*&#x230B;，原因是舍入误差。总是向上取整。换句话说：
 
 > *m* = &#x230A;(*n*+*A*−1) / *A*&#x230B;
 
-Then there's the matter of failed divisions, i.e. where the approximation differs from the ‘true’ &#x230A;*x*/*A*&#x230B;. The exact condition doesn't really matter, but it is useful to know the safe ranges of *x*, and conversely what *n* you need for a given *x*-range. Again, because the important terms are constant they can be figured out in advance. Note that the relations given below represent *A* limit, not *the* limit. The actual numbers for failure may be a bit looser, but depend on the circumstances and as such, relations for those would be more complex.
+然后是除法失效的问题，即近似与“真”的 &#x230A;*x*/*A*&#x230B; 不同的情况。确切条件其实无关紧要，但知道 *x* 的安全范围、以及反过来对给定 *x* 范围你需要什么 *n* 是有用的。同样，因为重要项都是常数，它们可以提前算好。注意下面给的关系代表的是 *A* 的限度，而非 *那个* 限度。失效的实际数字可能松一点，但取决于环境，而那些环境相关的关系会更复杂。
 
 > *x* \< *n* / (*m·a* − *n*)
 
 > *n* \> *x*(*A*−1)
 
-Lastly, if you have absolutely no idea what this whole section was about, I'd advise against using this strategy. It is a partially safe optimisation technique for division and while it can be a good deal faster that the normal division, it might not be worth it in non-critical areas. Just, use your judgement.
+最后，如果你完全搞不懂这整节在说什么，我建议别用这个策略。它是个部分安全的除法优化技术，虽然它能比普通除法快不少，但在非关键区域可能不值得。只是，用你的判断。
 
-:::note Altenative method
+:::note 替代方法
 
-There is an alternative method for reciprocal multiplication: instead of rounding *n*/*A* up, you can also add 1 to *x* for
+倒数乘法有一个替代方法：与其把 *n*/*A* 向上取整，你也可以给 *x* 加 1，得到
 
 > *y* = &#x230A;*x* / *A*&#x230B; ≈ (*x*+1) × &#x230A;*N* / *A* / *N*&#x230B;
 
-This will also get rid of the problems described by @tbl:rmdiv-bad. The safety conditions are almost the same as before, but there is some difference for division of negative *x*. If you *really* must know, details are available on request.
+这也会消除 @tbl:rmdiv-bad 描述的问题。安全条件和之前几乎一样，但对负 *x* 的除法有些区别。如果你 *真的* 必须知道，细节可以按需提供。
 
 :::
 
-## Look-up Tables {#sec-lut}
+## 查找表（LUT） {#sec-lut}
 
-A <dfn>look-up table</dfn> (or <dfn>LUT</dfn>) is, well, it's a table that you use to look stuff up. That was rather obvious, wasn't it? The important point is that you can do it really *quickly*. As a simple example, what is 2<sup>5</sup>, and what is 3<sup>5</sup>? Real Programmers (should) know the answer to the first one instantly, but the other might take a little longer to find. Why? Because any self-respecting programmer knows the powers of 2 by heart, up to 2<sup>10</sup> at least. The powers of 2 crop up so often in programming that you've got the answers memorized – you see as much as see the question "2<sup>5</sup>", you don't calculate the answer via repeated multiplication, your mind simply **looks it up** in its memory and you give the answer instantly, almost without thinking. The same goes for (decimal) multiplication tables: 7×8? 56, just like that. But move to, say, powers of 3 or hexadecimal multiplications and the process fails and you have to do it the hard and long way. What I'm trying to say here is that things can go a lot faster when you can simply look them up, rather than having to do the proper calculations.
+<dfn>查找表（look-up table）</dfn>（或称 <dfn>LUT</dfn>）嘛，嗯，就是一张你用来查找东西的表。这相当显然，不是吗？重点是你能做得真的 *很快*。举个简单的例，2<sup>5</sup> 是多少，3<sup>5</sup> 是多少？真正的程序员（应该）会立刻知道第一个，但另一个可能要花稍长点时间去找。为什么？因为但凡有点自尊的程序员都把 2 的幂记在心里，至少到 2<sup>10</sup>。2 的幂在编程中如此频繁出现，你已经把答案背下来了——你一看到“2<sup>5</sup>”这个问题，你不会通过重复乘法去算答案，你的大脑只是简单地在记忆里 **查** 它，几乎不假思索地给出答案。十进制乘法表也一样：7×8？56，就这样。但换成比如 3 的幂或十六进制乘法，过程就失败了，你得用又难又长的老办法。我想说的是：当你能直接查到时，事情能快得多，而不必做正确的计算。
 
-The concept of look-up tables works for computers as well, otherwise I wouldn't have brought it up. In this case, the look-up table is simply an array that you stuff with whatever you think you might need to look up.
+查找表的概念对计算机也成立，否则我不会提它。这种情况下，查找表不过是一个你塞满你觉得可能需要查的东西的数组。
 
-### Example: sine/cosine LUTs {#ssec-lut-sin}
+### 示例：正弦/余弦查找表 {#ssec-lut-sin}
 
-Classic examples are trigonometry LUTs. Sines and cosines are expensive operations, especially on the GBA, so it would be best to make a table of them so you only have to spend a memory access instead of going through two (expensive) type conversions, floating-point function. A simple way to do this is to create two FIXED arrays of, say, 360 elements each (one for every degree) and fill it at the start of your game.
+经典例子是三角学 LUT。正弦和余弦是昂贵的操作，在 GBA 上尤其，所以最好做一个它们的表，你只需花费一次内存访问，而非经历两次（昂贵的）类型转换、浮点函数。一个简单的做法是创建两个 FIXED 数组，比如各 360 个元素（每个角度一个），在游戏开始时填好。
 
 ```c
 #define PI 3.14159265
@@ -987,22 +988,22 @@ void sincos_init()
 }
 ```
 
-However, this particular method is deeply flawed. Yes, it works, yes, it's easy, but there is definitely room for improvement. To start with an issue that would be immediately visible if you were to use this function, it actually takes a few *seconds* to complete. Yes, that's how slow the standard trig routines are. This is a fairly mild issue as you only have to call it once, but still. Additionally, because the arrays are not constant, they are put in IWRAM. That's 10% of IWRAM basically wasted on something that is never actually changed except during initialization. There are a number of ways of improving on these two points like using the sine-cosine symmetries to cut down on calculation time and having the tables overlap, but why calculate them inside the game at all? It is just as easy to precalculate the tables on a PC, then export that data to arrays: then they will be constant (i.e., not hogging IWRAM), and the GBA won't have to spend a cycle on their initialization.
+然而，这个特定方法有严重缺陷。是的，它能工作，是的，它简单，但绝对有改进空间。先说一个如果你用这个函数会立刻可见的问题，它实际上要花几 *秒* 才能完成。是的，标准三角例程就是这么慢。这是个相当温和的问题，因为你只需调用一次，但仍是问题。此外，因为数组不是常数，它们被放进 IWRAM。那基本上是把 10% 的 IWRAM 浪费在除了初始化外从不改变的东西上。有几个办法改进这两点，比如利用正弦-余弦对称性来减少计算时间并让表重叠，但为什么要在游戏里计算它们呢？在 PC 上预计算这些表，再把数据导出成数组一样容易：那样它们就是常数（即不霸占 IWRAM），而且 GBA 不必为它们的初始化花一个周期。
 
-A second improvement would be to use a higher fixed-point fraction. The range of sine and cosine is \[−1, +1\]. This means that by using 8.8 fixeds for the LUT, I am actually wasting 6 bits that I could have used for a higher accuracy. So what I'm going to do is use 4.12 fixed-point. Yes, you could go up to .14 fixeds, but 12 is a nicer number.
+第二个改进是用更高的定点小数。正弦和余弦的范围是 \[−1, +1\]。这意味着对 LUT 用 8.8 定点数，我其实在浪费 6 个本可用于更高精度的位。所以我要做的是用 4.12 定点数。是的，你可以上到 .14 定点数，但 12 是个更漂亮的数。
 
-And for the final improvement, I'm not going to use 360 units for a circle, but a power of two; 512 in this case. This has two benefits:
+最后一点改进，我不打算用 360 个单位表示一个圆，而是用一个 2 的幂；这里是 512。这有两个好处：
 
--   For wrapping (α\<0 or α\>2π), I can use a bitmask instead of if-statements or \*gasp\* modulo.
--   Since the cosine is just shifted sine, and because of point one, I now only need one table for both waves, and can use an offset angle and wrap-by-masking to get one wave from the other.
+-   对环绕（α\<0 或 α\>2π），我可以用位掩码而非 if 语句或 \*倒吸一口气\* 取模。
+-   因为余弦只是偏移的正弦，且因为第一点，我现在只需要一张表就能覆盖两种波形，并且可以用偏移角度和掩码环绕从一种波形得到另一种。
 
-Both these points can make life a lot easier.
+这两点都能让生活轻松许多。
 
-For the record, it is perfectly alright to this. The forms of sine and cosine stem from travelling along the circumference of the unit circle; the number of divisions along that path is arbitrary. The number 360 has historical significance, but that's it. Let's face it, you wouldn't be able to tell how much a degree is anyway, the thing that matters is circle divisions. 360° is a full circle, 90° is a quarter circle, et cetera. Now it's 512 for a full circle, 128 (512/4) for a quarter, and so on. A quick and dirty sin LUT generator might look something like this. Summing up:
+说明一下，这么做完全没问题。正弦和余弦的形式来自沿单位圆周长行进；那条路径上的划分数是任意的。360 有历史意义，但也仅此而已。面对现实吧，你也说不清一“度”是多少，重要的是圆的划分。360° 是一整圆，90° 是四分之一圆，等等。现在一整圆是 512，128（512/4）是四分之一，如此类推。一个简单粗糙的 sin LUT 生成器大概长这样。总结一下：
 
--   Precalculate the LUT outside the GBA, and link it in like a normal const array.
--   Use 4.12 fixeds instead of 4.8.
--   Divide the LUT into a power-of-two (like 512), instead of 360.
+-   在 GBA 之外预计算 LUT，像普通 const 数组一样链接进来。
+-   用 4.12 定点数而非 4.8。
+-   把 LUT 分成 2 的幂（如 512），而非 360。
 
 ```c
 // Example sine LUT generator
@@ -1036,7 +1037,7 @@ int main()
 }
 ```
 
-It creates a file sinlut.c which contains a 512 halfword array called `sin_lut`. Note that while I'm creating a C file here, you could just as well create a table in an assembly file, or even just as a binary file that you then somehow link to the project. Actually finding the sine and cosine values goes through the `lu_sin()` and `lu_cos()` functions.
+它创建一个文件 sinlut.c，其中包含一个 512 半字的数组 `sin_lut`。注意虽然我这里创建的是 C 文件，你同样可以在汇编文件里建表，甚至就作为二进制文件，之后以某种方式链接到项目。实际找正弦和余弦值通过 `lu_sin()` 和 `lu_cos()` 函数。
 
 ```c
 // Sine/cosine lookups. 
@@ -1052,34 +1053,34 @@ INLINE s32 lu_cos(u32 theta)
 {   return sin_lut[((theta>>7)+128)&0x1FF]; }
 ```
 
-#### Presenting excellut
+#### 关于 excellut
 
-I haven't actually used the generator shown above for the LUTs in libtonc. Rather, I've used my own [excellut](http://www.coranac.com/projects/#excellut). This is not a program, but an Excel file. Yes, I did say Excel. The thing about using a spreadsheet program for building LUTs is that you can make *any* kind of mathematical table with it, test whether it has the desired accuracy and plot it and everything. Then after you're satisfied, you can then just export part of the spreadsheet in the manner of your choice. How's that for flexibility?
+我其实没用上面展示的生成器来生成 libtonc 的 LUT。相反，我用的是自己的 [excellut](http://www.coranac.com/projects/#excellut)。这不是程序，而是个 Excel 文件。是的，我说的是 Excel。用电子表格程序建 LUT 的好处是你能用它做 *任何* 种类的数学表，测试它是否有想要的精度，并绘图等等。然后当你满意了，就可以以你选择的方式导出电子表格的一部分。这种灵活性如何？
 
-#### Accuracy and resolution
+#### 精度与分辨率
 
-These are the two main things to consider when creating your LUT. <dfn>Accuracy</dfn> concerns the number of significant bits of each entry; <dfn>resolution</dfn> is how far apart each entry is in the argument space. Bigger is better in both cases, but there is a space trade-off, of course. A compromise is necessary, and once again, it depends very much on what you intend to do with it.
+这是建 LUT 时要考虑的两件主要事情。<dfn>精度（Accuracy）</dfn> 关乎每个条目中有意义位的位数；<dfn>分辨率（resolution）</dfn> 是各条目在自变量空间上相隔多远。两者都是越大越好，但当然有空间上的权衡。需要折衷，再一次，这非常取决于你打算拿它做什么。
 
-For accuracy, you need to think of the range of the function. As said, the sine range is \[−1, +1\] and using 8.8 fixeds would waste 6 bits that could have been used for more significant bits.. For a division LUT like the one I'm using for the [first mode 7 chapter](mode7.html), I need 1/1 up to 1/160, which would *not* work well with .8 fixeds, so I'm using .16 fixeds there, which may still not be enough, but more might give overflow problems.
+对精度，你需要考虑函数的范围。如前所述，正弦范围是 \[−1, +1\]，用 8.8 定点数会浪费 6 个本可用于更高有效位的位。对我用于[第一个 mode 7 章](mode7.html)的除法 LUT，我需要 1/1 到 1/160，那用 .8 定点数 *不* 会好用，所以我在那里用 .16 定点数，它可能仍不够，但更高可能引发溢出问题。
 
-The second issue, resolution, is tied to how many entries you have. Even if you have all the accuracy in the world, it wouldn't do you much good if they're spread out too thin. It's similar to screen resolutions: even with 32bit color, things will look mighty hideous if you only have a 17 inch monitor with a 320×240 resolution. On the other hand, an overly high resolution doesn't help you if the accuracy isn't there to support it. Most LUT-worthy functions will be smooth curves and for any given accuracy, you will reach a point where increasing resolution will only add identical values to the LUT, which would be a waste of space. And remember, if you really need to you can always do an interpolation if necessary.
+第二个问题，分辨率，和你有多少条目绑定。即便你有无尽的精度，如果它们摊得太稀也没多大用。这类似于屏幕分辨率：即便有 32 位色，如果你只有 17 英寸显示器、320×240 分辨率，东西看着也会很糟。另一方面，过高的分辨率如果精度跟不上也没用。多数值得做 LUT 的函数会是平滑曲线，对任何给定精度，你会达到一个点，再增加分辨率只会往 LUT 里加相同的值，那会浪费空间。记住，如果你确实需要，必要时总能做插值。
 
-The first few values of my 512, 8.8 fixeds sine-lut, for example, read “0x0000, 0x0003, 0x0006, 0x0009” That is where the derivative is maximal, so these are the largest differences between neighbours you will find. If I were to increase the resolution fourfold, the differences would be in the final bit; going any further would be useless unless I increased the accuracy as well.
+例如，我的 512、8.8 定点数正弦 LUT 的头几个值读出来是“0x0000, 0x0003, 0x0006, 0x0009”，那正是导数最大的地方，所以这是你会看到的最大相邻差值。如果我把分辨率提高四倍，差值会在最后一位；再高就无用，除非我也提高精度。
 
-So it's actually a three-way compromise. There needs to be a balance between accuracy and resolution (the derivative of the function would be helpful to find this), and pitted against those two is the amount of ROM space you want to allot to the LUT. Again, the only person who can judge on the right balance is you.
+所以实际上是三方折衷。精度与分辨率之间（函数的导数会有帮助找到这个平衡）需要平衡，而这两者又要与你想分配给 LUT 的 ROM 空间相抗衡。再一次，能判断正确平衡点的只有你。
 
-### Linear interpolation of LUTs {#ssec-lut-lerp}
+### 查找表的线性插值 {#ssec-lut-lerp}
 
-Look-up tables are essentially a collection of points sampled from a function. This is fine if you always access the arrays at those points, but what if you want to retrieve value between points? An example of this would be a fixed-point angle, like `theta` of the (co)sine inline functions. Usually, the lower bits of a fixed-point number are just cut off and the point before it is used. While fast, this does have some loss of accuracy as its result.
+查找表本质上是函数采样得到的一堆点。如果你总是访问数组的这些点，那没问题，但如果你想取点之间的位置呢？一个例子是定点数角度，比如（余）弦内联函数里的 `theta`。通常，定点数的低位是直接截掉，用前面的点。虽然快，但结果会有一定精度损失。
 
 <div class="cpt_fr" style="width:256px;">
   <img src="img/math/lutlerp.png" id="fig:lerp" 
     alt="lut lerp" width=256><br>
-  <b>*@fig:lerp</b>: approximating a sine by direct 
-  look-up or linear interpolation.
+  <b>*@fig:lerp</b>: 通过直接 
+  查找或线性插值来近似一个正弦。
 </div>
 
-A more accurate solution would be to use the surrounding points and interpolate to the desired point. The easiest of these is <dfn>linear interpolation</dfn> (or <dfn>lerp</dfn>). Say you have a point *x*<sub>a</sub> and *x*<sub>b</sub>, with function values *y*<sub>a</sub> and *y*<sub>b</sub>, respectively. This can be used to define a line. The function value of point *x* can then be interpolated by:
+更准确的解决方案是用周围的点插值到想要的点。其中最简单的是<dfn>线性插值（linear interpolation）</dfn>（或称 <dfn>lerp</dfn>）。假设你有点 *x*<sub>a</sub> 和 *x*<sub>b</sub>，函数值分别为 *y*<sub>a</sub> 和 *y*<sub>b</sub>。这可用来定义一条直线。点 *x* 的函数值于是可以插值得到：
 
 <table id="eq:lerp">
 <tr>
@@ -1095,9 +1096,9 @@ A more accurate solution would be to use the surrounding points and interpolate 
     (<i>x</i> &minus; <i>x</i><sub>a</sub>) + <i>y</i><sub>a</sub>
 </table>
 
-*@fig:lerp gives an example of the difference that linear interpolation can make. Here I have a sine function sampled at 16 points and at .12f precision. The blue line represents the actual sine function. The magenta like is the direct look-up using the preceding point, and the lerp is given by the yellow line. Note that the blue and yellow lines are almost the same, but the magenta line can be a good deal off. Consider *x* = 4.5, given in red. The LUT value is off by 8.5%, but the lerp value by only 0.5%: that's 16 times better! True, this is an exaggerated case, but lerping can make a huge difference.
+*@fig:lerp 给出了线性插值能带来区别的示例。这里我有一个以 16 点采样、.12f 精度的正弦函数。蓝线是真实的正弦函数。品红线是用前一点直接查找的结果，黄线是 lerp。注意蓝线和黄线几乎一样，但品红线可能差很多。考虑 *x* = 4.5，用红色给出。LUT 值偏差 8.5%，但 lerp 值只偏差 0.5%：那好了 16 倍！确实，这是个夸张的例子，但 lerp 能带来巨大差异。
 
-So how do we implement this? Well, essentially by using @eq:lerp. The division in it may look nasty, but remember that the difference between successive points is always 1 – or a power-of-two for fixed point numbers. An efficient implementation would be:
+那么怎么实现？嗯，本质上用 @eq:lerp。里面的除法看着吓人，但记住相邻点的差总是 1——对定点数则是 2 的幂。一个高效实现会是：
 
 ```c
 //! Linear interpolator for 32bit LUTs.
@@ -1117,20 +1118,21 @@ INLINE int lu_lerp32(const s32 lut[], int x, const int shift)
 }
 ```
 
-That's the version for 32-bit LUTs, there is also a 16-bit version called `lu_lerp16()`, which has the same body, but a different declaration. In C++, this would make a nice template function.
+那是给 32 位 LUT 用的版本，还有一个 16 位版本叫 `lu_lerp16()`，主体相同，只是声明不同。在 C++ 里这会是个不错的函数模板。
 
-These functions work for every kind of LUT, expect for a little snag at the upper boundary. Say you have a LUT of *N* entries. The functions use *x*+1, which is likely not to exist for the final interval between *N*−1 and *N*. This could seriously throw the interpolation off at that point. Rather than covering that as a special case, add an extra point to the LUT. The `sinlut` actually has 513 points, and not 512. (Actually, it has 514 points to keep things word-aligned, but that's beside the point.)
+这些函数适用于每种 LUT，除了在上界处有个小麻烦。假设你有 *N* 个条目的 LUT。函数用了 *x*+1，而 *N*−1 和 *N* 之间的最后区间很可能不存在。这会在那一点严重搞乱插值。与其作为特例处理，不如给 LUT 加一个点。实际上 `sinlut` 有 513 个点，而非 512。（实际上，为了字对齐它有 514 个点，但那不是重点。）
 
-:::warning Lerping at the upper boundary
+:::warning 在上界处 lerp
 
-Linear interpolation needs the sampling point above and below *x*, which can cause problems at the upper boundary. Add an extra sampling point there to “finish the fence’, as it were.
+线性插值需要 *x* 上下两侧的采样点，这会在上界处引发问题。在那里加一个采样点来“把围栏合上”，就像那样。
 
 :::
 
-The direct look-up is also known as 0-order interpolation; linear interpolation is first order. Higher orders also exists but require more surrounding points and more and complexer calculations. Only attempt those if you really, really have to.
+直接查找也被称为 0 阶插值；线性插值是 1 阶。更高阶也存在，但需要更多周围点和更多更复杂的计算。只有在你真的、真的必须时才去尝试那些。
 
-### Non mathematical LUTs {#ssec-lut-nomath}
+### 非数学的查找表 {#ssec-lut-nomath}
 
-While the most obvious use of lookup tables is for precalculated mathematical functions, LUTs aren't restricted to mathematics. In my [text systems](text.html), for example, I'm using a look-up table for the character→tile-index conversion. This offers me a greater range in the distribution of tiles that otherwise would be possible. The default font uses ASCII characters 32-127, and the tiles for these are usually in tiles 0 through 95. But if for some reason I would only need the number tiles, I could set-up the character LUT for only numbers, and the text system would take it from there. the rest of the tiles would then be free for other purposes.
+虽然查找表最明显的用途是预计算数学函数，但 LUT 不限于数学。在我的[文本系统](text.html)里，例如，我用查找表做字符→图块索引的转换。这给了我比原本可能的更广的图块分布范围。默认字体用 ASCII 字符 32-127，这些图块通常在图块 0 到 95。但如果出于某种原因我只需要数字图块，我可以只为数字设置字符 LUT，文本系统会从那里接管。其余图块就空出来作他用。
 
-Another use would be flag lookup. The libraries that come with Visual C++ use LUTs for the character type routines, `isalpha()`, `isnum()` and the like. There is a table with bitflags and when you use the routines, they just grab the appropriate element and do some bit testing. You can find something similar in game programming too, like a table with bitflags for the tile types: background, walkable, trap, etc. Instead of massive switch-blocks, you might only have to do an array-lookup, which is a lot faster.
+另一个用途是标志查找。Visual C++ 附带的库用 LUT 做字符类型例程 `isalpha()`、`isnum()` 之类。有一张带位标志的表，你用这些例程时它们只抓取恰当的元素并做一点位测试。你在游戏编程里也能找到类似的，比如一张带图块类型位标志的表：背景、可走、陷阱，等等。与其用庞大的 switch 块，你可能只需做一次数组查找，那快得多。
+

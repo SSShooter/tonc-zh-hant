@@ -1,12 +1,12 @@
-# 13. Graphic Effects
+# 13. 图形特效
 
 <!-- toc -->
 
-So you know how to put sprites and backgrounds on screen, do ya? Now, how about some extra effects to liven up the place? When discussing sprites and backgrounds, we left some flags untouched, namely the [mosaic](#sec-mos) and [blending](#sec-blend) flags. There will be covered here. We'll also be looking into [windowing](#sec-win), with which you can create regions to mask out backgrounds or sprites.
+现在你已经知道如何在屏幕上放置精灵(对象)和背景了吧?那么,来点额外的特效让画面更生动如何?在讨论精灵和背景时,我们留下了一些未触及的标志位,也就是[马赛克](#sec-mos)和[混合](#sec-blend)标志。这些将在本章介绍。我们还会研究[窗口](#sec-win),利用它你可以创建区域来遮罩背景或精灵。
 
-## Mosaic {#sec-mos}
+## 马赛克 {#sec-mos}
 
-The best description of mosaic is that it makes sprites or tiles look blocky. A mosaic works in two dimensions with parameters *w<sub>m</sub>* and *h<sub>m</sub>*. These numbers divide your sprite or background into blocks of *w<sub>m</sub>* × *h<sub>m</sub>* pixels. The top-left pixel of each block is used to fill the rest of that block, which makes it blocky. {*@fig:metr-mos} shows a 1x4 mosaic for a metroid sprite. The blue lines indicate the vertical block-boundaries. The first line of each block is copied to the rest of the block, just like I said. Other examples of the mosaic effect are Zelda:LTTP when you hit an electric baddie, or Metroid Fusion when an X changes shape.
+马赛克最好的描述就是让精灵或图块看起来呈块状。马赛克在二维方向上工作,参数为 *w<sub>m</sub>* 和 *h<sub>m</sub>*。这些数值将你的精灵或背景划分为 *w<sub>m</sub>* × *h<sub>m</sub>* 像素的块。每个块左上角的像素被用来填充该块的其余部分,从而产生块状效果。{*@fig:metr-mos}显示了一个 1x4 的 metroid 精灵马赛克。蓝线标出了竖直的块边界。每个块的第一行被复制到块的其余部分,正如我所说的那样。马赛克效果的其他例子还有:当你击中带电敌人时《塞尔达:众神的三角力量》中的表现,或者当 X 改变形态时《Metroid Fusion》中的表现。
 
 <div class="lblock">
   <div class="cpt" style="width:400px;">
@@ -15,9 +15,9 @@ The best description of mosaic is that it makes sprites or tiles look blocky. A 
   </div>
 </div>
 
-### Using mosaic: sprite/bg flags and REG_MOSAIC {#ssec-mos-use}
+### 使用马赛克:精灵/背景标志位与 REG_MOSAIC {#ssec-mos-use}
 
-To use mosaic you must do two things. First, you need to enable mosaic. For individual sprites, set `OBJ_ATTR.attr0`\{C\}. For backgrounds, set `REG_BGxCNT`\{7\}. The set the mosaic levels through `REG_MOSAIC`, which looks like this:
+要使用马赛克,你必须做两件事。首先,你需要启用马赛克。对于单个精灵,设置 `OBJ_ATTR.attr0`\{C\}。对于背景,设置 `REG_BGxCNT`\{7\}。然后通过 `REG_MOSAIC` 设置马赛克等级,其格式如下:
 
 <div class="reg">
   <table class="table-reg" id="tbl:reg-mosaic">
@@ -75,17 +75,17 @@ To use mosaic you must do two things. First, you need to enable mosaic. For indi
   </table>
 </div>
 
-The <dfn>stretch</dfn> is across how many pixels the base-pixel is stretched. This corresponds to *w<sub>m</sub>*−1 or *h<sub>m</sub>*−1. With a nybble for each effect, you have stretches between 0 and 15, giving mosaic widths and heights between 1 and 16.
+<dfn>拉伸</dfn>(stretch)指的是基础像素被拉伸跨越了多少个像素。这对应于 *w<sub>m</sub>*−1 或 *h<sub>m</sub>*−1。每个效果用一个半字节(nybble)表示,因此拉伸值在 0 到 15 之间,马赛克的宽度和高度在 1 到 16 之间。
 
 :::tip Enabling mosaic
 
-For backgrounds, set bit 7 of REG_BGxCNT. For sprites, set bit 12 in attribute 0. Then set the mosaic levels in REG_MOSAIC.
+对于背景,设置 REG_BGxCNT 的第 7 位。对于精灵,设置属性 0 的第 12 位。然后在 REG_MOSAIC 中设置马赛克等级。
 
 :::
 
-### A small mosaic demo {#ssec-mos-demo}
+### 一个小型马赛克演示 {#ssec-mos-demo}
 
-There is a demo called *mos_demo* that illustrates the use of mosaic for both objects and backgrounds.
+存在一个名为 *mos_demo* 的演示程序,演示了马赛克在对象和背景上的使用。
 
 <div id="cd-mos-demo">
 
@@ -176,25 +176,25 @@ int main()
   <b>{*@fig:mos-demo}</b>: <i>mos_demo</i>.
 </div>
 
-I use two metroids in this demo. The sprite metroid is on the left, and the background metroid with inverted colors is on the right. I've shown how to set-up sprites and backgrounds before, so you should be able to follow the steps here because it's nothing new. Well, except setting the mosaic flags in `OBJ_ATTR.attr0` and REG_BG0CNT, which I've put in bold here.
+在这个演示中我使用了两个 metroid。精灵 metroid 在左侧,颜色反转的背景 metroid 在右侧。我之前已经展示过如何设置精灵和背景,所以这里的步骤你应该能够跟上,因为没有新内容。嗯,除了在 `OBJ_ATTR.attr0` 和 REG_BG0CNT 中设置马赛克标志位,这里我用粗体标出了。
 
-The mosaic effect is regulated inside the `test_mosaic()`. I use two 2d points to keep track of the current level of mosaic. The D-pad is used to increase or decrease the mosaic levels; just the D-pad sets the object's mosaic and holding down A sets that of the background.
+马赛克效果在 `test_mosaic()` 中控制。我使用两个 2D 点来跟踪当前的马赛克等级。方向键用于增加或减少马赛克等级;仅使用方向键设置对象的马赛克,按住 A 则设置背景的马赛克。
 
-On a code design note, I could have used two if-blocks here, one for objects and one for the background, but I can also switch the mosaic context via a pointer, which saves me some code. Hurray for pointers. Also, the coordinates are in .3 fixed point format, which is how I slow down the changes in the mosaic levels. Again, I could have used timer variables and more checks to see if they had reached their thresholds, but fixed-point timers are much easier and in my view cleaner too.
+从代码设计的角度说,我本可以在这里使用两个 if 代码块,一个用于对象,一个用于背景,但我也可以通过指针切换马赛克上下文,这能省下一些代码。指针万岁。此外,坐标采用 .3 定点数格式,这正是我用来减慢马赛克等级变化速度的方法。同样,我本可以使用定时器变量和更多的检查来查看它们是否达到阈值,但定点数定时器要容易得多,而且在我看来也更干净。
 
-You should really see the demo on hardware, by the way. Somehow both VBA and no$gba are both flawed when it comes to mosaic. After VBA 1.7.2, it has a problem with horizontal sprite mosaic. I do believe I've seen inconsistencies between hardware and scrolling mosaiced backgrounds, but can't remember where I saw it. As for no$gba, vertical mosaic appears to be disabled for both sprites and backgrounds.
+顺便说一下,你真的应该在真机上看看这个演示。不知为何,VBA 和 no$gba 在处理马赛克时都有缺陷。在 VBA 1.7.2 之后,它在水平精灵马赛克上存在问题。我确实见过真机与滚动马赛克背景之间不一致的情况,但记不清在哪里看到的了。至于 no$gba,垂直马赛克似乎对精灵和背景都被禁用了。
 
 :::warning Emulators and mosaic
 
-VBA and no$gba, the most popular GBA emulators both have problems with mosaic. Watch your step.
+VBA 和 no$gba 这两个最流行的 GBA 模拟器在处理马赛克时都有问题。小心脚下。
 
 :::
 
-## Blending {#sec-blend}
+## 混合 {#sec-blend}
 
-If you're not completely new to gaming or graphics, you may have heard of <dfn>alpha blending</dfn>. It allows you to combine the color values two overlapping layers, thus creating transparency (also known as semi-transparency, because something that's *completely* transparent is invisible). Some bitmap types also come with an alpha channel, which indicates either the transparency or opacity of the pixel in question.
+如果你对游戏或图形不完全陌生,你可能听说过<dfn>alpha 混合</dfn>(alpha blending)。它允许你合并两个重叠图层的颜色值,从而产生透明度(也称为半透明,因为*完全*透明的东西是不可见的)。某些位图类型还带有 alpha 通道,用来指示相关像素的透明度或不透明度。
 
-The basic idea behind blending is this. You have two layers, A and B, that overlap each other. Consider A to be on top of B. The color-value of the a pixel in this region is defined as
+混合背后的基本思想是:你有两个相互重叠的图层 A 和 B。认为 A 在 B 的上方。该区域中一个像素的颜色值定义为
 
 <table id="eq:blend">
   <tr>
@@ -203,7 +203,7 @@ The basic idea behind blending is this. You have two layers, A and B, that overl
   </tr>
 </table>
 
-where *w<sub>A</sub>* and *w<sub>B</sub>* are the <dfn>weights</dfn> of the layers. The weights are generally normalised (between 0 and 1), with 0 being fully transparent and 1 being fully visible. It is also convenient to think of color-components in this way. Here's a few things you can do with them:
+其中 *w<sub>A</sub>* 和 *w<sub>B</sub>* 是图层的<dfn>权重</dfn>(weights)。权重通常是归一化的(在 0 到 1 之间),0 表示完全透明,1 表示完全可见。用这种方式来思考颜色分量也很方便。以下是可以对它们做的一些事情:
 
 <div class="lblock">
   <table>
@@ -231,11 +231,11 @@ where *w<sub>A</sub>* and *w<sub>B</sub>* are the <dfn>weights</dfn> of the laye
   </table>
 </div>
 
-Note that in these examples the sum of the weights is 1, so that the final color *C* is between 0 (black) and 1 (white) as well. As we'll see, there are instances where you can drop out of these ranges; if this happens the values will be clipped to the standard range.
+注意在这些示例中权重之和为 1,因此最终颜色 *C* 也介于 0(黑)和 1(白)之间。正如我们将看到的,有些情况下你会超出这些范围;如果发生这种情况,数值将被裁剪到标准范围。
 
-### GBA Blending {#ssec-bld-gba}
+### GBA 混合 {#ssec-bld-gba}
 
-Backgrounds are always enabled for blending. To enable sprite-blending, set `OBJ_ATTR.attr0`\{a\}. There are three registers that control blending, which unfortunately go by many different names. The ones I use are `REG_BLDCNT`, `REG_BLDALPHA` and `REG_BLDY`. Other names are `REG_BLDMOD`, `REG_COLEV` and `REG_COLEY`, and sometimes the ‘E’ in the last two is removed. Be warned. Anyway, the first says how and on which layers the blend should be performed, the last two contain the weights. Oh, since the GBA doesn't do floating point, the weights are [fixed-point](fixed.html) numbers in 1.4 format. Still limited by 0 and 1, of course, so there are 17 blend levels.
+背景总是启用混合。要启用精灵混合,设置 `OBJ_ATTR.attr0`\{a\}。有三个控制混合的寄存器,不幸的是它们有很多不同的名字。我使用的名字是 `REG_BLDCNT`、`REG_BLDALPHA` 和 `REG_BLDY`。其他名字是 `REG_BLDMOD`、`REG_COLEV` 和 `REG_COLEY`,有时后两个中的"E"会被去掉。请当心。总之,第一个寄存器说明应在哪些图层以及如何执行混合,后两个包含权重。哦,由于 GBA 不做浮点运算,权重是 [定点数](fixed.html),采用 1.4 格式。当然仍受限于 0 和 1,因此有 17 个混合等级。
 
 <div class="reg">
   <table class="table-reg reg-huge" id="tbl:reg-bldcnt">
@@ -315,7 +315,7 @@ Backgrounds are always enabled for blending. To enable sprite-blending, set `OBJ
   </table>
 </div>
 
-The `REG_BLDALPHA` and `REG_BLDY` registers hold the blending weights in the form of <span class="rclr0"><b>eva</b></span>, <span class="rclr1"><b>evb</b></span> and <span class="rclr2"><b>ey</b></span>, all in 1.4 fixed-point format. And no, I do not know why they are called that; they just are.
+`REG_BLDALPHA` 和 `REG_BLDY` 寄存器以 <span class="rclr0"><b>eva</b></span>、<span class="rclr1"><b>evb</b></span> 和 <span class="rclr2"><b>ey</b></span> 的形式保存混合权重,全部采用 1.4 定点数格式。不,我不知道它们为什么叫这个名字;它们就叫这个。
 
 <div class="reg">
   <table class="table-reg" id="tbl:reg-bldalpha">
@@ -393,16 +393,16 @@ The `REG_BLDALPHA` and `REG_BLDY` registers hold the blending weights in the for
   </table>
 </div>
 
-### Blending caveats {#ssec-bld-cav}
+### 混合注意事项 {#ssec-bld-cav}
 
-Blending is a nice feature to have, but keep these points in mind.
+混合是个不错的特性,但请记住以下几点。
 
-- The A layers *must* be in front of the B layers. Only then will the blend actually occur. So watch your priorities.
-- In the alpha-blend mode (mode 1) the blend will only take place on the **overlapping, non-transparent** pixels of layer A and layer B. Non-overlapping pixels will still have their normal colors.
-- Sprites are affected differently than backgrounds. In particular, the blend mode specified by `REG_BLDCNT`\{6,7\} is applied only to the *non*-overlapping sections (so that effectively only fading works). For the overlapping pixels, the standard blend is *always* in effect, regardless of the current blend-mode.
-- If you are using [windows](#sec-win), you need to set the bits 5 and/or 13 in REG_WININ or REG_WINOUT for the blending to work.
+- A 图层*必须*位于 B 图层前方。只有这样混合才会真正发生。所以注意你的优先级。
+- 在 alpha 混合模式(模式 1)下,混合只在图层 A 和图层 B 的**重叠、非透明**像素上发生。非重叠像素仍保持其正常颜色。
+- 精灵与背景受到的影响不同。特别是,`REG_BLDCNT`\{6,7\} 指定的混合模式只应用于*非*重叠部分(因此实际上只有淡入淡出起作用)。对于重叠像素,标准混合*总是*生效,无论当前混合模式如何。
+- 如果你正在使用[窗口](#sec-win),需要在 REG_WININ 或 REG_WINOUT 中设置第 5 位和/或第 13 位,混合才能工作。
 
-### The obligatory demo {#ssec-bld-demo}
+### 例行的演示 {#ssec-bld-demo}
 
 <div id="cd-bld-demo">
 
@@ -533,7 +533,7 @@ int main()
   <b>{*@fig:bld-demo}</b>: blend demo; mode=2, eva=0, evb=0, ey=10.
 </div>
 
-As always, there's a demo that goes with all this stuff. *bld_demo* features 2 metroids (the left one is a sprite, the right one (palette inverted) is on background 0) on a fence-like background (bg 1 to be precise) and lets you modify the mode, and the 3 weights independently. The mode, by the way, is given in the top left corner. The controls are:
+和往常一样,有一份演示程序配合所有这些内容。*bld_demo* 的特点是:两个 metroid(左边是精灵,右边(调色板反转)在背景 0 上)位于一个栅栏状背景(准确说是 bg 1)上,并允许你独立修改模式以及 3 个权重。顺便说一下,模式显示在左上角。控制方式如下:
 
 <div class="lblock">
   <table>
@@ -557,15 +557,15 @@ As always, there's a demo that goes with all this stuff. *bld_demo* features 2 m
   </table>
 </div>
 
-The function of interest is `test_blend()`. This is where the key handling takes place and where the blend settings are altered. Similar to *mos_demo*, .3 fixeds are used for the blend weight variables to slow the rate of change to more comfortable levels. To set the blend registers themselves I'm using `BUILD()` macros and `BF_SET()`, which work well enough for these purposes. It would be trivially easy to write wrapper functions here of course. Most of the code is pretty standard; just play around with the blend modes and weights and see what happens.
+值得关注的函数是 `test_blend()`。按键处理以及混合设置的修改都在这里进行。与 *mos_demo* 类似,使用 .3 定点数作为混合权重变量,以将变化速率降低到更舒适的水平。设置混合寄存器本身时,我使用了 `BUILD()` 宏和 `BF_SET()`,对于此目的来说它们足够好。当然,在这里写包装函数也是轻而易举的。大部分代码都相当标准;只需把玩混合模式和权重,看看会发生什么。
 
-Do take note of how, like I said earlier, the sprite metroid is affected differently than the bg-metroid. The background-background blend behaves exactly as the mode says it should; the sprite, on the other hand, always has a blend if they overlap with the fence's pixels, and the rest obeys the mode, which is what I told you in the caveats.
+请务必注意,正如我之前所说,精灵 metroid 受到的影响与背景 metroid 不同。背景-背景混合完全按照模式应有的方式工作;而精灵,另一方面,只要它们与栅栏的像素重叠,就总是发生混合,其余部分遵循模式,这正是我在注意事项中告诉你的。
 
-## Windowing {#sec-win}
+## 窗口 {#sec-win}
 
-Windowing allows you to divide the screen into rectangular areas known as, well, windows. There are two basic windows: <dfn>win0</dfn> and <dfn>win1</dfn>. There's also a third type of window, the <dfn>object</dfn> window. This creates a window out of the visible pixels of the sprites. You can enable the windows by setting `REG_DISPCNT`\{d,e,f\}, respectively.
+窗口允许你将屏幕划分为矩形区域,也就是窗口。有两个基本窗口:<dfn>win0</dfn> 和 <dfn>win1</dfn>。还有第三种窗口,即<dfn>对象</dfn>窗口。它利用精灵的可见像素创建一个窗口。你可以通过分别设置 `REG_DISPCNT`\{d,e,f\} 来启用这些窗口。
 
-A rectangular window is defined by its <dfn>left</dfn>, <dfn>right</dfn>, <dfn>top</dfn> and <dfn>bottom</dfn> sides. Unless you're one of *those* people, who think it's funny to say that a rectangle has only two sides: an inside and an outside. In fact, this is truer than you think. The union of win0 and win1 is the <dfn>inside</dfn> window. There's also the <dfn>outside</dfn> window, which is everything else. In other words:
+矩形窗口由其<dfn>左</dfn>、<dfn>右</dfn>、<dfn>上</dfn>、<dfn>下</dfn>边界定义。除非你是*那种*人,认为说一个矩形只有两条边很可笑:里边和外边。事实上,这比你想象的更真实。win0 和 win1 的并集是<dfn>内部</dfn>窗口。还有<dfn>外部</dfn>窗口,也就是其余所有部分。换句话说:
 
 <div class="lblock">
   <table>
@@ -594,9 +594,9 @@ A rectangular window is defined by its <dfn>left</dfn>, <dfn>right</dfn>, <dfn>t
   </table>
 </div>
 
-### Window boundaries {#ssec-win-bound}
+### 窗口边界 {#ssec-win-bound}
 
-Both win0 and win1 have 2 registers that define their boundaries. In order these are `REG_WIN0H` (`0400:0040h`), `REG_WIN1H` (`0400:0042h`), `REG_WIN0V` (`0400:0044h`) and `REG_WIN1V` (`0400:0046h`), which have the following layout:
+win0 和 win1 都有 2 个寄存器定义它们的边界。按顺序是 `REG_WIN0H` (`0400:0040h`)、`REG_WIN1H` (`0400:0042h`)、`REG_WIN0V` (`0400:0044h`) 和 `REG_WIN1V` (`0400:0046h`),其布局如下:
 
 <div class="reg">
   <table class="table-reg" id="tbl:reg-winxy">
@@ -660,11 +660,11 @@ Both win0 and win1 have 2 registers that define their boundaries. In order these
   </table>
 </div>
 
-So you have one byte for each value. That's bytes as in *unsigned* chars. The contents of a window are drawn from starting at the top-left up to, but not including, the bottom-right. What you have to realize is that this is also true when, say, the right value is lower than the left value. In such a case, there's a wrap-around and everything on that line is inside the window, except the pixels between R and L. If both *R* < *L* and *B* < *T* then you get a window in the shape of a cross.
+所以每个值用一个字节。这里的字节指的是*无符号*字符(unsigned char)。窗口的内容从左上角开始绘制,直到但不包括右下角。你必须意识到,当(例如)右值小于左值时,情况也是如此。在这种情况下,会发生回绕,该行上的所有内容都在窗口内,除了 R 和 L 之间的像素。如果 *R* < *L* 且 *B* < *T*,那么你会得到一个十字形状的窗口。
 
-### Window content {#ssec-win-content}
+### 窗口内容 {#ssec-win-content}
 
-The possible content for the windows are backgrounds 0-3 and objects. No suprise there, right? In total, we have regions: win0, win1, winOut and winObj. `REG_WININ` (`0400:0048h`) controls win0 and win1, `REG_WINOUT` (`0400:004ah`) takes care of winOut and winObj. There's one bit for each content-type, plus one for blending, which you will need if you intend to use blending on the contents of that particular window.
+窗口可能包含的内容是背景 0-3 和对象。没什么好奇怪的,对吧?我们总共有这些区域:win0、win1、winOut 和 winObj。`REG_WININ` (`0400:0048h`) 控制 win0 和 win1,`REG_WINOUT` (`0400:004ah`) 负责 winOut 和 winObj。每种内容类型有一位,外加一位用于混合,如果你想在该特定窗口的内容上使用混合,就需要它。
 
 <div class="reg">
   <table class="table-reg reg-huge" id="tbl:reg-winio">
@@ -739,7 +739,7 @@ The possible content for the windows are backgrounds 0-3 and objects. No suprise
   </table>
 </div>
 
-There is little in the way of macros or bit-defines here because they're not really necessary. Do have these in *tonc_memdef.h* though:
+这里几乎不需要宏或位定义,因为它们并不是真正必要的。不过 *tonc_memdef.h* 中确实有这些:
 
 ```c
 #define WIN_BUILD(low, high)    \
@@ -750,41 +750,41 @@ There is little in the way of macros or bit-defines here because they're not rea
 #define WINOUT_BUILD(out, obj)      WIN_BUILD(out, obj)
 ```
 
-There are still a few things you should know about windows. First of all, when you turn on windowing in `REG_DISPCNT`, nothing will show up. There are two reasons for this. Firstly, the boundary registers are all 0, so the whole screen is basically winOut. Secondly, and this is really important: a background or object will only show up in the windows in which it is enabled! This means that unless at least *some* bits have been set in `REG_WININ` or `REG_WINOUT` nothing will show. This presents you with an effective way of hiding stuff, as we'll see in the demo. There is a third thing that you must remember, namely that win0 takes precedence over win1, which in turn takes precedence over winOut. I'm not sure how winObj fits into this yet.
+关于窗口,还有几件事你应该知道。首先,当你在 `REG_DISPCNT` 中开启窗口时,什么都不会显示。这有两个原因。首先,边界寄存器全为 0,因此整个屏幕基本上就是 winOut。其次,这一点非常重要:背景或对象只会显示在启用了它的窗口中!这意味着除非在 `REG_WININ` 或 `REG_WINOUT` 中至少设置了*一些*位,否则什么都不会显示。正如我们将在演示中看到的那样,这为你提供了一种有效的隐藏内容的方法。还有第三件你必须记住的事,即 win0 优先于 win1,而 win1 又优先于 winOut。我还不确 winObj 在这个顺序中处于什么位置。
 
 :::tip Windowing necessities
 
-To make windowing work for you, you need to do the following things:
+要让窗口为你工作,你需要做以下事情:
 
-- Enable windows in `REG_DISPCNT`
-- Indicate in which window you want things to show up by setting the appropriate bits in `REG_WININ` and `REG_WINOUT`. You **must** set at least some bits here if you have windowing enabled, or nothing will show up at all!
-- Set the desired window sizes in `REG_WINxH/V`. If you don't, everything will be considered in the Out-window.
-
-:::
-
-### Caveats {#ssec-win-caveat}
-
-There's something really weird going on when either the top or bottom is outside of the screen. Multiple somethings in fact, see the demo *on hardware!* for details.
-
--   If the top is in the \[-29, 0⟩ range (i.e., \[227, 255\]), the window will *not* be rendered at all. Likewise, if the bottom is inside this range, the window covers the height of the screen. I cannot say exactly what the cause is, but since the VCount also stops at 227, that might have something to do with it.
--   Also, if you move the bottom from, 161 to 160, the window will also cover the whole length, but only for a frame or so.
--   The points mentioned above assume *T*<*B*. If the top is bigger, then the effect is reversed.
-
-:::warning Windowing weirdness not on emulators
-
-This behaviour does *not* appear on the emulators I've tested on.
-
-VBA clips the windows, like common sense would lead you to believe. (Of course, common sense also tells you that the Sun orbits the Earth or that the stars are pinpricks on a large black canvas. Common sense is hardly common).
-
-MappyVM and BoycottAdvance simply remove the window if any of the boundaries goes off the screen.
+- 在 `REG_DISPCNT` 中启用窗口
+- 通过设置 `REG_WININ` 和 `REG_WINOUT` 中的相应位,指明你希望内容显示在哪些窗口中。如果启用了窗口,你**必须**至少在这里设置一些位,否则什么都不会显示!
+- 在 `REG_WINxH/V` 中设置所需的窗口大小。如果不设置,所有内容都会被视为在 Out 窗口中。
 
 :::
 
-### Demo: there's a rocket in my pocket {#ssec-win-demo}
+### 注意事项 {#ssec-win-caveat}
 
-In case you hadn't noticed yet, I like the Metroid series. I really like the Metroid series. If you have ever played Super Metroid chances are that you've used the X-ray scope, which let's you see through the layers and find items and secret passages with much more ease. Guess how that was done? Yup, windowing. The windowing demo *win_demo* essentially does the same thing. There's a rocket-item hidden behind the background layers and you have an X-ray rectangle which you can move around the screen so you can find it.
+当上边界或下边界在屏幕之外时,会发生一些非常奇怪的事情。实际上是多个奇怪的事情,详见真机上的演示!
 
-The controls are simple: use the D-pad to move the window around; START repositions the rocket. I've also added finer movement (A + D-pad) so you can see the strange behaviour the windows seem to exhibit at certain positions.
+-   如果上边界在 \[-29, 0⟩ 范围内(即 \[227, 255\]),窗口将*完全不*被渲染。同样,如果下边界在这个范围内,窗口将覆盖整个屏幕高度。我说不清确切原因,但由于 VCount 也在 227 处停止,这可能与它有关。
+-   另外,如果你将下边界从 161 移动到 160,窗口也将覆盖整个长度,但只持续一帧左右。
+-   上述各点假设 *T*<*B*。如果上边界更大,则效果相反。
+
+:::warning 窗口异常（模拟器上不会出现）
+
+这种行为在我测试过的模拟器上*不会*出现。
+
+VBA 会裁剪窗口,正如常识让你相信的那样。(当然,常识也会告诉你太阳绕地球转,或者星星是巨大黑色画布上的针孔。常识其实并不常见)。
+
+MappyVM 和 BoycottAdvance 只是在任何边界超出屏幕时直接移除窗口。
+
+:::
+
+### 演示:我口袋里有枚火箭 {#ssec-win-demo}
+
+如果你还没注意到,我喜欢《Metroid》系列。我真的很喜欢《Metroid》系列。如果你玩过《Super Metroid》,很可能用过 X 射线镜,它可以让你看穿各个图层,更轻松地找到物品和秘密通道。猜猜这是怎么做到的?没错,窗口。窗口演示 *win_demo* 本质上做的是同样的事情。背景图层后面藏着一枚火箭道具,你有一个可以围着屏幕移动的 X 射线矩形,这样你就能找到它。
+
+控制方式很简单:使用方向键移动窗口;START 重新定位火箭。我还加入了更精细的移动(A + 方向键),这样你可以看到窗口在某些位置表现出的奇怪行为。
 
 <div class="lblock">
   <table>
@@ -803,7 +803,7 @@ The controls are simple: use the D-pad to move the window around; START repositi
   </table>
 </div>
 
-What follows below is the majority of the demo's code. I have removed the functions that set up the backgrounds and sprite because there's nothing in them that you haven't seen before already. The earlier {@fig:win-dgrm}a is a screenshot of the demo in action.
+下面给出的是该演示的大部分代码。我去掉了设置背景和精灵的函数,因为它们里没有任何你之前没见过的内容。前面的 {@fig:win-dgrm}a 是该演示运行时的截图。
 
 <div id="cd-win-demo">
 
@@ -903,19 +903,19 @@ int main()
 ```
 </div>
 
-Initializing the windows is done at point 2: both win0 and win1 in `REG_DISPCNT`, objects in win 0, bg 0 in win 1 and bg1 in winOut. The windows' sizes are set using `win_copy()` in each frame. I am using two rectangle variables to keep track of where the windows are, because the window-rectangle registers themselves are write only. See {@fig:win-dgrm} again for the result.
+窗口的初始化在标号 2 处完成:在 `REG_DISPCNT` 中启用 win0 和 win1,对象在 win 0 中,背景 0 在 win 1 中,背景 1 在 winOut 中。窗口的大小在每一帧通过 `win_copy()` 设置。我使用两个矩形变量来跟踪窗口的位置,因为窗口矩形寄存器本身是只写的。结果再次参见 {@fig:win-dgrm}。
 
-Usually, objects are shown in front of backgrounds. However, because objects are now only set to appear inside win 0, they are effectively hidden everywhere else: you will only see the rocket or parts of it if the rocket and win 0's rectangle overlap. Furthermore, you will notice that because *only* objects are set for win 0, the window itself is completely black.
+通常,对象显示在背景前方。然而,由于对象现在只设置在 win 0 内显示,它们在其他任何地方都被有效隐藏:只有当火箭与 win 0 的矩形重叠时,你才会看到火箭或其部分。此外,你会注意到,由于 win 0 中只设置了对象,窗口本身完全是黑色的。
 
-The rest of the demo is rather uneventful. I could explain that the way mask the variable `keys` with the previous keystate when **A** is held down lets me switch between the `key_hit()` and `key_is_down()` functions, giving me the functionality I require to switch between direct and fine motion for the X-ray window, but it's not all that interesting and quite besides the point of the demo. What's also beside the point of the demo, but *is* interesting to mention, is the randomization of the rocket's position.
+演示的其余部分相当平淡。我可以解释当按住 **A** 时,用之前按键状态对变量 `keys` 进行掩码,让我在 `key_hit()` 和 `key_is_down()` 函数之间切换,从而为我提供了 X 射线窗口在直接移动和精细移动之间切换所需的功能,但这并不那么有趣,而且与本演示的要点无关。另一件与本演示要点无关、但*确实*值得一提的,是火箭位置的随机化。
 
-#### Random numbers
+#### 随机数
 
-Random numbers on a computer is a somewhat quaint notion. The whole point of a computer is to have a reliable calculator, and random numbers are pretty much the antithesis of that. Computer generated random numbers are also called <dfn>pseudo-random</dfn>, because they aren't intrinsically random, just deterministically generated to *seem* that way. There are statistical tests to see if a given routine is sufficiently random. However, this isn't nuclear physics we're talking about, this is game programming. We mostly need something that can, say, make an enemy zig or zag without any discernable pattern; that it can kill a Monte Carlo simulation is totally irrelevant.
+计算机上的随机数是个有点新奇的概念。计算机的全部意义在于拥有一台可靠的计算机,而随机数几乎是它的对立面。计算机生成的随机数也称为<dfn>伪随机</dfn>(pseudo-random),因为它们并非内在随机,只是确定性地生成以*显得*随机。有一些统计测试可以检验给定例程是否足够随机。然而,我们谈论的不是核物理,而是游戏编程。我们主要需要的是某种东西,比如让敌人以任何可辨别的模式之字形移动;它能否杀死蒙特卡洛模拟完全无关紧要。
 
-One class of generators are <dfn>linear congruential generators</dfn>, which follow the pattern *N*<sub>i+1</sub> = (*a·N*<sub>i</sub> + *c*)%*m*, with *N*<sub>i</sub>∈\[0, *m*⟩. With properly picked parameters *a*, *c* and *m*, the routine can be quite adequate. If you ever encounter a `rand()` function in any kind of standard library, chances are it's one of these. Not only are these easy to implement, they are likely to be fast as well.
+一类生成器是<dfn>线性同余生成器</dfn>(linear congruential generators),遵循模式 *N*<sub>i+1</sub> = (*a·N*<sub>i</sub> + *c*)%*m*,其中 *N*<sub>i</sub>∈\[0, *m*⟩。通过适当选取参数 *a*、*c* 和 *m*,该例程可以相当充分。如果你在任何标准库中遇到过 `rand()` 函数,很可能就是其中之一。它们不仅易于实现,而且很可能也很快。
 
-The following routine `qran()` is taken from my numerical methods book, [Numerical Recipes](http://www.amazon.com/gp/product/0521431085/103-4874440-3995059), pp 275, where it is labelled a quick and dirty generator, but an adequate one. Consisting of one addition and one multiply (*m*=2<sup>32</sup>, so done automatically), it is *very* fast. The actual number returned are the top 15 bits from *N*, because the upper bits are apparently more random than the lower, and also because 15 gives a \[0,32767\] range, which is something of an unofficial standard, AFAIK. Note that there is a second function, `sqran()` used to <dfn>seed</dfn> the generator. Since the process itself is still deterministic, you need a seed to ensure that you don't get the same sequence every time. Unless, that is, you actually *want* that to happen. This isn't such a strange idea if you think about it: you could use it to generate maps, for example. Instead of storing the whole map so that it looks the same every time you load it, you just store the seed and you're done. This is how the planetary terrains in [Star Control 2](https://sc2.sourceforge.net/) are made; I very much doubt it would have been possible to store bitmaps of all the 1000+ planets it had. This is why `sqran()` also returns the current *N*, so you can reset it later if necessary.
+下面的例程 `qran()` 取自我的数值方法书 [Numerical Recipes](http://www.amazon.com/gp/product/0521431085/103-4874440-3995059),第 275 页,在那里它被标记为一个快速而简陋的生成器,但还算充分。它由一个加法和一个乘法组成(*m*=2<sup>32</sup>,因此自动完成),速度*非常*快。实际返回的数字是 *N* 的高 15 位,因为高位显然比低位更随机,也因为 15 给出了 \[0,32767\] 的范围,据我所知,这是一个非官方的标准。注意还有第二个函数 `sqran()`,用于为生成器<dfn>播种</dfn>(seed)。由于过程本身仍是确定性的,你需要一个种子来确保不会每次都得到相同的序列。除非你确实*想要*那样。如果你想想,这并非奇怪的想法:例如,你可以用它来生成地图。与其存储整张地图以便每次加载时看起来都一样,你只需存储种子就完成了。这正是 [Star Control 2](https://sc2.sourceforge.net/) 中行星地形的生成方式;我非常怀疑是否可能存储它所有 1000 多个行星的位图。这就是为什么 `sqran()` 还返回当前的 *N*,以便必要时稍后重置它。
 
 <div id="cd-qran">
 
@@ -944,13 +944,13 @@ INLINE int qran()
 ```
 </div>
 
-I'll say again, this is not a very advanced random generator, but it'll be enough for what I need. If you want a better (but slower) one, try the [Mersenne Twister](https://en.wikipedia.org/wiki/Mersenne_twister). You can find a nice implementation on it on PERN's [new sprite page](https://web.archive.org/web/20160323220658/http://www.drunkencoders.com/tutorials/GBA/day_3.html).
+我再说一遍,这不是一个非常先进的随机数生成器,但对于我的需求来说已经足够。如果你想要一个更好(但更慢)的,试试 [Mersenne Twister](https://en.wikipedia.org/wiki/Mersenne_twister)。你可以在 PERN 的 [new sprite page](https://web.archive.org/web/20160323220658/http://www.drunkencoders.com/tutorials/GBA/day_3.html) 上找到一个不错的实现。
 
-#### Ranged random numbers
+#### 范围随机数
 
-Getting a random number is one thing; getting a random number in a particular range is another. It seems simple enough, of course: for a number between, say, 0 and 240 you'd use modulo 240. However, as the GBA doesn't have a hardware divide, it'll cost quite a number of cycles. Fortunately, there is a simple way out of it.
+得到一个随机数是一回事;得到一个特定范围内的随机数是另一回事。当然,这看起来足够简单:例如,对于 0 到 240 之间的数,你会用 modulo 240。然而,由于 GBA 没有硬件除法,它将消耗相当多的周期。幸运的是,有一个简单的解决办法。
 
-I said that `qran()`, like stdlib's `rand()` has a range between 0 and 0x8000. You can also see this as a range between 0 and 1, if you interpret them as .15 fixed point numbers. By multiplying with 240, you'll have the desired ranged random number, and it only costs a multiplication and a shift. This technique works for every random number generator, as long as you pay attention to its maximum range and integer overflow (which you should pay attention to anyway). Tonclib's version of this is called `qran_range()`.
+我说过 `qran()`,就像 stdlib 的 `rand()` 一样,范围是 0 到 0x8000。你也可以将其视为 0 到 1 之间的范围,如果你将它们解释为 .15 定点数。通过乘以 240,你将得到所需的范围随机数,而这只花费一次乘法和一次移位。这种技术适用于每个随机数生成器,只要你注意其最大范围和整数溢出(无论如何你都应该注意)。Tonclib 的这个版本叫做 `qran_range()`。
 
 ```c
 //! Ranged random number
@@ -961,8 +961,8 @@ INLINE int qran_range(int min, int max)
 {    return (qran()*(max-min)>>15)+min;     }
 ```
 
-In the demo, I'm using `qran_range()` twice to keep the sprite position inside the screen at all times. While the position itself could be predicted beforehand with some investigation, I don't think it'll be that easy. And if you really put that kind of effort in it, I'd say you would deserve something for your troubles. If you reload the demo a few times, you will notice that the sequence of positions is always the same. This is why they're called *pseudo*-random. To get a different sequence, the seed value should be different. I haven't even seeded it once here because it's not really important for this, but the usual trick to seed it with something involving time: for example, the number of frames or cycles before one actually starts a game, counted from the various intro screens that may precede it. Even a small difference in the seed can produce wildly varying sequences.
+在演示中,我两次使用 `qran_range()` 来使精灵位置始终保持在屏幕内。虽然位置本身可以通过一些调查提前预测,但我认为不会那么容易。如果你真的下了那种功夫,我会说你值得为此获得点什么。如果你重新加载几次演示,你会注意到位置序列总是相同的。这就是为什么它们被称为*伪*随机。要获得不同的序列,种子值应该不同。我在这里甚至一次都没有播种,因为这对本演示并不重要,但通常的诀窍是用涉及时间的东西播种:例如,在真正开始游戏之前,从可能前置的各种介绍屏幕开始计数的帧数或周期数。即使是种子的微小差异也能产生截然不同的序列。
 
-## Conclusions {#sec-conc}
+## 结论 {#sec-conc}
 
-Technically speaking you probably won't really need mosaic, blending or windowing in games, but they're great for subtle effects, like a ‘shock-hit’ or spotlights. They're also of great use for various types of scene transitions; a fade to black can be easily implemented using the blend registers. Also fun are various HBlank effects using windows, changing the rectangles every HBlank to give beams, side-way wipes or circlular windows. However, to be able to do that you need to know how to work with interrupts. Or a special case of DMA known as HDMA, which just happens to be up next.
+从技术上讲,在游戏中你可能并不真正需要马赛克、混合或窗口,但它们非常适合微妙的效果,比如"受击"或聚光灯。它们对于各种类型的场景过渡也非常有用;利用混合寄存器可以轻松实现淡出到黑色。利用窗口的各种 HBlank 效果也很有趣,在每个 HBlank 改变矩形,产生光束、横向擦除或圆形窗口。然而,要做到这一点,你需要知道如何使用中断。或者一种称为 HDMA 的 DMA 特例,这正是接下来要讲的内容。
