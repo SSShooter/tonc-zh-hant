@@ -55,9 +55,9 @@ SITEMAP_DOMAIN="https://gbadev-org.github.io" python3 gen_sitemap.py
 - `output/sitemap.xml`（由 `gen_sitemap.py` 生成）
 
 ### sitemap 说明
-- 路径前缀（如 `/tonc/`）自动取自 `book.toml` 的 `[output.html] site-url`，与构建配置同步，无需手改。
-- 仅**域名**需要替换：`SITEMAP_DOMAIN` 环境变量覆盖（默认 `https://example.com`）。
-- 脚本会跳过 `print.html` / `404.html`；`index.html` 映射为站点根目录 `https://<domain>/tonc/`。
+- 路径前缀（根目录 `/`）自动取自 `book.toml` 的 `[output.html] site-url`，与构建配置同步，无需手改。
+- 仅**域名**需要替换：`SITEMAP_DOMAIN` 环境变量覆盖（默认 `https://tonc-zh.ssshooter.com`）。
+- 脚本会跳过 `print.html` / `404.html`；`index.html` 映射为站点根目录 `https://<domain>/`。
 
 ---
 
@@ -74,8 +74,8 @@ npx wrangler pages deploy output --project-name <你的 Pages 项目名>
 #   Cloudflare Dashboard → Pages → 你的项目 → "Upload assets" → 选择 output/ 目录
 ```
 
-> 自定义域名 / 子路径：站点本来就以 `/tonc/` 为前缀（见 `book.toml` 的 `site-url`）。
-> 若挂在子路径下，确保 SITEMAP_DOMAIN 与最终访问地址一致，否则 sitemap 里的 URL 会不对。
+> 自定义域名：站点部署在域名根目录（见 `book.toml` 的 `site-url = "/"`）。
+> 部署时通过 `SITEMAP_DOMAIN` 指定正式域名，确保与最终访问地址一致，否则 sitemap 里的 URL 会不对。
 
 ---
 

@@ -14,7 +14,7 @@ command = "cargo run -p pandocs-preproc --locked --release --"
 [output.html]
 git-repository-url = "https://github.com/gbadev-org/tonc"
 edit-url-template = "https://github.com/gbadev-org/tonc/edit/master/{path}"
-site-url = "/tonc/"
+site-url = "/"
 additional-css = [
     "theme/css/tonc.css",
 #    "theme/css/tonc_dark.css"
